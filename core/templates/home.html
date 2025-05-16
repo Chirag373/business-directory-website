@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Business Directory - Find Local Businesses{% endblock %}
+
+{% block content %}
+  <!-- Banner -->
+  <div class="banner">
+    <div class="banner-content">
+      <h1>Business Directory</h1>
+      <p>Find local businesses and exclusive discounts all in one place. Connect with trusted handymen and service providers in your area.</p>
+    </div>
+  </div>
+
+  <!-- Search Section -->
+  <section class="search-section">
+    <div class="search-container">
+      <div class="search-box">
+        <label for="state">State</label>
+        <select id="state">
+          <option value="">Select State</option>
+          <option value="CA">California</option>
+          <option value="NY">New York</option>
+          <option value="TX">Texas</option>
+          <option value="FL">Florida</option>
+        </select>
+      </div>
+      <div class="search-box">
+        <label for="county">County</label>
+        <select id="county" disabled>
+          <option value="">Select County</option>
+        </select>
+      </div>
+      <div class="search-box">
+        <label for="city">City</label>
+        <select id="city" disabled>
+          <option value="">Select City</option>
+        </select>
+      </div>
+      <button class="search-btn">
+        Search
+      </button>
+    </div>
+  </section>
+
+  <!-- Business Cards Section -->
+  <section class="business-cards-section">
+    <h2 class="section-title">Featured Businesses</h2>
+    
+    <div class="business-cards-container">
+      <!-- Card 1 -->
+      <div class="business-card-wrapper">
+        <div class="business-card" id="card1">
+          <div class="business-card-front">
+            <div class="card-image-container">
+              <img src="{% static 'images/bd.jpg' %}" alt="John's Plumbing Business Card" class="card-image">
+            </div>
+            <h3 class="card-title">John's Plumbing</h3>
+            <p class="card-description">Professional plumbing services for all your needs. Emergency repairs, installations, and maintenance.</p>
+            <a href="https://johnsplumbing.com" class="card-website">johnsplumbing.com</a>
+            <div class="promo-indicator active"></div>
+            <div class="promo-code">SAVE20</div>
+          </div>
+          <div class="business-card-back">
+            <h3 class="card-title">Contact Details | Plumbing</h3>
+            <p class="card-description">
+              Phone: (555) 123-4567<br>
+              Email: info@johnsplumbing.com<br>
+              Hours: Mon-Fri 8am-6pm<br>
+              Services: Repairs, Installations, Maintenance<br>
+              Licensed & Insured
+            </p>
+          </div>
+        </div>
+        <button class="flip-label" data-card="card1">Back Side</button>
+      </div>
+      
+      <!-- Card 2 -->
+      <div class="business-card-wrapper">
+        <div class="business-card" id="card2">
+          <div class="business-card-front">
+            <div class="card-image-container">
+              <img src="{% static 'images/bd.jpg' %}" alt="Elite Electrical Business Card" class="card-image">
+            </div>
+            <h3 class="card-title">Elite Electrical</h3>
+            <p class="card-description">Residential and commercial electrical services. Wiring, installations, repairs, and inspections.</p>
+            <a href="https://eliteelectrical.com" class="card-website">eliteelectrical.com</a>
+            <div class="promo-indicator"></div>
+          </div>
+          <div class="business-card-back">
+            <h3 class="card-title">Contact Details | Electrical</h3>
+            <p class="card-description">
+              Phone: (555) 987-6543<br>
+              Email: service@eliteelectrical.com<br>
+              Hours: Mon-Sat 7am-7pm<br>
+              Services: Wiring, Installations, Repairs<br>
+              24/7 Emergency Service
+            </p>
+          </div>
+        </div>
+        <button class="flip-label" data-card="card2">Back Side</button>
+      </div>
+      
+      <!-- Card 3 -->
+      <div class="business-card-wrapper">
+        <div class="business-card" id="card3">
+          <div class="business-card-front">
+            <div class="card-image-container">
+              <img src="{% static 'images/bd.jpg' %}" alt="Mike's Home Repair Business Card" class="card-image">
+            </div>
+            <h3 class="card-title">Mike's Home Repair</h3>
+            <p class="card-description">General repairs, carpentry, drywall, painting, and more. Quality craftsmanship guaranteed.</p>
+            <a href="https://mikeshomerepair.com" class="card-website">mikeshomerepair.com</a>
+            <div class="promo-indicator active"></div>
+            <div class="promo-code">FIRST15</div>
+          </div>
+          <div class="business-card-back">
+            <h3 class="card-title">Contact Details | Home Repair</h3>
+            <p class="card-description">
+              Phone: (555) 234-5678<br>
+              Email: mike@mikeshomerepair.com<br>
+              Hours: Mon-Fri 8am-5pm<br>
+              Services: Carpentry, Drywall, Painting<br>
+              Free Estimates
+            </p>
+          </div>
+        </div>
+        <button class="flip-label" data-card="card3">Back Side</button>
+      </div>
+      
+      <!-- Card 4 -->
+      <div class="business-card-wrapper">
+        <div class="business-card" id="card4">
+          <div class="business-card-front">
+            <div class="card-image-container">
+              <img src="{% static 'images/bd.jpg' %}" alt="Green Landscaping Business Card" class="card-image">
+            </div>
+            <h3 class="card-title">Green Landscaping</h3>
+            <p class="card-description">Professional landscaping and lawn maintenance services. Garden design, irrigation, and seasonal care.</p>
+            <a href="https://greenlandscaping.com" class="card-website">greenlandscaping.com</a>
+            <div class="promo-indicator"></div>
+          </div>
+          <div class="business-card-back">
+            <h3 class="card-title">Contact Details | Landscaping</h3>
+            <p class="card-description">
+              Phone: (555) 876-5432<br>
+              Email: info@greenlandscaping.com<br>
+              Hours: Mon-Sun 7am-7pm<br>
+              Services: Landscaping, Lawn Care, Garden Design<br>
+              Eco-friendly Methods
+            </p>
+          </div>
+        </div>
+        <button class="flip-label" data-card="card4">Back Side</button>
+      </div>
+      
+      <!-- Card 5 -->
+      <div class="business-card-wrapper">
+        <div class="business-card" id="card5">
+          <div class="business-card-front">
+            <div class="card-image-container">
+              <img src="{% static 'images/bd.jpg' %}" alt="Pro HVAC Services Business Card" class="card-image">
+            </div>
+            <h3 class="card-title">Pro HVAC Services</h3>
+            <p class="card-description">Heating, ventilation, and air conditioning specialists. Installation, repair, and maintenance.</p>
+            <a href="https://prohvac.com" class="card-website">prohvac.com</a>
+            <div class="promo-indicator active"></div>
+            <div class="promo-code">COOL25</div>
+          </div>
+          <div class="business-card-back">
+            <h3 class="card-title">Contact Details | HVAC</h3>
+            <p class="card-description">
+              Phone: (555) 345-6789<br>
+              Email: service@prohvac.com<br>
+              Hours: Mon-Fri 8am-8pm, Sat 9am-5pm<br>
+              Services: HVAC Installation, Repair, Maintenance<br>
+              Energy-efficient Solutions
+            </p>
+          </div>
+        </div>
+        <button class="flip-label" data-card="card5">Back Side</button>
+      </div>
+      
+      <!-- Card 6 -->
+      <div class="business-card-wrapper">
+        <div class="business-card" id="card6">
+          <div class="business-card-front">
+            <div class="card-image-container">
+              <img src="{% static 'images/bd.jpg' %}" alt="Superior Roofing Business Card" class="card-image">
+            </div>
+            <h3 class="card-title">Superior Roofing</h3>
+            <p class="card-description">Complete roofing solutions. Repairs, installations, inspections, and maintenance for all roof types.</p>
+            <a href="https://superiorroofing.com" class="card-website">superiorroofing.com</a>
+            <div class="promo-indicator active"></div>
+            <div class="promo-code">ROOF10</div>
+          </div>
+          <div class="business-card-back">
+            <h3 class="card-title">Contact Details | Roofing</h3>
+            <p class="card-description">
+              Phone: (555) 456-7890<br>
+              Email: info@superiorroofing.com<br>
+              Hours: Mon-Fri 7am-6pm<br>
+              Services: Roof Repair, Installation, Inspection<br>
+              10-Year Warranty
+            </p>
+          </div>
+        </div>
+        <button class="flip-label" data-card="card6">Back Side</button>
+      </div>
+    </div>
+  </section>
+{% endblock %}

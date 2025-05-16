@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}Contact Us - Business Directory 2.0{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/contact.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Contact Form Section -->
+<section class="contact-section">
+    <h2 class="section-title">Contact Us</h2>
+
+    <div class="contact-container">
+        <form action="" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="name" class="form-label">Your Name</label>
+                <input type="text" id="name" name="name" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone" class="form-label">Phone Number</label>
+                <input type="tel" id="phone" name="phone" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="subject" class="form-label">Subject</label>
+                <input type="text" id="subject" name="subject" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="message" class="form-label">Your Message</label>
+                <textarea id="message" name="message" class="form-control" rows="6" required></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit Message</button>
+        </form>
+
+        <div class="contact-info">
+            <h3>Contact Information</h3>
+
+            <div class="contact-details">
+                <div class="contact-item">
+                    <div class="contact-icon">✉</div>
+                    <div class="contact-text">
+                        <h4>Email</h4>
+                        <p>info@bd2.com</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon">☎</div>
+                    <div class="contact-text">
+                        <h4>Phone</h4>
+                        <p>(555) 123-4567</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon">📍</div>
+                    <div class="contact-text">
+                        <h4>Address</h4>
+                        <p>123 Business St, Tech City, CA 12345</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon">🕒</div>
+                    <div class="contact-text">
+                        <h4>Business Hours</h4>
+                        <p>Monday-Friday: 9am-5pm</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Any additional JavaScript for the contact page can go here
+</script>
+{% endblock %}
