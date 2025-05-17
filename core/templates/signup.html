@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sign Up - Business Directory 2.0{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/signup.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<!-- Signup Section -->
+<section class="signup-section">
+    <h2 class="signup-title">Create an Account</h2>
+    <p class="step-info">Please select what category you want to sign up for:</p>
+
+    <form class="signup-form" method="post" action="{% url 'signup' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="account-type" class="form-label">Account Type:</label>
+            <select id="account-type" name="account_type" class="form-control" required>
+                <option value="" selected disabled>Select account type</option>
+                <option value="consumer">Consumer</option>
+                <option value="handyman">Handyman or business that provides services</option>
+                <option value="promoter">Business selling product</option>
+            </select>
+        </div>
+        <p class="info-text">If the list item does not match your business category, please use Contact Us to send us a
+            message, we will review and respond.</p>
+
+        <button type="submit" class="submit-btn">Continue</button>
+    </form>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form submission handling
+    document.querySelector('.signup-form').addEventListener('submit', function (e) {
+        const accountType = document.getElementById('account-type').value;
+
+        if (!accountType) {
+            e.preventDefault();
+            alert('Please select an account type to continue.');
+        }
+    });
+</script>
+{% endblock %}

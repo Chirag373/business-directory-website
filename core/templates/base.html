@@ -19,7 +19,7 @@
         <li><a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">Home</a></li>
         <li><a href="#" class="{% if request.path == '/mission/' %}active{% endif %}">Our Mission</a></li>
         <li><a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}">Contact Us</a></li>
-        <li><a href="#" class="{% if request.path == '/signup/' %}active{% endif %}">Sign Up</a></li>
+        <li><a href="{% url 'signup' %}" class="{% if request.path == '/signup/' %}active{% endif %}">Sign Up</a></li>
       </ul>
       <button class="hamburger" aria-label="Toggle menu">☰</button>
     </div>

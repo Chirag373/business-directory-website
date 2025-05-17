@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Handyman Signup - Business Directory 2.0{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/handyman_signup.css'%}">
+{% endblock %}
+
+{% block content %}
+<!-- Profile Form Section -->
+<section class="profile-section">
+  <h2 class="profile-title">Handyman Registration</h2>
+  <p class="profile-subtitle">Create your handyman business account to connect with customers</p>
+  
+  <div class="alert-box">
+    <p><strong>Note:</strong> Our system requires you to have a business card. If you do not have one, the system cannot sign you up.</p>
+  </div>
+  
+  <form class="profile-form" method="post" action="" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="form-section">
+      <h3 class="section-title">Personal Information</h3>
+      
+      <div class="form-group">
+        <label for="first-name" class="form-label">First Name</label>
+        <input type="text" id="first-name" name="first_name" class="form-control" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="last-name" class="form-label">Last Name</label>
+        <input type="text" id="last-name" name="last_name" class="form-control" required>
+      </div>
+    </div>
+    
+    <div class="form-section">
+      <h3 class="section-title">Business Information</h3>
+      
+      <div class="form-group">
+        <label for="business-name" class="form-label">Business Name</label>
+        <input type="text" id="business-name" name="business_name" class="form-control" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="website" class="form-label">Website URL</label>
+        <input type="url" id="website" name="website" class="form-control" placeholder="https://example.com">
+      </div>
+    </div>
+    
+    <div class="form-section">
+      <h3 class="section-title">Contact Information</h3>
+      
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input type="email" id="email" name="email" class="form-control" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="phone" class="form-label">Phone Number</label>
+        <input type="tel" id="phone" name="phone" class="form-control" required>
+      </div>
+    </div>
+    
+    <div class="form-section">
+      <h3 class="section-title">Business Address</h3>
+      
+      <div class="form-group">
+        <label for="address-number" class="form-label">Address Number</label>
+        <input type="text" id="address-number" name="address_number" class="form-control" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="address" class="form-label">Street Address</label>
+        <input type="text" id="address" name="address" class="form-control" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="state" class="form-label">State</label>
+        <select id="state" name="state" class="form-control" required>
+          <option value="">Select State</option>
+          <option value="AL">Alabama</option>
+          <option value="AK">Alaska</option>
+          <option value="AZ">Arizona</option>
+          <!-- More states would be listed here -->
+          <option value="CA">California</option>
+          <option value="CO">Colorado</option>
+          <option value="WY">Wyoming</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="county" class="form-label">County</label>
+        <select id="county" name="county" class="form-control" disabled required>
+          <option value="">Select County</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="city" class="form-label">City</label>
+        <select id="city" name="city" class="form-control" disabled required>
+          <option value="">Select City</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="zip" class="form-label">ZIP Code</label>
+        <input type="text" id="zip" name="zip" class="form-control" required>
+      </div>
+    </div>
+    
+    <div class="form-section">
+      <h3 class="section-title">Business Card</h3>
+      <p>Please upload images of your business card</p>
+      
+      <div class="file-upload">
+        <label for="card-front" class="form-label">Front Side (Required)</label>
+        <input type="file" id="card-front" name="card_front" accept="image/*" required>
+      </div>
+      
+      <div class="file-upload">
+        <label for="card-back" class="form-label">Back Side (Optional)</label>
+        <input type="file" id="card-back" name="card_back" accept="image/*">
+      </div>
+      
+      <div class="checkbox-container">
+        <input type="checkbox" id="blank-back" name="blank_back">
+        <label for="blank-back" class="checkbox-label">Check this if your business card backside is blank</label>
+      </div>
+    </div>
+    
+    <div class="form-section">
+      <h3 class="section-title">Service Information</h3>
+      
+      <div class="form-group">
+        <label class="form-label">Select service categories you provide:</label>
+        <div class="services-container">
+          <div class="checkbox-container">
+            <input type="checkbox" id="plumbing" name="service_categories" value="plumbing">
+            <label for="plumbing" class="checkbox-label">Plumbing</label>
+          </div>
+          <div class="checkbox-container">
+            <input type="checkbox" id="electrical" name="service_categories" value="electrical">
+            <label for="electrical" class="checkbox-label">Electrical</label>
+          </div>
+          <div class="checkbox-container">
+            <input type="checkbox" id="general" name="service_categories" value="general">
+            <label for="general" class="checkbox-label">General Repairs</label>
+          </div>
+          <div class="checkbox-container">
+            <input type="checkbox" id="foundation" name="service_categories" value="foundation">
+            <label for="foundation" class="checkbox-label">Foundation Repair</label>
+          </div>
+          <div class="checkbox-container">
+            <input type="checkbox" id="drywall" name="service_categories" value="drywall">
+            <label for="drywall" class="checkbox-label">Drywall & Paint</label>
+          </div>
+          <div class="checkbox-container">
+            <input type="checkbox" id="flooring" name="service_categories" value="flooring">
+            <label for="flooring" class="checkbox-label">Flooring</label>
+          </div>
+          <div class="checkbox-container">
+            <input type="checkbox" id="moving" name="service_categories" value="moving">
+            <label for="moving" class="checkbox-label">Moving</label>
+          </div>
+          <div class="checkbox-container">
+            <input type="checkbox" id="gardening" name="service_categories" value="gardening">
+            <label for="gardening" class="checkbox-label">Gardening</label>
+          </div>
+          <div class="checkbox-container">
+            <input type="checkbox" id="bathroom" name="service_categories" value="bathroom">
+            <label for="bathroom" class="checkbox-label">Bathroom</label>
+          </div>
+          <div class="checkbox-container">
+            <input type="checkbox" id="kitchen" name="service_categories" value="kitchen">
+            <label for="kitchen" class="checkbox-label">Kitchen</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="service-description" class="form-label">Service Description</label>
+        <p class="form-note">Please use precise keywords for your services. For example: "Gardening, Sprinkler repair, Lawn Mowing, Landscape Design"</p>
+        <textarea id="service-description" name="service_description" class="form-control" required></textarea>
+      </div>
+    </div>
+    
+    <div class="form-section">
+      <h3 class="section-title">Promotional Offer</h3>
+      
+      <div class="checkbox-container">
+        <input type="checkbox" id="run-promotion" name="run_promotion">
+        <label for="run-promotion" class="checkbox-label">I want to run a promotional offer campaign</label>
+      </div>
+      
+      <div id="promotional-details" class="promotional-section" style="display: none;">
+        <p>There are consumers waiting for your promotional offers. Once we find matches, we will send them immediately for you.</p>
+        
+        <div class="form-group">
+          <label for="promotion-description" class="form-label">Promotion Description</label>
+          <textarea id="promotion-description" name="promotion_description" class="form-control" placeholder="Example: We are running promotion discount with 15% discount for our flooring installation services."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="discount-percentage" class="form-label">Discount Percentage</label>
+          <select id="discount-percentage" name="discount_percentage" class="form-control">
+            <option value="">Select Discount</option>
+            <option value="3">3%</option>
+            <option value="5">5%</option>
+            <option value="10">10%</option>
+            <option value="15">15%</option>
+            <option value="20">20%</option>
+            <option value="25">25%</option>
+            <option value="30">30%</option>
+            <option value="35">35%</option>
+            <option value="40">40%</option>
+            <option value="45">45%</option>
+            <option value="50">50%</option>
+            <option value="55">55%</option>
+            <option value="60">60%</option>
+            <option value="65">65%</option>
+            <option value="70">70%</option>
+            <option value="75">75%</option>
+            <option value="80">80%</option>
+            <option value="85">85%</option>
+            <option value="90">90%</option>
+            <option value="100">100%</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="promo-code" class="form-label">Promotional Code</label>
+          <input type="text" id="promo-code" name="promo_code" class="form-control" readonly>
+          <p class="form-note">This code will be automatically generated for your promotion tracking.</p>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Promotion Time Period</label>
+          <div class="date-inputs">
+            <div class="form-group">
+              <label for="start-date" class="form-label">Start Date</label>
+              <input type="date" id="start-date" name="start_date" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="end-date" class="form-label">End Date</label>
+              <input type="date" id="end-date" name="end_date" class="form-control">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="subscription-info">
+      <h4>Subscription Information</h4>
+      <p>One-time account setup fee: $10.00</p>
+      <p>Monthly subscription fee: $15.00</p>
+    </div>
+    
+    <button type="submit" class="submit-btn">Create Account</button>
+    <p class="form-note">By signing up, you agree to our Terms of Service and Privacy Policy.</p>
+  </form>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle dependent dropdowns (state -> county -> city)
+    const stateSelect = document.getElementById('state');
+    const countySelect = document.getElementById('county');
+    const citySelect = document.getElementById('city');
+    
+    stateSelect.addEventListener('change', function() {
+      if (this.value) {
+        countySelect.removeAttribute('disabled');
+        countySelect.innerHTML = `
+          <option value="">Select County</option>
+          <option value="county1">County 1</option>
+          <option value="county2">County 2</option>
+          <option value="county3">County 3</option>
+        `;
+      } else {
+        countySelect.setAttribute('disabled', 'disabled');
+        countySelect.innerHTML = '<option value="">Select County</option>';
+        citySelect.setAttribute('disabled', 'disabled');
+        citySelect.innerHTML = '<option value="">Select City</option>';
+      }
+    });
+    
+    countySelect.addEventListener('change', function() {
+      if (this.value) {
+        citySelect.removeAttribute('disabled');
+        citySelect.innerHTML = `
+          <option value="">Select City</option>
+          <option value="city1">City 1</option>
+          <option value="city2">City 2</option>
+          <option value="city3">City 3</option>
+        `;
+      } else {
+        citySelect.setAttribute('disabled', 'disabled');
+        citySelect.innerHTML = '<option value="">Select City</option>';
+      }
+    });
+    
+    // Toggle promotional details section
+    const runPromotionCheckbox = document.getElementById('run-promotion');
+    const promotionalDetails = document.getElementById('promotional-details');
+    
+    runPromotionCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+        promotionalDetails.style.display = 'block';
+        generatePromoCode();
+      } else {
+        promotionalDetails.style.display = 'none';
+      }
+    });
+    
+    // Generate promo code
+    function generatePromoCode() {
+      const businessName = document.getElementById('business-name').value || 'BIZ';
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = businessName.substring(0, 3).toUpperCase();
+      
+      for (let i = 0; i < 4; i++) {
+        code += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      
+      document.getElementById('promo-code').value = code;
+    }
+    
+    // Update promo code when business name changes
+    document.getElementById('business-name').addEventListener('change', function() {
+      if (runPromotionCheckbox.checked) {
+        generatePromoCode();
+      }
+    });
+    
+    // Set minimum dates for date pickers
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('start-date').setAttribute('min', today);
+    document.getElementById('end-date').setAttribute('min', today);
+    
+    // Set default dates
+    document.getElementById('start-date').value = today;
+    
+    const oneMonthLater = new Date();
+    oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
+    document.getElementById('end-date').value = oneMonthLater.toISOString().split('T')[0];
+    
+    // Business card back side handling
+    const cardBackInput = document.getElementById('card-back');
+    const blankBackCheckbox = document.getElementById('blank-back');
+    
+    blankBackCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+        cardBackInput.setAttribute('disabled', 'disabled');
+      } else {
+        cardBackInput.removeAttribute('disabled');
+      }
+    });
+  });
+</script>
+{% endblock %}

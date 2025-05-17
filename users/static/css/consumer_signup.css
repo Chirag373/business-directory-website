@@ -1,0 +1,120 @@
+.profile-section {
+    max-width: 800px;
+    margin: 60px auto 40px;
+    padding: 30px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    animation: fadeIn 1s ease;
+  }
+
+  .profile-title {
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+    color: var(--dark-gray);
+    position: relative;
+    padding-bottom: 10px;
+  }
+
+  .profile-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background-color: var(--primary-color);
+  }
+
+  .profile-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: var(--dark-gray);
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--dark-gray);
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: var(--transition);
+  }
+
+  .form-control:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  }
+
+  .checkbox-group {
+    margin-top: 10px;
+  }
+
+  .checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .checkbox-container input[type="checkbox"] {
+    margin-right: 10px;
+  }
+
+  .checkbox-label {
+    font-size: 1rem;
+    color: var(--dark-gray);
+  }
+
+  .services-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .submit-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 25px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-block;
+    margin-top: 20px;
+  }
+
+  .submit-btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+  }
+
+  .form-note {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 10px;
+  }
+
+  .form-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .form-section:last-child {
+    border-bottom: none;
+  }
