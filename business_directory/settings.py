@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'users',
     'businesses',
     'handyman',
-    'promotions',
+    'promotor'
 ]
 
 MIDDLEWARE = [

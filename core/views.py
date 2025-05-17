@@ -10,5 +10,3 @@ def contact(request):
 def signup(request):
     return render(request, 'signup.html')
 
-def promotor_signup(request):
-    return render(request, 'promotor_signup.html')
