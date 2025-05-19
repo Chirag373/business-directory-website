@@ -212,5 +212,16 @@
             }
         });
     });
+
+    // Add focus animation for form inputs
+    const formInputs = document.querySelectorAll('.form-control');
+    formInputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        input.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+    });
 </script>
 {% endblock %}

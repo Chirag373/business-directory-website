@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Requestor Signup - Business Directory 2.0{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/requestor_signup.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Profile Form Section -->
+<section class="profile-section">
+  <h2 class="profile-title">Requestor Registration</h2>
+  <p class="profile-subtitle">Create your account to find services and get promotional offers</p>
+
+  <div class="alert-box">
+    <p><strong>Note:</strong> As a requestor, you'll be able to find handyman services and view promotional offers from businesses.</p>
+  </div>
+
+  <!-- Progress Indicator -->
+  <ul class="progress-indicator">
+    <li class="progress-step completed">
+      <div class="progress-number">1</div>
+      <div class="progress-label">Account Type</div>
+    </li>
+    <li class="progress-step active">
+      <div class="progress-number">2</div>
+      <div class="progress-label">Personal Details</div>
+    </li>
+    <li class="progress-step">
+      <div class="progress-number">3</div>
+      <div class="progress-label">Confirmation</div>
+    </li>
+  </ul>
+
+  <form class="profile-form" method="post" action="">
+    {% csrf_token %}
+
+    <div class="form-section">
+      <h3 class="section-title">Personal Information</h3>
+
+      <div class="form-row">
+        <div class="form-col">
+          <div class="form-group">
+            <label for="first-name" class="form-label">First Name</label>
+            <input type="text" id="first-name" name="first_name" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="form-col">
+          <div class="form-group">
+            <label for="last-name" class="form-label">Last Name</label>
+            <input type="text" id="last-name" name="last_name" class="form-control" required>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3 class="section-title">Contact Information</h3>
+
+      <div class="form-row">
+        <div class="form-col">
+          <div class="form-group">
+            <label for="email" class="form-label">Email Address</label>
+            <input type="email" id="email" name="email" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="form-col">
+          <div class="form-group">
+            <label for="phone" class="form-label">Phone Number</label>
+            <input type="tel" id="phone" name="phone" class="form-control" required>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3 class="section-title">Address Information</h3>
+
+      <div class="form-row">
+        <div class="form-col" style="flex: 0.3;">
+          <div class="form-group">
+            <label for="address-number" class="form-label">Street Number</label>
+            <input type="text" id="address-number" name="address_number" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="form-col" style="flex: 0.7;">
+          <div class="form-group">
+            <label for="street-address" class="form-label">Street Address</label>
+            <input type="text" id="street-address" name="street_address" class="form-control" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-col">
+          <div class="form-group">
+            <label for="state" class="form-label">State</label>
+            <select id="state" name="state" class="form-control" required>
+              <option value="">Select State</option>
+              <option value="AL">Alabama</option>
+              <option value="AK">Alaska</option>
+              <option value="AZ">Arizona</option>
+              <option value="AR">Arkansas</option>
+              <option value="CA">California</option>
+              <option value="CO">Colorado</option>
+              <option value="CT">Connecticut</option>
+              <!-- More states would be listed here -->
+            </select>
+          </div>
+        </div>
+
+        <div class="form-col">
+          <div class="form-group">
+            <label for="county" class="form-label">County</label>
+            <select id="county" name="county" class="form-control" disabled required>
+              <option value="">Select County</option>
+              <!-- Counties will be populated via JavaScript -->
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-col">
+          <div class="form-group">
+            <label for="city" class="form-label">City</label>
+            <select id="city" name="city" class="form-control" disabled required>
+              <option value="">Select City</option>
+              <!-- Cities will be populated via JavaScript -->
+            </select>
+          </div>
+        </div>
+
+        <div class="form-col">
+          <div class="form-group">
+            <label for="zip" class="form-label">ZIP Code</label>
+            <input type="text" id="zip" name="zip" class="form-control" required>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3 class="section-title">Preferences</h3>
+
+      <div class="form-group">
+        <div class="checkbox-container">
+          <input type="checkbox" id="promotional-offers" name="promotional_offers" class="toggle-categories">
+          <label for="promotional-offers" class="checkbox-label">Send Me Promotional Offer Notification To My Email Address</label>
+        </div>
+
+        <div id="category-section" style="display: none; margin-top: 20px;">
+          <label class="form-label">Select categories you're interested in:</label>
+          <div class="category-options">
+            <div class="checkbox-container">
+              <input type="checkbox" id="plumbing" name="categories" value="plumbing">
+              <label for="plumbing" class="checkbox-label">Plumbing</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="electrical" name="categories" value="electrical">
+              <label for="electrical" class="checkbox-label">Electrical</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="concrete" name="categories" value="concrete">
+              <label for="concrete" class="checkbox-label">Concrete</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="remodeling" name="categories" value="remodeling">
+              <label for="remodeling" class="checkbox-label">Remodeling</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="roofing" name="categories" value="roofing">
+              <label for="roofing" class="checkbox-label">Roofing</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="painting" name="categories" value="painting">
+              <label for="painting" class="checkbox-label">Painting</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="flooring" name="categories" value="flooring">
+              <label for="flooring" class="checkbox-label">Flooring</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="landscaping" name="categories" value="landscaping">
+              <label for="landscaping" class="checkbox-label">Landscaping</label>
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="hvac" name="categories" value="hvac">
+              <label for="hvac" class="checkbox-label">HVAC</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subscription-info">
+      <h4>Free Account</h4>
+      <p>Requestor accounts are free of charge. You'll be able to search for services and receive promotional offers based on your preferences.</p>
+    </div>
+
+    <div class="form-actions">
+      <a href="{% url 'signup' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+      <button type="submit" class="submit-btn active">Submit</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Toggle categories section visibility
+    const promotionalCheckbox = document.getElementById('promotional-offers');
+    const categorySection = document.getElementById('category-section');
+    
+    promotionalCheckbox.addEventListener('change', function() {
+      categorySection.style.display = this.checked ? 'block' : 'none';
+    });
+    
+    // State-county-city dynamic selection would be implemented here
+    // For the demo, we'll simulate this with some basic functionality
+    const stateSelect = document.getElementById('state');
+    const countySelect = document.getElementById('county');
+    const citySelect = document.getElementById('city');
+    
+    stateSelect.addEventListener('change', function() {
+      if (this.value) {
+        countySelect.disabled = false;
+        // Here you would typically load counties via AJAX
+        // For demo purposes, we'll add placeholder counties
+        countySelect.innerHTML = '<option value="">Select County</option><option value="county1">Sample County 1</option><option value="county2">Sample County 2</option>';
+      } else {
+        countySelect.disabled = true;
+        countySelect.innerHTML = '<option value="">Select County</option>';
+        citySelect.disabled = true;
+        citySelect.innerHTML = '<option value="">Select City</option>';
+      }
+    });
+    
+    countySelect.addEventListener('change', function() {
+      if (this.value) {
+        citySelect.disabled = false;
+        // Here you would typically load cities via AJAX
+        // For demo purposes, we'll add placeholder cities
+        citySelect.innerHTML = '<option value="">Select City</option><option value="city1">Sample City 1</option><option value="city2">Sample City 2</option>';
+      } else {
+        citySelect.disabled = true;
+        citySelect.innerHTML = '<option value="">Select City</option>';
+      }
+    });
+    
+    // Form validation
+    const form = document.querySelector('.profile-form');
+    
+    form.addEventListener('submit', function(e) {
+      let valid = true;
+      const requiredInputs = form.querySelectorAll('[required]');
+      
+      requiredInputs.forEach(input => {
+        if (!input.value && !input.disabled) {
+          valid = false;
+          input.classList.add('error');
+        } else {
+          input.classList.remove('error');
+        }
+      });
+      
+      // Check if promotional offers are checked but no categories selected
+      if (promotionalCheckbox.checked) {
+        const categoryCheckboxes = document.querySelectorAll('input[name="categories"]:checked');
+        if (categoryCheckboxes.length === 0) {
+          valid = false;
+          // Show error message for categories
+          showError('Please select at least one category of interest.');
+        }
+      }
+      
+      if (!valid) {
+        e.preventDefault();
+        if (!document.querySelector('.error-message')) {
+          showError('Please fill in all required fields.');
+        }
+      }
+    });
+    
+    // Error display function
+    function showError(message) {
+      // Remove any existing error messages
+      const existingError = document.querySelector('.error-message');
+      if (existingError) {
+        existingError.remove();
+      }
+      
+      // Create and display new error message
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+      
+      const formActions = document.querySelector('.form-actions');
+      formActions.insertAdjacentElement('beforebegin', errorDiv);
+      
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        errorDiv.classList.add('fade-out');
+        setTimeout(() => errorDiv.remove(), 300);
+      }, 5000);
+    }
+  });
+</script>
+{% endblock %} 

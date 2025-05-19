@@ -1,0 +1,299 @@
+{% load static %}
+
+<div class="business-card-component">
+  <div class="card-container">
+    <div class="card-wrapper">
+      <div class="card-inner">
+        <div class="card-front" style="background-image: url('{{ card.front_image.url }}');">
+          {% if card.has_promotion %}
+          <div class="promo-indicator active">
+            <i class="fas fa-percentage"></i>
+          </div>
+          {% else %}
+          <div class="promo-indicator">
+            <i class="fas fa-percentage"></i>
+          </div>
+          {% endif %}
+        </div>
+        <div class="card-back" style="background-image: url('{% if card.back_image %}{{ card.back_image.url }}{% else %}{% static 'images/blank_card_back.png' %}{% endif %}');">
+          {% if card.has_promotion %}
+          <div class="promo-code">
+            CODE: {{ card.promotion_code }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    
+    <div class="card-controls">
+      <button class="card-flip-btn" aria-label="Flip Card">
+        <span class="flip-text front-text">Front Side</span>
+        <span class="flip-text back-text">Back Side</span>
+        <span class="flip-icon"><i class="fas fa-sync-alt"></i></span>
+      </button>
+    </div>
+  </div>
+  
+  <div class="card-details">
+    {% if card.website %}
+    <div class="card-website">
+      <a href="{{ card.website }}" target="_blank" rel="noopener">
+        <i class="fas fa-globe"></i> {{ card.website_display }}
+      </a>
+    </div>
+    {% endif %}
+    
+    <div class="card-description">
+      <p>{{ card.description }}</p>
+    </div>
+    
+    {% if card.has_promotion %}
+    <div class="promotion-details">
+      <h4><i class="fas fa-tag"></i> Special Offer</h4>
+      <p>{{ card.promotion_description }}</p>
+      <div class="promotion-info">
+        <span class="discount">{{ card.discount_percentage }}% OFF</span>
+        <span class="date-range">Valid {{ card.valid_from|date:"M d, Y" }} - {{ card.valid_to|date:"M d, Y" }}</span>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .business-card-component {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 30px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  @media (min-width: 768px) {
+    .business-card-component {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+  }
+  
+  .card-container {
+    width: 100%;
+    max-width: 350px;
+    margin: 0 auto 20px;
+  }
+  
+  @media (min-width: 768px) {
+    .card-container {
+      margin: 0 20px 0 0;
+      flex: 0 0 350px;
+    }
+  }
+  
+  .card-wrapper {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    perspective: 1000px;
+    margin-bottom: 15px;
+  }
+  
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
+  
+  .card-wrapper.flipped .card-inner {
+    transform: rotateY(180deg);
+  }
+  
+  .card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 8px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 1px solid #e0e0e0;
+  }
+  
+  .card-back {
+    transform: rotateY(180deg);
+  }
+  
+  .card-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .card-flip-btn {
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #555;
+    transition: all 0.3s ease;
+  }
+  
+  .card-flip-btn:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .flip-icon {
+    margin-left: 8px;
+    font-size: 0.8rem;
+  }
+  
+  .flip-text.back-text {
+    display: none;
+  }
+  
+  .card-wrapper.flipped + .card-controls .flip-text.front-text {
+    display: none;
+  }
+  
+  .card-wrapper.flipped + .card-controls .flip-text.back-text {
+    display: inline;
+  }
+  
+  .promo-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 0.8rem;
+  }
+  
+  .promo-indicator.active {
+    background-color: #27ae60;
+    color: white;
+  }
+  
+  .promo-code {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background-color: rgba(39, 174, 96, 0.9);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+  
+  .card-details {
+    flex: 1;
+  }
+  
+  .card-website {
+    margin-bottom: 15px;
+  }
+  
+  .card-website a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  .card-website a i {
+    margin-right: 5px;
+  }
+  
+  .card-website a:hover {
+    text-decoration: underline;
+  }
+  
+  .card-description {
+    margin-bottom: 15px;
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  .promotion-details {
+    background-color: #f1f9f5;
+    border: 1px solid #d0f0db;
+    border-radius: 6px;
+    padding: 15px;
+  }
+  
+  .promotion-details h4 {
+    color: #27ae60;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  .promotion-details h4 i {
+    margin-right: 5px;
+  }
+  
+  .promotion-details p {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  .promotion-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .discount {
+    font-weight: bold;
+    color: #27ae60;
+    font-size: 1rem;
+  }
+  
+  .date-range {
+    font-size: 0.85rem;
+    color: #777;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const cardComponents = document.querySelectorAll('.business-card-component');
+    
+    cardComponents.forEach(component => {
+      const cardWrapper = component.querySelector('.card-wrapper');
+      const flipBtn = component.querySelector('.card-flip-btn');
+      
+      if (flipBtn && cardWrapper) {
+        flipBtn.addEventListener('click', function() {
+          cardWrapper.classList.toggle('flipped');
+        });
+      }
+    });
+  });
+</script> 

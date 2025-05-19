@@ -5,43 +5,533 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/signup.css' %}">
+<style>
+  .card-selection {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin: 35px 0;
+  }
+  
+  @media (max-width: 768px) {
+    .card-selection {
+      grid-template-columns: repeat(1, 1fr);
+      gap: 20px;
+    }
+  }
+  
+  .account-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    padding: 32px 28px;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  .account-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  }
+  
+  .account-card.selected {
+    border-color: var(--primary-color);
+    background-color: rgba(52, 152, 219, 0.05);
+  }
+  
+  .account-card.selected::after {
+    content: "";
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 22px;
+    height: 22px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .account-card.selected::before {
+    content: "✓";
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 2;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+  }
+  
+  .account-icon {
+    width: 65px;
+    height: 65px;
+    background-color: rgba(52, 152, 219, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  
+  .requestor-icon {
+    background-color: rgba(52, 152, 219, 0.1);
+  }
+  
+  .handyman-icon {
+    background-color: rgba(46, 204, 113, 0.1);
+  }
+  
+  .promoter-icon {
+    background-color: rgba(155, 89, 182, 0.1);
+  }
+  
+  .account-icon i {
+    font-size: 28px;
+  }
+  
+  .requestor-icon i {
+    color: #3498db;
+  }
+  
+  .handyman-icon i {
+    color: #2ecc71;
+  }
+  
+  .promoter-icon i {
+    color: #9b59b6;
+  }
+  
+  .account-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: var(--dark-gray);
+  }
+  
+  .account-description {
+    color: #666;
+    font-size: 15px;
+    line-height: 1.6;
+    flex-grow: 1;
+    margin-bottom: 20px;
+  }
+  
+  .selection-footer {
+    margin-top: auto;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 16px;
+    font-size: 14px;
+    color: #888;
+    display: flex;
+    align-items: center;
+  }
+  
+  .selection-footer i {
+    margin-right: 8px;
+    color: #3498db;
+  }
+  
+  .card-highlight {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background-color: transparent;
+    transition: all 0.3s ease;
+  }
+  
+  .requestor-card:hover .card-highlight, 
+  .requestor-card.selected .card-highlight {
+    background-color: #3498db;
+  }
+  
+  .handyman-card:hover .card-highlight,
+  .handyman-card.selected .card-highlight {
+    background-color: #2ecc71;
+  }
+  
+  .promoter-card:hover .card-highlight,
+  .promoter-card.selected .card-highlight {
+    background-color: #9b59b6;
+  }
+  
+  .step-indicator {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 30px auto 45px;
+    max-width: 320px;
+  }
+  
+  .step-indicator::before {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 35px;
+    right: 35px;
+    height: 3px;
+    background-color: #e0e0e0;
+    z-index: 0;
+  }
+  
+  .step {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #666;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .step.active {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .step-label {
+    position: absolute;
+    bottom: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 13px;
+    color: #666;
+  }
+  
+  .step.active .step-label {
+    color: var(--dark-gray);
+    font-weight: 500;
+  }
+  
+  .helper-note {
+    background-color: #f8f9fa;
+    border-left: 4px solid #3498db;
+    padding: 16px 20px;
+    border-radius: 6px;
+    margin: 30px 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: #666;
+  }
+  
+  .helper-note i {
+    color: #3498db;
+    margin-right: 8px;
+  }
+  
+  .signup-section {
+    max-width: 900px;
+    margin: 70px auto 50px;
+    padding: 40px;
+    background-color: white;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    animation: fadeIn 0.6s ease;
+  }
+  
+  @media (max-width: 576px) {
+    .signup-section {
+      margin: 30px auto;
+      padding: 25px;
+    }
+  }
+  
+  .signup-header {
+    text-align: center;
+    margin-bottom: 35px;
+  }
+  
+  .signup-title {
+    font-size: 2.2rem;
+    margin-bottom: 12px;
+    color: var(--dark-gray);
+    position: relative;
+    font-weight: 600;
+  }
+  
+  .signup-subtitle {
+    color: #666;
+    font-size: 1.15rem;
+    max-width: 550px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+  }
+  
+  .submit-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 16px 36px;
+    font-size: 1.05rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 200px;
+    opacity: 0.7;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .submit-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .submit-btn.active {
+    opacity: 1;
+  }
+  
+  .submit-btn i {
+    margin-left: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .submit-btn:hover:not([disabled]) {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(41, 128, 185, 0.3);
+  }
+  
+  .submit-btn:active:not([disabled]) {
+    transform: translateY(0);
+    box-shadow: 0 3px 8px rgba(41, 128, 185, 0.3);
+  }
+  
+  /* Enhanced button styles */
+  .submit-btn::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+  }
+  
+  @keyframes ripple {
+    0% {
+      transform: scale(0, 0);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(100, 100);
+      opacity: 0;
+    }
+  }
+  
+  .submit-btn:not([disabled]):active::after {
+    animation: ripple 0.6s ease-out;
+  }
+  
+  @media (max-width: 768px) {
+    .step-indicator {
+      max-width: 280px;
+    }
+    
+    .signup-title {
+      font-size: 1.9rem;
+    }
+    
+    .signup-subtitle {
+      font-size: 1.05rem;
+    }
+    
+    .account-title {
+      font-size: 20px;
+    }
+    
+    .submit-btn {
+      padding: 14px 32px;
+      font-size: 1rem;
+    }
+  }
+</style>
 {% endblock %}
-
 
 {% block content %}
 <!-- Signup Section -->
 <section class="signup-section">
-    <h2 class="signup-title">Create an Account</h2>
-    <p class="step-info">Please select what category you want to sign up for:</p>
+    <div class="signup-header">
+        <h2 class="signup-title">Create an Account</h2>
+        <p class="signup-subtitle">Join our business directory to connect with customers or find services</p>
+    </div>
+    
+    <div class="step-indicator">
+        <div class="step active">
+            1
+            <span class="step-label">Account Type</span>
+        </div>
+        <div class="step">
+            2
+            <span class="step-label">Details</span>
+        </div>
+        <div class="step">
+            3
+            <span class="step-label">Confirmation</span>
+        </div>
+    </div>
 
     <form class="signup-form" method="post" action="{% url 'signup' %}">
         {% csrf_token %}
-        <div class="form-group">
-            <label for="account-type" class="form-label">Account Type:</label>
-            <select id="account-type" name="account_type" class="form-control" required>
-                <option value="" selected disabled>Select account type</option>
-                <option value="consumer">Consumer</option>
-                <option value="handyman">Handyman or business that provides services</option>
-                <option value="promoter">Business selling product</option>
-            </select>
-        </div>
-        <p class="info-text">If the list item does not match your business category, please use Contact Us to send us a
-            message, we will review and respond.</p>
+        
+        <div class="form-step active">
+            <h3 class="step-title">Select Account Type</h3>
+            
+            <input type="hidden" id="account-type" name="account_type" required>
+            
+            <div class="card-selection">
+                <div class="account-card requestor-card" data-type="requestor">
+                    <div class="account-icon requestor-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4 class="account-title">Requestor</h4>
+                    <p class="account-description">Sign up as a customer looking for services or products. Receive promotional offers and find local businesses.</p>
+                    <div class="selection-footer">
+                        <i class="fas fa-info-circle"></i> Personal account
+                    </div>
+                    <div class="card-highlight"></div>
+                </div>
+                
+                <div class="account-card handyman-card" data-type="handyman">
+                    <div class="account-icon handyman-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h4 class="account-title">Handyman</h4>
+                    <p class="account-description">Sign up as a service provider. Create a profile for your business and offer services to customers.</p>
+                    <div class="selection-footer">
+                        <i class="fas fa-info-circle"></i> Business account
+                    </div>
+                    <div class="card-highlight"></div>
+                </div>
+                
+                <div class="account-card promoter-card" data-type="promoter">
+                    <div class="account-icon promoter-icon">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <h4 class="account-title">Promoter</h4>
+                    <p class="account-description">Sign up as a business that sells products. Create a profile and promote your products to customers.</p>
+                    <div class="selection-footer">
+                        <i class="fas fa-info-circle"></i> Business account
+                    </div>
+                    <div class="card-highlight"></div>
+                </div>
+            </div>
+            
+            <div class="helper-note">
+                <i class="fas fa-lightbulb"></i> If the above categories don't match your business type, please <a href="{% url 'contact' %}" class="text-link">contact us</a> and we'll help you get set up.
+            </div>
 
-        <button type="submit" class="submit-btn">Continue</button>
+            <div class="form-actions">
+                <button type="submit" class="submit-btn" disabled>Continue <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
     </form>
 </section>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Form submission handling
-    document.querySelector('.signup-form').addEventListener('submit', function (e) {
-        const accountType = document.getElementById('account-type').value;
+    document.addEventListener('DOMContentLoaded', function() {
+        // Account card selection
+        const accountCards = document.querySelectorAll('.account-card');
+        const accountTypeInput = document.getElementById('account-type');
+        const submitBtn = document.querySelector('.submit-btn');
+        
+        accountCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selected class from all cards
+                accountCards.forEach(c => c.classList.remove('selected'));
+                
+                // Add selected class to clicked card
+                this.classList.add('selected');
+                
+                // Update hidden input value
+                const accountType = this.getAttribute('data-type');
+                accountTypeInput.value = accountType;
+                
+                // Enable submit button
+                submitBtn.disabled = false;
+                submitBtn.classList.add('active');
+            });
+        });
 
-        if (!accountType) {
-            e.preventDefault();
-            alert('Please select an account type to continue.');
+        // Form submission handling
+        document.querySelector('.signup-form').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent the default form submission
+            const accountType = document.getElementById('account-type').value;
+
+            if (!accountType) {
+                showError('Please select an account type to continue.');
+                return;
+            }
+            
+            // Redirect to the appropriate signup page based on account type
+            switch(accountType) {
+                case 'requestor':
+                    window.location.href = "{% url 'requestor_signup' %}";
+                    break;
+                case 'handyman':
+                    window.location.href = "{% url 'handyman_signup' %}";
+                    break;
+                case 'promoter':
+                    window.location.href = "{% url 'promotor_signup' %}";  // Note: URL name might be "promotor" not "promoter"
+                    break;
+                default:
+                    showError('Invalid account type selected.');
+            }
+        });
+        
+        // Error display function
+        function showError(message) {
+            // Remove any existing error messages
+            const existingError = document.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Create and display new error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            
+            const formActions = document.querySelector('.form-actions');
+            formActions.insertAdjacentElement('beforebegin', errorDiv);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                errorDiv.classList.add('fade-out');
+                setTimeout(() => errorDiv.remove(), 300);
+            }, 5000);
         }
     });
 </script>

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Business Card Display - Business Directory 2.0{% endblock %}
+
+{% block extra_css %}
+<style>
+  .cards-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+  
+  .page-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .page-title {
+    font-size: 2rem;
+    color: var(--dark-gray);
+    margin-bottom: 10px;
+  }
+  
+  .page-subtitle {
+    color: #666;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+  
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 30px;
+    margin-top: 30px;
+  }
+  
+  @media (min-width: 992px) {
+    .cards-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  .light-bg {
+    background-color: #f5f8fa;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="light-bg">
+  <div class="cards-container">
+    <div class="page-header">
+      <h1 class="page-title">Business Card Display</h1>
+      <p class="page-subtitle">Browse through our collection of business cards from local service providers and promoters. Click on the cards to flip them and see more details.</p>
+    </div>
+    
+    <div class="cards-grid">
+      <!-- Card 1 - With Promotion -->
+      <div class="card-item">
+        {% with card=sample_card_1 %}
+          {% include "components/business_card_display.html" %}
+        {% endwith %}
+      </div>
+      
+      <!-- Card 2 - No Promotion -->
+      <div class="card-item">
+        {% with card=sample_card_2 %}
+          {% include "components/business_card_display.html" %}
+        {% endwith %}
+      </div>
+      
+      <!-- Card 3 - With Promotion -->
+      <div class="card-item">
+        {% with card=sample_card_3 %}
+          {% include "components/business_card_display.html" %}
+        {% endwith %}
+      </div>
+      
+      <!-- Card 4 - No Promotion -->
+      <div class="card-item">
+        {% with card=sample_card_4 %}
+          {% include "components/business_card_display.html" %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Sample data would typically come from the backend
+  // This is just for demonstration purposes
+  document.addEventListener('DOMContentLoaded', function() {
+    // We would normally set these in the view context
+    // For demonstration, we're using placeholder data via JS
+    
+    // Sample card 1
+    const card1 = document.querySelector('.card-item:nth-child(1)');
+    const front1 = card1.querySelector('.card-front');
+    const back1 = card1.querySelector('.card-back');
+    const website1 = card1.querySelector('.card-website a');
+    const desc1 = card1.querySelector('.card-description p');
+    const promo1 = card1.querySelector('.promotion-details p');
+    const discount1 = card1.querySelector('.discount');
+    const dateRange1 = card1.querySelector('.date-range');
+    
+    front1.style.backgroundImage = "url('{% static 'images/demo/sample_card_1_front.jpg' %}')";
+    back1.style.backgroundImage = "url('{% static 'images/demo/sample_card_1_back.jpg' %}')";
+    if (website1) website1.innerHTML = '<i class="fas fa-globe"></i> www.aceplumbing.com';
+    if (desc1) desc1.textContent = 'Ace Plumbing provides premium plumbing services for residential and commercial properties. We specialize in repairs, installations, and maintenance.';
+    if (promo1) promo1.textContent = 'Get 20% off all plumbing services for new customers. Limited time offer!';
+    if (discount1) discount1.textContent = '20% OFF';
+    if (dateRange1) dateRange1.textContent = 'Valid Jan 15, 2025 - Mar 15, 2025';
+    
+    // Sample card 2
+    const card2 = document.querySelector('.card-item:nth-child(2)');
+    const front2 = card2.querySelector('.card-front');
+    const back2 = card2.querySelector('.card-back');
+    const website2 = card2.querySelector('.card-website a');
+    const desc2 = card2.querySelector('.card-description p');
+    
+    front2.style.backgroundImage = "url('{% static 'images/demo/sample_card_2_front.jpg' %}')";
+    back2.style.backgroundImage = "url('{% static 'images/demo/sample_card_2_back.jpg' %}')";
+    if (website2) website2.innerHTML = '<i class="fas fa-globe"></i> www.eliteelectrical.com';
+    if (desc2) desc2.textContent = 'Elite Electrical Services provides comprehensive electrical solutions for homes and businesses. Licensed and insured professionals.';
+    
+    // Sample card 3
+    const card3 = document.querySelector('.card-item:nth-child(3)');
+    const front3 = card3.querySelector('.card-front');
+    const back3 = card3.querySelector('.card-back');
+    const website3 = card3.querySelector('.card-website a');
+    const desc3 = card3.querySelector('.card-description p');
+    const promo3 = card3.querySelector('.promotion-details p');
+    const discount3 = card3.querySelector('.discount');
+    const dateRange3 = card3.querySelector('.date-range');
+    
+    front3.style.backgroundImage = "url('{% static 'images/demo/sample_card_3_front.jpg' %}')";
+    back3.style.backgroundImage = "url('{% static 'images/demo/sample_card_3_back.jpg' %}')";
+    if (website3) website3.innerHTML = '<i class="fas fa-globe"></i> www.precisionpainting.com';
+    if (desc3) desc3.textContent = 'Precision Painting delivers high-quality interior and exterior painting services for residential and commercial clients.';
+    if (promo3) promo3.textContent = 'Free color consultation and 15% off your first painting project.';
+    if (discount3) discount3.textContent = '15% OFF';
+    if (dateRange3) dateRange3.textContent = 'Valid Feb 1, 2025 - Jun 30, 2025';
+    
+    // Sample card 4
+    const card4 = document.querySelector('.card-item:nth-child(4)');
+    const front4 = card4.querySelector('.card-front');
+    const back4 = card4.querySelector('.card-back');
+    const website4 = card4.querySelector('.card-website a');
+    const desc4 = card4.querySelector('.card-description p');
+    
+    front4.style.backgroundImage = "url('{% static 'images/demo/sample_card_4_front.jpg' %}')";
+    back4.style.backgroundImage = "url('{% static 'images/demo/sample_card_4_back.jpg' %}')";
+    if (website4) website4.innerHTML = '<i class="fas fa-globe"></i> www.modernrenovations.com';
+    if (desc4) desc4.textContent = 'Modern Renovations specializes in kitchen and bathroom remodeling. We transform your spaces with high-quality craftsmanship.';
+  });
+</script>
+{% endblock %} 

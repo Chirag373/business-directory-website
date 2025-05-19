@@ -4,8 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Business Directory{% endblock %}</title>
+  <title>{% block title %}Business Directory 2.0{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/home.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -13,17 +14,38 @@
   <nav>
     <div class="nav-container">
       <a href="{% url 'home' %}" class="logo">
-        <span>BD</span>
+        <i class="fas fa-building"></i> <span>BD2</span>
       </a>
       <ul class="menu">
-        <li><a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">Home</a></li>
-        <li><a href="#" class="{% if request.path == '/mission/' %}active{% endif %}">Our Mission</a></li>
-        <li><a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}">Contact Us</a></li>
-        <li><a href="{% url 'signup' %}" class="{% if request.path == '/signup/' %}active{% endif %}">Sign Up</a></li>
+        <li><a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="#" class="{% if request.path == '/mission/' %}active{% endif %}"><i class="fas fa-bullseye"></i> Our Mission</a></li>
+        <li><a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}"><i class="fas fa-envelope"></i> Contact Us</a></li>
+        <li><a href="{% url 'signup' %}" class="{% if request.path == '/signup/' %}active{% endif %}"><i class="fas fa-user-plus"></i> Sign Up</a></li>
       </ul>
       <button class="hamburger" aria-label="Toggle menu">☰</button>
     </div>
   </nav>
+
+  <!-- Mobile Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <a href="{% url 'home' %}" class="logo">
+        <i class="fas fa-building"></i> <span>BD2</span>
+      </a>
+      <button class="close-sidebar" aria-label="Close menu">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <ul class="sidebar-menu">
+      <li><a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}"><i class="fas fa-home"></i> Home</a></li>
+      <li><a href="#" class="{% if request.path == '/mission/' %}active{% endif %}"><i class="fas fa-bullseye"></i> Our Mission</a></li>
+      <li><a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}"><i class="fas fa-envelope"></i> Contact Us</a></li>
+      <li><a href="{% url 'signup' %}" class="{% if request.path == '/signup/' %}active{% endif %}"><i class="fas fa-user-plus"></i> Sign Up</a></li>
+    </ul>
+  </div>
+  
+  <!-- Overlay for when sidebar is open -->
+  <div class="overlay"></div>
 
   {% block content %}{% endblock %}
 
@@ -31,39 +53,39 @@
   <footer>
     <div class="footer-content">
       <div class="footer-column">
-        <h3>About BD</h3>
-        <p>Business Directory is your comprehensive solution for finding local businesses and exclusive discounts. Our mission is to connect consumers with quality service providers while helping them save money.</p>
+        <h3>About BD2</h3>
+        <p>Business Directory 2.0 is your comprehensive solution for finding local businesses and exclusive discounts. Our mission is to connect consumers with quality service providers while helping them save money.</p>
         <p>Join our growing community of businesses and customers today!</p>
       </div>
       
       <div class="footer-column">
         <h3>Quick Links</h3>
         <ul class="footer-links">
-          <li><a href="{% url 'home' %}">Home</a></li>
-          <li><a href="#">Our Mission</a></li>
-          <li><a href="#">Sign Up</a></li>
-          <li><a href="#">Contact Us</a></li>
-          <li><a href="#">Privacy Policy</a></li>
-          <li><a href="#">Terms of Service</a></li>
+          <li><a href="{% url 'home' %}"><i class="fas fa-chevron-right"></i> Home</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i> Our Mission</a></li>
+          <li><a href="{% url 'signup' %}"><i class="fas fa-chevron-right"></i> Sign Up</a></li>
+          <li><a href="{% url 'contact' %}"><i class="fas fa-chevron-right"></i> Contact Us</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i> Privacy Policy</a></li>
+          <li><a href="#"><i class="fas fa-chevron-right"></i> Terms of Service</a></li>
         </ul>
       </div>
       
       <div class="footer-column">
         <h3>Contact Information</h3>
         <div class="footer-contact-item">
-          <span class="footer-contact-icon">✉</span>
+          <span class="footer-contact-icon"><i class="fas fa-envelope"></i></span>
           <span class="footer-contact-text">info@bd2.com</span>
         </div>
         <div class="footer-contact-item">
-          <span class="footer-contact-icon">☎</span>
+          <span class="footer-contact-icon"><i class="fas fa-phone"></i></span>
           <span class="footer-contact-text">(555) 123-4567</span>
         </div>
         <div class="footer-contact-item">
-          <span class="footer-contact-icon">📍</span>
+          <span class="footer-contact-icon"><i class="fas fa-map-marker-alt"></i></span>
           <span class="footer-contact-text">123 Business St, Tech City, CA 12345</span>
         </div>
         <div class="footer-contact-item">
-          <span class="footer-contact-icon">🕒</span>
+          <span class="footer-contact-icon"><i class="fas fa-clock"></i></span>
           <span class="footer-contact-text">Mon-Fri: 9am-5pm</span>
         </div>
       </div>
@@ -77,10 +99,10 @@
       </div>
       
       <div class="footer-social">
-        <a href="#" aria-label="Facebook">f</a>
-        <a href="#" aria-label="Twitter">t</a>
-        <a href="#" aria-label="Instagram">i</a>
-        <a href="#" aria-label="LinkedIn">in</a>
+        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
       </div>
     </div>
   </footer>

@@ -8,12 +8,25 @@
     animation: fadeIn 1s ease;
   }
 
+  @media (max-width: 576px) {
+    .profile-section {
+      margin: 30px auto;
+      padding: 15px;
+    }
+  }
+
   .profile-title {
     font-size: 1.8rem;
     margin-bottom: 25px;
     color: var(--dark-gray);
     position: relative;
     padding-bottom: 10px;
+  }
+
+  @media (max-width: 576px) {
+    .profile-title {
+      font-size: 1.5rem;
+    }
   }
 
   .profile-title::after {
@@ -32,9 +45,23 @@
     color: var(--dark-gray);
   }
 
+  @media (max-width: 576px) {
+    .profile-subtitle {
+      font-size: 1rem;
+    }
+  }
+
   .form-group {
     margin-bottom: 20px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeInUp 0.5s ease forwards;
   }
+
+  .form-group:nth-child(1) { animation-delay: 0.1s; }
+  .form-group:nth-child(2) { animation-delay: 0.2s; }
+  .form-group:nth-child(3) { animation-delay: 0.3s; }
+  .form-group:nth-child(4) { animation-delay: 0.4s; }
 
   .form-label {
     display: block;
@@ -56,6 +83,10 @@
     border-color: var(--primary-color);
     outline: none;
     box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  }
+
+  .form-group.focused label {
+    color: var(--primary-color);
   }
 
   .checkbox-group {
@@ -84,6 +115,12 @@
     margin-top: 10px;
   }
 
+  @media (max-width: 576px) {
+    .services-container {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+  }
+
   .submit-btn {
     background-color: var(--primary-color);
     color: white;
@@ -96,6 +133,15 @@
     transition: var(--transition);
     display: inline-block;
     margin-top: 20px;
+    width: 100%;
+    animation: fadeIn 1s ease 0.5s forwards;
+    opacity: 0;
+  }
+
+  @media (min-width: 576px) {
+    .submit-btn {
+      width: auto;
+    }
   }
 
   .submit-btn:hover {
@@ -113,8 +159,16 @@
     margin-bottom: 30px;
     padding-bottom: 20px;
     border-bottom: 1px solid #eee;
+    animation: fadeIn 1s ease;
   }
 
   .form-section:last-child {
     border-bottom: none;
+  }
+
+  @keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
