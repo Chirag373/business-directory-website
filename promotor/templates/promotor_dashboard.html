@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Promotor Dashboard - Business Directory 2.0{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/promotor_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="promotor-dashboard">
+  <!-- Header Section -->
+  <header class="dashboard-header">
+    <div class="header-left">
+      <h1>Welcome, <span id="business-name">{{ user.business.name }}</span></h1>
+      <div class="profile-completion">
+        <div class="completion-label">Profile Completion:</div>
+        <div class="progress-container">
+          <div class="progress-bar" id="profile-progress" style="width: 75%;"></div>
+        </div>
+        <div class="completion-percentage">75%</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="notification-bell">
+        <i class="fas fa-bell"></i>
+        <span class="notification-count">5</span>
+      </div>
+      <div class="logout-container">
+        <a href="" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        <button class="dashboard-hamburger" aria-label="Toggle dashboard menu">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Tabs -->
+  <div class="dashboard-tabs">
+    <button class="tab-button active" data-tab="overview">
+      <i class="fas fa-home"></i> Overview
+    </button>
+    <button class="tab-button" data-tab="promotion">
+      <i class="fas fa-tags"></i> Promotions
+    </button>
+    <button class="tab-button" data-tab="products">
+      <i class="fas fa-box"></i> Products
+    </button>
+    <button class="tab-button" data-tab="performance">
+      <i class="fas fa-chart-line"></i> Performance
+    </button>
+    <button class="tab-button" data-tab="settings">
+      <i class="fas fa-cog"></i> Settings
+    </button>
+  </div>
+
+  <!-- Mobile Dashboard Sidebar -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <h3>Dashboard Menu</h3>
+      <button class="close-sidebar" aria-label="Close menu">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <button class="sidebar-tab-button active" data-tab="overview">
+          <i class="fas fa-home"></i> Overview
+        </button>
+      </li>
+      <li>
+        <button class="sidebar-tab-button" data-tab="promotion">
+          <i class="fas fa-tags"></i> Promotions
+        </button>
+      </li>
+      <li>
+        <button class="sidebar-tab-button" data-tab="products">
+          <i class="fas fa-box"></i> Products
+        </button>
+      </li>
+      <li>
+        <button class="sidebar-tab-button" data-tab="performance">
+          <i class="fas fa-chart-line"></i> Performance
+        </button>
+      </li>
+      <li>
+        <button class="sidebar-tab-button" data-tab="settings">
+          <i class="fas fa-cog"></i> Settings
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Dashboard Sidebar Overlay -->
+  <div class="dashboard-overlay"></div>
+
+  <!-- Overview Section -->
+  <section class="dashboard-content active" id="overview-section">
+    <div class="dashboard-stats">
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-eye"></i></div>
+        <div class="stat-number" id="total-views">347</div>
+        <div class="stat-label">Profile Views</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-handshake"></i></div>
+        <div class="stat-number" id="promotional-matches">28</div>
+        <div class="stat-label">Promotional Matches</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-tag"></i></div>
+        <div class="stat-number" id="promotion-uses">38</div>
+        <div class="stat-label">Promotion Uses</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-mouse-pointer"></i></div>
+        <div class="stat-number" id="website-clicks">42</div>
+        <div class="stat-label">Website Clicks</div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- Business Card Showcase -->
+      <div class="card-showcase">
+        <h2>Your Business Card</h2>
+        <div class="card-wrapper" id="business-card-wrapper">
+          <div class="card-inner">
+            <div class="card-front business-card-bg">
+              <!-- Front card content populated by JS -->
+            </div>
+            <div class="card-back business-card-bg">
+              <!-- Back card content populated by JS -->
+            </div>
+          </div>
+        </div>
+        <div class="card-controls">
+          <button class="card-flip-btn" id="flip-card-btn">
+            <span class="flip-text front-text">Flip Card</span>
+            <span class="flip-text back-text">Front Side</span>
+            <i class="fas fa-sync-alt flip-icon"></i>
+          </button>
+        </div>
+        <div class="promo-status" id="promo-status">
+          <div class="status-indicator active"></div>
+          <span class="status-text">Promotion Active</span>
+          <div class="promo-code">SUMMER15</div>
+        </div>
+      </div>
+
+      <!-- Current Promotion Summary -->
+      <div class="promotion-summary">
+        <h2>Current Promotion</h2>
+        <div class="active-promotion" id="active-promotion">
+          <div class="promotion-header">
+            <div class="discount-badge">15% OFF</div>
+            <div class="promotion-timer">
+              <i class="fas fa-clock"></i>
+              <span id="promotion-countdown">7 days, 6 hours remaining</span>
+            </div>
+          </div>
+          <div class="promotion-body">
+            <p class="promotion-description">Summer special! 15% off all paint supplies and tools through the end of August.</p>
+            <div class="promotion-categories">
+              <span class="category-tag">Paint Supplies</span>
+              <span class="category-tag">Tools</span>
+            </div>
+          </div>
+          <div class="promotion-footer">
+            <span class="promotion-dates">Valid until: August 31, 2025</span>
+            <button class="edit-promotion-btn"><i class="fas fa-edit"></i> Edit</button>
+          </div>
+        </div>
+        <div class="no-promotion hidden" id="no-promotion">
+          <div class="empty-state">
+            <i class="fas fa-tag empty-icon"></i>
+            <p>No active promotions</p>
+            <button class="create-promotion-btn">Create Promotion</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Performance Chart -->
+      <div class="quick-chart">
+        <h2>Performance Overview</h2>
+        <div class="chart-container">
+          <canvas id="performance-chart"></canvas>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: rgba(74, 108, 247, 0.7);"></span>
+            <span class="legend-label">Profile Views</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: rgba(40, 167, 69, 0.7);"></span>
+            <span class="legend-label">Product Impressions</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Description -->
+      <div class="product-preview">
+        <h2>Product Description</h2>
+        <div class="product-description-display">
+          <p id="current-product-description">We offer high-quality paint supplies and professional tools for both residential and commercial projects. Specializing in eco-friendly and long-lasting products.</p>
+          <div class="keywords-preview">
+            <span class="keyword">paint</span>
+            <span class="keyword">tools</span>
+            <span class="keyword">supplies</span>
+            <span class="keyword">eco-friendly</span>
+            <span class="keyword">professional</span>
+          </div>
+        </div>
+        <button class="edit-product-btn"><i class="fas fa-edit"></i> Edit Description</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Promotion Management Section -->
+  <section class="dashboard-content" id="promotion-section">
+    <h2>Manage Promotions</h2>
+    <div class="promotion-management">
+      <div class="promotion-form-container">
+        <h3><i class="fas fa-plus-circle"></i> Create Promotion</h3>
+        <form class="promotion-form" id="promotion-form">
+          <div class="form-group">
+            <label for="promotion-description">Promotion Description</label>
+            <textarea id="promotion-description" name="promotion_description" rows="3" placeholder="Describe your promotion..."></textarea>
+            <div class="character-count"><span id="description-chars">0</span>/150</div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="discount-percentage">Discount Percentage</label>
+              <select id="discount-percentage" name="discount_percentage">
+                <option value="">Select discount %</option>
+                <option value="3">3%</option>
+                <option value="5">5%</option>
+                <option value="10">10%</option>
+                <option value="15">15%</option>
+                <option value="20">20%</option>
+                <option value="25">25%</option>
+                <option value="30">30%</option>
+                <option value="40">40%</option>
+                <option value="50">50%</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="promotion-code">Promotion Code</label>
+              <input type="text" id="promotion-code" name="promotion_code" placeholder="e.g., SUMMER20" maxlength="10">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="start-date">Start Date</label>
+              <input type="date" id="start-date" name="start_date">
+            </div>
+            <div class="form-group">
+              <label for="end-date">End Date</label>
+              <input type="date" id="end-date" name="end_date">
+            </div>
+          </div>
+          
+          <div class="categories-selection">
+            <label>Applicable Categories</label>
+            <div class="categories-options">
+              <label class="checkbox-container">
+                <input type="checkbox" name="category" value="paint">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-label">Paint</span>
+              </label>
+              <label class="checkbox-container">
+                <input type="checkbox" name="category" value="tools">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-label">Tools</span>
+              </label>
+              <label class="checkbox-container">
+                <input type="checkbox" name="category" value="supplies">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-label">Supplies</span>
+              </label>
+              <label class="checkbox-container">
+                <input type="checkbox" name="category" value="equipment">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-label">Equipment</span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="primary-button"><i class="fas fa-check-circle"></i> Create Promotion</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products Section -->
+  <section class="dashboard-content" id="products-section">
+    <h2>Manage Products</h2>
+    <div class="product-management">
+      <div class="product-editor">
+        <h3><i class="fas fa-plus-circle"></i> Add New Product</h3>
+        <form class="product-form">
+          <div class="form-group">
+            <label for="product-name">Product Name</label>
+            <input type="text" id="product-name" name="product_name" placeholder="Enter product name">
+          </div>
+          
+          <div class="form-group">
+            <label for="product-description">Product Description</label>
+            <textarea id="product-description" name="product_description" rows="3" placeholder="Describe your product..."></textarea>
+            <div class="character-count"><span id="product-chars">0</span>/200</div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="product-category">Category</label>
+              <select id="product-category" name="product_category">
+                <option value="">Select Category</option>
+                <option value="paint">Paint</option>
+                <option value="tools">Tools</option>
+                <option value="supplies">Supplies</option>
+                <option value="equipment">Equipment</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="product-price">Price ($)</label>
+              <input type="number" id="product-price" name="product_price" min="0" step="0.01" placeholder="0.00">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group toggle-container">
+              <label>Featured Product</label>
+              <label class="switch">
+                <input type="checkbox" id="featured-toggle" name="is_featured">
+                <span class="slider round"></span>
+              </label>
+              <span class="toggle-label">No</span>
+            </div>
+            <div class="form-group toggle-container">
+              <label>Apply Promotion</label>
+              <label class="switch">
+                <input type="checkbox" id="promotion-toggle" name="apply_promotion">
+                <span class="slider round"></span>
+              </label>
+              <span class="toggle-label">No</span>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="primary-button"><i class="fas fa-check-circle"></i> Add Product</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Performance Section -->
+  <section class="dashboard-content" id="performance-section">
+    <h2>Performance Analytics</h2>
+    <div class="performance-filters">
+      <div class="filter-group">
+        <label for="date-range">Date Range</label>
+        <select id="date-range">
+          <option value="7days">Last 7 Days</option>
+          <option value="30days" selected>Last 30 Days</option>
+          <option value="90days">Last 90 Days</option>
+          <option value="year">Last Year</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="metric-type">Metric</label>
+        <select id="metric-type">
+          <option value="views" selected>Profile Views</option>
+          <option value="impressions">Product Impressions</option>
+          <option value="promotions">Promotion Uses</option>
+          <option value="clicks">Website Clicks</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="performance-metrics">
+      <div class="metrics-charts">
+        <div class="chart-container large">
+          <h3>Visitor Analytics</h3>
+          <canvas id="visitors-chart"></canvas>
+        </div>
+        <div class="charts-row">
+          <div class="chart-container medium">
+            <h3>Traffic Sources</h3>
+            <canvas id="traffic-sources-chart"></canvas>
+          </div>
+          <div class="chart-container medium">
+            <h3>Device Usage</h3>
+            <canvas id="devices-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Settings Section -->
+  <section class="dashboard-content" id="settings-section">
+    <h2>Account Settings</h2>
+    <!-- Settings content goes here -->
+  </section>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/promotor_dashboard.js' %}"></script>
+{% endblock %} 
