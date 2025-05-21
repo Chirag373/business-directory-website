@@ -66,6 +66,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // Ensure sidebar is reset to proper state on page load
+  if (sidebar) {
+    sidebar.classList.remove("show");
+  }
+  if (overlay) {
+    overlay.classList.remove("show");
+  }
+
   // Card flip functionality with improved animations
   const flipLabels = document.querySelectorAll(".flip-label");
   const cards = document.querySelectorAll(".business-card");

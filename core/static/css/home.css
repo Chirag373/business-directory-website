@@ -85,8 +85,6 @@ body {
 nav {
   background-color: #fff;
   box-shadow: var(--shadow);
-  position: sticky;
-  top: 0;
   z-index: 100;
 }
 
@@ -763,20 +761,12 @@ footer {
   padding: 20px 0;
   display: flex;
   flex-direction: column;
+  visibility: hidden; /* Hide by default */
 }
 
 .sidebar.show {
   right: 0; /* Slide in from the right */
-  animation: slideInRight 0.3s forwards;
-}
-
-@keyframes slideInRight {
-  from {
-    right: -300px;
-  }
-  to {
-    right: 0;
-  }
+  visibility: visible; /* Show when active */
 }
 
 .sidebar-header {
@@ -804,6 +794,7 @@ footer {
 .sidebar-menu {
   list-style: none;
   padding: 0 20px;
+  margin: 0;
 }
 
 .sidebar-menu li {
