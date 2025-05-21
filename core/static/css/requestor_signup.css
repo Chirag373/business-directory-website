@@ -1,11 +1,24 @@
 .profile-section {
-  max-width: 800px;
+  max-width: 80%;
   margin: 60px auto 40px;
   padding: 30px;
   background-color: white;
   border-radius: 10px;
   box-shadow: var(--shadow);
   animation: fadeIn 1s ease;
+}
+
+@media (max-width: 1440px) {
+  .profile-section {
+    max-width: 95%;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-section {
+    margin: 40px auto 30px;
+    padding: 20px;
+  }
 }
 
 .profile-title {

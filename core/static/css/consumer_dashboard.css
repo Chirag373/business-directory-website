@@ -17,9 +17,21 @@
 
 /* Main dashboard container */
 .consumer-dashboard {
-  max-width: 1200px;
+  max-width: 80%;
   margin: 2rem auto;
   padding: 0 1rem;
+}
+
+@media (max-width: 1440px) {
+  .consumer-dashboard {
+    max-width: 95%;
+  }
+}
+
+@media (max-width: 768px) {
+  .consumer-dashboard {
+    /* Keep same width as above breakpoint */
+  }
 }
 
 /* Dashboard Header with Hamburger */

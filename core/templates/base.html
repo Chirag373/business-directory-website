@@ -7,6 +7,17 @@
   <title>{% block title %}Business Directory 2.0{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/home.css' %}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --container-width: 80%;
+    }
+    
+    @media (max-width: 1440px) {
+      :root {
+        --container-width: 95%;
+      }
+    }
+  </style>
   {% block extra_css %}{% endblock %}
 </head>
 <body>

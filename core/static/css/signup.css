@@ -1,5 +1,5 @@
 .signup-section {
-    max-width: 800px;
+    max-width: 80%;
     margin: 60px auto 40px;
     padding: 30px;
     background-color: white;
@@ -7,8 +7,14 @@
     box-shadow: var(--shadow);
     animation: fadeIn 0.6s ease;
   }
-
-  @media (max-width: 576px) {
+  
+  @media (max-width: 1440px) {
+    .signup-section {
+      max-width: 95%;
+    }
+  }
+  
+  @media (max-width: 768px) {
     .signup-section {
       margin: 30px auto;
       padding: 20px;
@@ -31,8 +37,14 @@
   .signup-subtitle {
     color: #666;
     font-size: 1.1rem;
-    max-width: 500px;
+    max-width: 80%;
     margin: 0 auto;
+  }
+  
+  @media (max-width: 768px) {
+    .signup-subtitle {
+      max-width: 100%;
+    }
   }
 
   @media (max-width: 576px) {

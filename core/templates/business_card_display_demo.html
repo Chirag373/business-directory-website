@@ -6,9 +6,21 @@
 {% block extra_css %}
 <style>
   .cards-container {
-    max-width: 1200px;
+    max-width: 80%;
     margin: 0 auto;
     padding: 40px 20px;
+  }
+  
+  @media (max-width: 1440px) {
+    .cards-container {
+      max-width: 95%;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .cards-container {
+      padding: 30px 15px;
+    }
   }
   
   .page-header {
@@ -24,9 +36,15 @@
   
   .page-subtitle {
     color: #666;
-    max-width: 700px;
+    max-width: 80%;
     margin: 0 auto;
     line-height: 1.5;
+  }
+  
+  @media (max-width: 768px) {
+    .page-subtitle {
+      max-width: 100%;
+    }
   }
   
   .cards-grid {
