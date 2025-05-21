@@ -1,0 +1,603 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Handyman Dashboard - Business Directory 2.0{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/handyman_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="handyman-dashboard">
+  <!-- Header Section -->
+  <header class="dashboard-header">
+    <div class="header-left">
+      <h1>Welcome, <span id="business-name">{{ user.business.name }}</span></h1>
+      <div class="profile-completion">
+        <div class="completion-label">Profile Completion:</div>
+        <div class="progress-container">
+          <div class="progress-bar" id="profile-progress" style="width: 75%;"></div>
+        </div>
+        <div class="completion-percentage">75%</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="notification-bell">
+        <i class="fas fa-bell"></i>
+        <span class="notification-count">5</span>
+      </div>
+      <div class="logout-container">
+        <a href="" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        <button class="dashboard-hamburger" aria-label="Toggle dashboard menu">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Tabs -->
+  <div class="dashboard-tabs">
+    <button class="tab-button active" data-tab="overview">
+      <i class="fas fa-home"></i> Overview
+    </button>
+    <button class="tab-button" data-tab="promotion">
+      <i class="fas fa-tags"></i> Promotions
+    </button>
+    <button class="tab-button" data-tab="services">
+      <i class="fas fa-tools"></i> Services
+    </button>
+    <button class="tab-button" data-tab="performance">
+      <i class="fas fa-chart-line"></i> Performance
+    </button>
+    <button class="tab-button" data-tab="settings">
+      <i class="fas fa-cog"></i> Settings
+    </button>
+  </div>
+
+  <!-- Mobile Dashboard Sidebar -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <h3>Dashboard Menu</h3>
+      <button class="close-sidebar" aria-label="Close menu">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <button class="sidebar-tab-button active" data-tab="overview">
+          <i class="fas fa-home"></i> Overview
+        </button>
+      </li>
+      <li>
+        <button class="sidebar-tab-button" data-tab="promotion">
+          <i class="fas fa-tags"></i> Promotions
+        </button>
+      </li>
+      <li>
+        <button class="sidebar-tab-button" data-tab="services">
+          <i class="fas fa-tools"></i> Services
+        </button>
+      </li>
+      <li>
+        <button class="sidebar-tab-button" data-tab="performance">
+          <i class="fas fa-chart-line"></i> Performance
+        </button>
+      </li>
+      <li>
+        <button class="sidebar-tab-button" data-tab="settings">
+          <i class="fas fa-cog"></i> Settings
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Dashboard Sidebar Overlay -->
+  <div class="dashboard-overlay"></div>
+
+  <!-- Overview Section -->
+  <section class="dashboard-content active" id="overview-section">
+    <div class="dashboard-stats">
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-eye"></i></div>
+        <div class="stat-number" id="total-views">347</div>
+        <div class="stat-label">Profile Views</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-handshake"></i></div>
+        <div class="stat-number" id="promotional-matches">28</div>
+        <div class="stat-label">Promotional Matches</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-bell"></i></div>
+        <div class="stat-number" id="notifications-sent">15</div>
+        <div class="stat-label">Notifications Sent</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-mouse-pointer"></i></div>
+        <div class="stat-number" id="website-clicks">42</div>
+        <div class="stat-label">Website Clicks</div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- Business Card Showcase -->
+      <div class="card-showcase">
+        <h2>Your Business Card</h2>
+        <div class="card-wrapper" id="business-card-wrapper">
+          <div class="card-inner">
+            <div class="card-front business-card-bg">
+              <!-- Front card content populated by JS -->
+            </div>
+            <div class="card-back business-card-bg">
+              <!-- Back card content populated by JS -->
+            </div>
+          </div>
+        </div>
+        <div class="card-controls">
+          <button class="card-flip-btn" id="flip-card-btn">
+            <span class="flip-text front-text">Flip Card</span>
+            <span class="flip-text back-text">Front Side</span>
+            <i class="fas fa-sync-alt flip-icon"></i>
+          </button>
+        </div>
+        <div class="promo-status" id="promo-status">
+          <div class="status-indicator active"></div>
+          <span class="status-text">Promotion Active</span>
+          <div class="promo-code">SPRING25</div>
+        </div>
+      </div>
+
+      <!-- Current Promotion Summary -->
+      <div class="promotion-summary">
+        <h2>Current Promotion</h2>
+        <div class="active-promotion" id="active-promotion">
+          <div class="promotion-header">
+            <div class="discount-badge">25% OFF</div>
+            <div class="promotion-timer">
+              <i class="fas fa-clock"></i>
+              <span id="promotion-countdown">3 days, 12 hours remaining</span>
+            </div>
+          </div>
+          <div class="promotion-body">
+            <p class="promotion-description">Spring special! 25% off all plumbing services through the end of the month.</p>
+            <div class="promotion-categories">
+              <span class="category-tag">Plumbing</span>
+              <span class="category-tag">Repairs</span>
+            </div>
+          </div>
+          <div class="promotion-footer">
+            <span class="promotion-dates">Valid until: May 31, 2025</span>
+            <button class="edit-promotion-btn"><i class="fas fa-edit"></i> Edit</button>
+          </div>
+        </div>
+        <div class="no-promotion hidden" id="no-promotion">
+          <div class="empty-state">
+            <i class="fas fa-tag empty-icon"></i>
+            <p>No active promotions</p>
+            <button class="create-promotion-btn">Create Promotion</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Performance Chart -->
+      <div class="quick-chart">
+        <h2>Performance Overview</h2>
+        <div class="chart-container">
+          <canvas id="performance-chart"></canvas>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: rgba(74, 108, 247, 0.7);"></span>
+            <span class="legend-label">Profile Views</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: rgba(40, 167, 69, 0.7);"></span>
+            <span class="legend-label">Matches</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service Preview -->
+      <div class="service-preview">
+        <h2>Service Description</h2>
+        <div class="service-description-display">
+          <p id="current-service-description">We provide professional plumbing services including leak detection, pipe repair, fixture installation, and drain cleaning. Available for both residential and commercial properties.</p>
+          <div class="keywords-preview">
+            <span class="keyword">plumbing</span>
+            <span class="keyword">leak</span>
+            <span class="keyword">pipe</span>
+            <span class="keyword">fixture</span>
+            <span class="keyword">drain</span>
+          </div>
+        </div>
+        <button class="edit-service-btn"><i class="fas fa-edit"></i> Edit Description</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Promotion Management Section -->
+  <section class="dashboard-content" id="promotion-section">
+    <h2>Manage Promotions</h2>
+    <div class="promotion-management">
+      <div class="promotion-form-container">
+        <h3><i class="fas fa-plus-circle"></i> Create Promotion</h3>
+        <form class="promotion-form" id="promotion-form">
+          <div class="form-group">
+            <label for="promotion-description">Promotion Description</label>
+            <textarea id="promotion-description" name="promotion_description" rows="3" placeholder="Describe your promotion..."></textarea>
+            <div class="character-count"><span id="description-chars">0</span>/150</div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="discount-percentage">Discount Percentage</label>
+              <select id="discount-percentage" name="discount_percentage">
+                <option value="">Select discount %</option>
+                <option value="3">3%</option>
+                <option value="5">5%</option>
+                <option value="10">10%</option>
+                <option value="15">15%</option>
+                <option value="20">20%</option>
+                <option value="25">25%</option>
+                <option value="30">30%</option>
+                <option value="40">40%</option>
+                <option value="50">50%</option>
+                <option value="60">60%</option>
+                <option value="70">70%</option>
+                <option value="80">80%</option>
+                <option value="90">90%</option>
+                <option value="100">100%</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="promotion-code">Promotion Code</label>
+              <div class="code-display" id="promotion-code">AUTO-GENERATED</div>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="start-date">Start Date</label>
+              <input type="date" id="start-date" name="start_date">
+            </div>
+            <div class="form-group">
+              <label for="end-date">End Date</label>
+              <input type="date" id="end-date" name="end_date">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Service Categories</label>
+            <div class="categories-selection">
+              <div class="category-option">
+                <label class="checkbox-container">
+                  <input type="checkbox" name="categories" value="plumbing">
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-label">Plumbing</span>
+                </label>
+              </div>
+              <div class="category-option">
+                <label class="checkbox-container">
+                  <input type="checkbox" name="categories" value="electrical">
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-label">Electrical</span>
+                </label>
+              </div>
+              <div class="category-option">
+                <label class="checkbox-container">
+                  <input type="checkbox" name="categories" value="general">
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-label">General Repairs</span>
+                </label>
+              </div>
+              <div class="category-option">
+                <label class="checkbox-container">
+                  <input type="checkbox" name="categories" value="flooring">
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-label">Flooring</span>
+                </label>
+              </div>
+              <div class="category-option">
+                <label class="checkbox-container">
+                  <input type="checkbox" name="categories" value="painting">
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-label">Painting</span>
+                </label>
+              </div>
+              <div class="category-option">
+                <label class="checkbox-container">
+                  <input type="checkbox" name="categories" value="carpentry">
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-label">Carpentry</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="primary-button">
+              <i class="fas fa-save"></i> Create Promotion
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <div class="current-promotion-container">
+        <h3><i class="fas fa-tag"></i> Current Promotion</h3>
+        <div class="active-promotion-details" id="active-promotion-details">
+          <div class="promotion-header">
+            <div class="promotion-toggle">
+              <label class="switch">
+                <input type="checkbox" id="promotion-status" checked>
+                <span class="slider round"></span>
+              </label>
+              <span class="toggle-label">Active</span>
+            </div>
+            <div class="discount-badge">25% OFF</div>
+          </div>
+          
+          <div class="promotion-timer-container">
+            <div class="timer-label">Time Remaining:</div>
+            <div class="countdown-timer">
+              <div class="countdown-segment">
+                <div class="countdown-value" id="days-remaining">3</div>
+                <div class="countdown-label">Days</div>
+              </div>
+              <div class="countdown-separator">:</div>
+              <div class="countdown-segment">
+                <div class="countdown-value" id="hours-remaining">12</div>
+                <div class="countdown-label">Hours</div>
+              </div>
+              <div class="countdown-separator">:</div>
+              <div class="countdown-segment">
+                <div class="countdown-value" id="minutes-remaining">45</div>
+                <div class="countdown-label">Mins</div>
+              </div>
+              <div class="countdown-separator">:</div>
+              <div class="countdown-segment">
+                <div class="countdown-value" id="seconds-remaining">18</div>
+                <div class="countdown-label">Secs</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="promotion-details-body">
+            <div class="details-group">
+              <div class="details-label">Description:</div>
+              <div class="details-value">Spring special! 25% off all plumbing services through the end of the month.</div>
+            </div>
+            
+            <div class="details-group">
+              <div class="details-label">Promotion Code:</div>
+              <div class="details-value code-value">SPRING25</div>
+            </div>
+            
+            <div class="details-row">
+              <div class="details-group half">
+                <div class="details-label">Start Date:</div>
+                <div class="details-value">May 1, 2025</div>
+              </div>
+              <div class="details-group half">
+                <div class="details-label">End Date:</div>
+                <div class="details-value">May 31, 2025</div>
+              </div>
+            </div>
+            
+            <div class="details-group">
+              <div class="details-label">Categories:</div>
+              <div class="details-value categories-list">
+                <span class="category-tag">Plumbing</span>
+                <span class="category-tag">Repairs</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="promotion-actions">
+            <button class="edit-button"><i class="fas fa-edit"></i> Edit</button>
+            <button class="delete-button"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>
+        <div class="no-active-promotion hidden" id="no-active-promotion">
+          <div class="empty-state">
+            <i class="fas fa-tag empty-icon"></i>
+            <p>No active promotion. Create one to start attracting customers!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Performance Metrics Section -->
+  <section class="dashboard-content" id="performance-section">
+    <h2>Performance Analytics</h2>
+    
+    <div class="performance-filters">
+      <div class="filter-group">
+        <label for="time-period">Time Period:</label>
+        <select id="time-period">
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="90">Last 90 days</option>
+          <option value="365">Last year</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="performance-metrics">
+      <div class="metrics-charts">
+        <div class="chart-container large">
+          <h3>Engagement Over Time</h3>
+          <canvas id="engagement-chart" width="400" height="250"></canvas>
+        </div>
+        
+        <div class="charts-row">
+          <div class="chart-container medium">
+            <h3>Category Distribution</h3>
+            <canvas id="category-chart" width="200" height="200"></canvas>
+          </div>
+          
+          <div class="chart-container medium">
+            <h3>Performance vs. Average</h3>
+            <canvas id="comparison-chart" width="200" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <div class="metrics-summary">
+        <div class="summary-section">
+          <h3>Traffic Sources</h3>
+          <div class="traffic-source">
+            <div class="source-info">
+              <span class="source-name">Search</span>
+              <span class="source-percentage">42%</span>
+            </div>
+            <div class="source-bar-container">
+              <div class="source-bar" style="width: 42%;"></div>
+            </div>
+          </div>
+          <div class="traffic-source">
+            <div class="source-info">
+              <span class="source-name">Promotions</span>
+              <span class="source-percentage">35%</span>
+            </div>
+            <div class="source-bar-container">
+              <div class="source-bar" style="width: 35%;"></div>
+            </div>
+          </div>
+          <div class="traffic-source">
+            <div class="source-info">
+              <span class="source-name">Direct</span>
+              <span class="source-percentage">15%</span>
+            </div>
+            <div class="source-bar-container">
+              <div class="source-bar" style="width: 15%;"></div>
+            </div>
+          </div>
+          <div class="traffic-source">
+            <div class="source-info">
+              <span class="source-name">Referral</span>
+              <span class="source-percentage">8%</span>
+            </div>
+            <div class="source-bar-container">
+              <div class="source-bar" style="width: 8%;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="summary-section">
+          <h3>Engagement Metrics</h3>
+          <div class="engagement-metric">
+            <div class="metric-icon"><i class="fas fa-eye"></i></div>
+            <div class="metric-details">
+              <div class="metric-name">Profile Views</div>
+              <div class="metric-value">347</div>
+              <div class="metric-change positive"><i class="fas fa-arrow-up"></i> 12%</div>
+            </div>
+          </div>
+          <div class="engagement-metric">
+            <div class="metric-icon"><i class="fas fa-handshake"></i></div>
+            <div class="metric-details">
+              <div class="metric-name">Promotional Matches</div>
+              <div class="metric-value">28</div>
+              <div class="metric-change positive"><i class="fas fa-arrow-up"></i> 5%</div>
+            </div>
+          </div>
+          <div class="engagement-metric">
+            <div class="metric-icon"><i class="fas fa-bell"></i></div>
+            <div class="metric-details">
+              <div class="metric-name">Notifications Sent</div>
+              <div class="metric-value">15</div>
+              <div class="metric-change negative"><i class="fas fa-arrow-down"></i> 3%</div>
+            </div>
+          </div>
+          <div class="engagement-metric">
+            <div class="metric-icon"><i class="fas fa-mouse-pointer"></i></div>
+            <div class="metric-details">
+              <div class="metric-name">Website Clicks</div>
+              <div class="metric-value">42</div>
+              <div class="metric-change positive"><i class="fas fa-arrow-up"></i> 8%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section class="dashboard-content" id="services-section">
+    <h2>Service Description</h2>
+    
+    <div class="service-editor">
+      <div class="editor-container">
+        <form class="service-form">
+          <div class="form-group">
+            <label for="service-description">Service Description</label>
+            <textarea id="service-description" name="service_description" rows="6" placeholder="Describe your services...">We provide professional plumbing services including leak detection, pipe repair, fixture installation, and drain cleaning. Available for both residential and commercial properties.</textarea>
+            <div class="character-count"><span id="service-chars">144</span>/500</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="service-keywords">Keywords (separated by commas)</label>
+            <input type="text" id="service-keywords" name="service_keywords" placeholder="e.g. plumbing, repair, installation" value="plumbing, leak, pipe, fixture, drain, residential, commercial">
+            <div class="help-text">Keywords help customers find your services</div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="primary-button">
+              <i class="fas fa-save"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <div class="preview-container">
+        <h3>Preview</h3>
+        <div class="service-card">
+          <div class="service-card-header">
+            <div class="business-logo-preview">
+              <i class="fas fa-tools"></i>
+            </div>
+            <div class="business-info-preview">
+              <div class="business-name-preview">Smith's Plumbing</div>
+              <div class="business-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star-half-alt"></i>
+                <span class="rating-count">(28)</span>
+              </div>
+            </div>
+          </div>
+          <div class="service-card-body">
+            <p id="service-preview-text">We provide professional plumbing services including leak detection, pipe repair, fixture installation, and drain cleaning. Available for both residential and commercial properties.</p>
+          </div>
+          <div class="service-card-footer">
+            <div class="keyword-tags" id="keyword-preview">
+              <span class="keyword-tag">plumbing</span>
+              <span class="keyword-tag">leak</span>
+              <span class="keyword-tag">pipe</span>
+              <span class="keyword-tag">fixture</span>
+              <span class="keyword-tag">drain</span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-explanation">
+          <p><i class="fas fa-info-circle"></i> This is how your service description will appear to potential customers.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Settings Section -->
+  <section class="dashboard-content" id="settings-section">
+    <h2>Account Settings</h2>
+    <!-- Settings content will go here -->
+  </section>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/handyman_dashboard.js' %}"></script>
+{% endblock %} 
