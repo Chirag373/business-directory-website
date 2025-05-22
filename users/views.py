@@ -1,5 +1,11 @@
 from django.shortcuts import render
 
 # Create your views here.
-def signup_consumer(request):
-    return render(request, 'consumer_signup.html')
+def signup(request):
+    return render(request, 'users/signup.html')
+
+def requestor_signup(request):
+    return render(request, 'users/requestor_signup.html')
+
+def consumer_dashboard(request):
+    return render(request, 'users/consumer_dashboard.html')
