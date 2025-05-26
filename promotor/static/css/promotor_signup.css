@@ -205,3 +205,10 @@
     margin: 0;
     color: var(--dark-gray);
   }
+
+  /* Promotor Signup specific styles */
+
+  /* Any page-specific styles would go here, but most are now in the shared CSS */
+  .product-details {
+    margin-top: 15px;
+  }

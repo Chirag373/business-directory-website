@@ -1,0 +1,127 @@
+<!-- Promotional Offers Section -->
+<h2>Promotional Offers</h2>
+
+<div class="filters-container">
+  <div class="filter-group">
+    <label for="category-filter">Category:</label>
+    <select id="category-filter">
+      <option value="all">All Categories</option>
+      {% for category in categories %}
+        <option value="{{ category.value }}" {% if filter_category == category.value %}selected{% endif %}>{{ category.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  
+  <div class="filter-group">
+    <label for="date-filter">Date:</label>
+    <select id="date-filter">
+      <option value="newest" {% if filter_date == 'newest' %}selected{% endif %}>Newest First</option>
+      <option value="oldest" {% if filter_date == 'oldest' %}selected{% endif %}>Oldest First</option>
+    </select>
+  </div>
+  
+  <div class="filter-group">
+    <label for="discount-filter">Discount:</label>
+    <select id="discount-filter">
+      <option value="highest" {% if filter_discount == 'highest' %}selected{% endif %}>Highest First</option>
+      <option value="lowest" {% if filter_discount == 'lowest' %}selected{% endif %}>Lowest First</option>
+    </select>
+  </div>
+  
+  <div class="filter-toggle">
+    <label class="checkbox-container">
+      <input type="checkbox" id="active-filter" {% if filter_active_only %}checked{% endif %}>
+      <span class="checkbox-custom"></span>
+      <span class="checkbox-label">Active only</span>
+    </label>
+  </div>
+</div>
+
+<div class="quick-filters">
+  {% for category in categories|slice:":4" %}
+    <button class="quick-filter-button" data-category="{{ category.value }}">{{ category.name }}</button>
+  {% empty %}
+    <button class="quick-filter-button" data-category="plumbing">Plumbing</button>
+    <button class="quick-filter-button" data-category="electrical">Electrical</button>
+    <button class="quick-filter-button" data-category="general">General</button>
+    <button class="quick-filter-button" data-category="bathroom">Bathroom</button>
+  {% endfor %}
+</div>
+
+<div class="offers-container">
+  {% if offers %}
+    {% for offer in offers %}
+      <div class="offer-card {% if offer.expiring_soon %}expiring-soon{% endif %} {% if offer.categories_match_preferences %}matches-preferences{% endif %}">
+        <div class="offer-card-inner">
+          <div class="offer-card-front">
+            <div class="business-card">
+              <div class="business-logo">
+                <i class="fas fa-wrench"></i>
+              </div>
+              <h3 class="business-name">{{ offer.business_name }}</h3>
+              <p class="business-title">Professional Services</p>
+              <p class="business-contact">{{ offer.business_phone }}</p>
+            </div>
+            <div class="offer-badge">
+              <div class="discount-percentage">{{ offer.discount_percentage }}%</div>
+              <div class="discount-label">OFF</div>
+            </div>
+            <div class="offer-dates">
+              <span class="valid-label">Valid:</span> {{ offer.start_date|date:"F j, Y" }} - {{ offer.end_date|date:"F j, Y" }}
+            </div>
+            <div class="offer-code-container">
+              <span class="offer-code-label">Code:</span>
+              <span class="offer-code">{{ offer.code }}</span>
+            </div>
+            <div class="offer-categories">
+              {% for category in offer.categories %}
+                <span class="category-tag">{{ category }}</span>
+              {% endfor %}
+            </div>
+            <button class="view-details-button">View Details</button>
+          </div>
+          <div class="offer-card-back">
+            <div class="offer-details">
+              <h3>{{ offer.title }}</h3>
+              <p>{{ offer.description }}</p>
+              <div class="business-details">
+                <div class="detail-item">
+                  <i class="fas fa-user"></i>
+                  <span>Business Owner</span>
+                </div>
+                <div class="detail-item">
+                  <i class="fas fa-phone"></i>
+                  <span>{{ offer.business_phone }}</span>
+                </div>
+                <div class="detail-item">
+                  <i class="fas fa-envelope"></i>
+                  <span>{{ offer.business_email }}</span>
+                </div>
+                <div class="detail-item">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <span>{{ offer.business_address }}</span>
+                </div>
+              </div>
+              <div class="countdown-container">
+                <div class="countdown-label">Expires in:</div>
+                <div class="countdown" data-expiry="{{ offer.end_date|date:'Y-m-d' }}">{{ offer.days_until_expiry }} days</div>
+              </div>
+            </div>
+            <button class="back-to-front-button">
+              <i class="fas fa-arrow-left"></i> Back
+            </button>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <!-- Empty state for when there are no offers -->
+    <div class="empty-offers">
+      <div class="empty-state-illustration">
+        <i class="fas fa-tags"></i>
+      </div>
+      <h3>No promotional offers yet</h3>
+      <p>Update your service preferences to receive targeted discounts!</p>
+    </div>
+  {% endif %}
+</div> 

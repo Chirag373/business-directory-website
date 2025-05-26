@@ -1,0 +1,98 @@
+<!-- Profile Management Section -->
+<h2>Profile Management</h2>
+<div class="profile-completion">
+  <div class="completion-label">Profile Completion:</div>
+  <div class="progress-container">
+    <div class="progress-bar" id="profile-progress"></div>
+  </div>
+  <div class="completion-percentage">0%</div>
+</div>
+
+<form class="profile-form" action="{% url 'user_profile' %}" method="post">
+  {% csrf_token %}
+  <div class="form-row">
+    <div class="form-group">
+      <label for="first-name">First Name</label>
+      <input type="text" id="first-name" name="first_name" value="{{ user.first_name|default:'' }}">
+    </div>
+    <div class="form-group">
+      <label for="last-name">Last Name</label>
+      <input type="text" id="last-name" name="last_name" value="{{ user.last_name|default:'' }}">
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="address-number">Address Number</label>
+      <input type="text" id="address-number" name="address_number" value="{{ address_number|default:'' }}">
+    </div>
+    <div class="form-group">
+      <label for="address-street">Address Street</label>
+      <input type="text" id="address-street" name="address_street" value="{{ address_street|default:'' }}">
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="state">State</label>
+      <select id="state" name="state">
+        <option value="">Select a State</option>
+        {% if states %}
+          {% for state_code, state_name in states %}
+            <option value="{{ state_code }}" {% if user.address.state == state_code %}selected{% endif %}>{{ state_name }}</option>
+          {% endfor %}
+        {% endif %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="county">County</label>
+      <select id="county" name="county" {% if not user.address.state %}disabled{% endif %}>
+        <option value="">Select a County</option>
+        {% if counties %}
+          {% for county in counties %}
+            <option value="{{ county }}" {% if user.address.county == county %}selected{% endif %}>{{ county }}</option>
+          {% endfor %}
+        {% endif %}
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="city">City</label>
+      <select id="city" name="city" {% if not user.address.county %}disabled{% endif %}>
+        <option value="">Select a City</option>
+        {% if cities %}
+          {% for city in cities %}
+            <option value="{{ city }}" {% if user.address.city == city %}selected{% endif %}>{{ city }}</option>
+          {% endfor %}
+        {% endif %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="zip">ZIP Code</label>
+      <input type="text" id="zip" name="zip" value="{% if user.address %}{{ user.address.postal_code|default:'' }}{% endif %}">
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" value="{{ user.email|default:'' }}">
+    </div>
+    <div class="form-group">
+      <label for="phone">Phone Number</label>
+      <input type="tel" id="phone" name="phone" value="{{ user.phone_number|default:'' }}">
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="primary-button">
+      <i class="fas fa-save"></i> Save Changes
+    </button>
+  </div>
+  
+  <div class="last-updated">
+    <i class="fas fa-clock"></i> Last updated: <span id="last-updated-timestamp">{{ user.updated_at|date:"F j, Y \a\t g:i A"|default:"Never" }}</span>
+  </div>
+</form> 

@@ -4,15 +4,31 @@
 {% block title %}Promoter Signup - Business Directory 2.0{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/signup_shared.css' %}">
 <link rel="stylesheet" href="{% static 'css/promotor_signup.css' %}">
 {% endblock %}
 
 {% block content %}
-<!-- Profile Form Section -->
 <section class="profile-section">
-  <h2 class="profile-title">Business Promoter Registration</h2>
-  <p class="profile-subtitle">Create your business account to promote your products</p>
+  <h2 class="profile-title">Promoter Registration</h2>
+  <p class="profile-subtitle">Create your account to offer products and promotional offers</p>
 
+  <!-- Progress Indicator -->
+  <ul class="progress-indicator">
+    <li class="progress-step completed">
+      <div class="progress-number">1</div>
+      <div class="progress-label">Account Type</div>
+    </li>
+    <li class="progress-step active">
+      <div class="progress-number">2</div>
+      <div class="progress-label">Business Details</div>
+    </li>
+    <li class="progress-step">
+      <div class="progress-number">3</div>
+      <div class="progress-label">Confirmation</div>
+    </li>
+  </ul>
+  
   <div class="alert-box">
     <p><strong>Note:</strong> Our system requires you to have a business card. If you do not have one, the system cannot
       sign you up.</p>
@@ -23,95 +39,128 @@
       account and a Handyman account (2 separate subscriptions).</p>
   </div>
 
-  <form class="profile-form" method="post" action="" enctype="multipart/form-data">
+  <form class="profile-form" method="post" action="{% url 'promotor_signup' %}" enctype="multipart/form-data">
     {% csrf_token %}
 
     <div class="form-section">
       <h3 class="section-title">Personal Information</h3>
 
-      <div class="form-group">
-        <label for="first-name" class="form-label">First Name</label>
-        <input type="text" id="first-name" name="first_name" class="form-control" required>
-      </div>
+      <div class="form-row">
+        <div class="form-col">
+          <div class="form-group">
+            <label for="first-name" class="form-label">First Name</label>
+            <input type="text" id="first-name" name="first_name" class="form-control" required>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label for="last-name" class="form-label">Last Name</label>
-        <input type="text" id="last-name" name="last_name" class="form-control" required>
+        <div class="form-col">
+          <div class="form-group">
+            <label for="last-name" class="form-label">Last Name</label>
+            <input type="text" id="last-name" name="last_name" class="form-control" required>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="form-section">
       <h3 class="section-title">Business Information</h3>
 
-      <div class="form-group">
-        <label for="business-name" class="form-label">Business Name</label>
-        <input type="text" id="business-name" name="business_name" class="form-control" required>
-      </div>
+      <div class="form-row">
+        <div class="form-col">
+          <div class="form-group">
+            <label for="business-name" class="form-label">Business Name</label>
+            <input type="text" id="business-name" name="business_name" class="form-control" required>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label for="website" class="form-label">Website URL</label>
-        <input type="url" id="website" name="website" class="form-control" placeholder="https://example.com">
+        <div class="form-col">
+          <div class="form-group">
+            <label for="website" class="form-label">Website URL</label>
+            <input type="url" id="website" name="website" class="form-control" placeholder="https://example.com">
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="form-section">
       <h3 class="section-title">Contact Information</h3>
 
-      <div class="form-group">
-        <label for="email" class="form-label">Email Address</label>
-        <input type="email" id="email" name="email" class="form-control" required>
-      </div>
+      <div class="form-row">
+        <div class="form-col">
+          <div class="form-group">
+            <label for="email" class="form-label">Email Address</label>
+            <input type="email" id="email" name="email" class="form-control" required>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label for="phone" class="form-label">Phone Number</label>
-        <input type="tel" id="phone" name="phone" class="form-control" required>
+        <div class="form-col">
+          <div class="form-group">
+            <label for="phone" class="form-label">Phone Number</label>
+            <input type="tel" id="phone" name="phone" class="form-control" required>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="form-section">
       <h3 class="section-title">Business Address</h3>
 
-      <div class="form-group">
-        <label for="address-number" class="form-label">Address Number</label>
-        <input type="text" id="address-number" name="address_number" class="form-control" required>
+      <div class="form-row">
+        <div class="form-col" style="flex: 0.3;">
+          <div class="form-group">
+            <label for="address-number" class="form-label">Address Number</label>
+            <input type="text" id="address-number" name="address_number" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="form-col" style="flex: 0.7;">
+          <div class="form-group">
+            <label for="address" class="form-label">Street Address</label>
+            <input type="text" id="address" name="address" class="form-control" required>
+          </div>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label for="address" class="form-label">Street Address</label>
-        <input type="text" id="address" name="address" class="form-control" required>
+      <div class="form-row">
+        <div class="form-col">
+          <div class="form-group">
+            <label for="state" class="form-label">State</label>
+            <select id="state" name="state" class="form-control" required>
+              <option value="">Select State</option>
+              <option value="AL">Alabama</option>
+              <option value="AK">Alaska</option>
+              <option value="AZ">Arizona</option>
+              <!-- More states would be listed here -->
+            </select>
+          </div>
+        </div>
+
+        <div class="form-col">
+          <div class="form-group">
+            <label for="county" class="form-label">County</label>
+            <select id="county" name="county" class="form-control" disabled required>
+              <option value="">Select County</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label for="state" class="form-label">State</label>
-        <select id="state" name="state" class="form-control" required>
-          <option value="">Select State</option>
-          <option value="AL">Alabama</option>
-          <option value="AK">Alaska</option>
-          <option value="AZ">Arizona</option>
-          <!-- More states would be listed here -->
-          <option value="CA">California</option>
-          <option value="CO">Colorado</option>
-          <option value="WY">Wyoming</option>
-        </select>
-      </div>
+      <div class="form-row">
+        <div class="form-col">
+          <div class="form-group">
+            <label for="city" class="form-label">City</label>
+            <select id="city" name="city" class="form-control" disabled required>
+              <option value="">Select City</option>
+            </select>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label for="county" class="form-label">County</label>
-        <select id="county" name="county" class="form-control" disabled required>
-          <option value="">Select County</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="city" class="form-label">City</label>
-        <select id="city" name="city" class="form-control" disabled required>
-          <option value="">Select City</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="zip" class="form-label">ZIP Code</label>
-        <input type="text" id="zip" name="zip" class="form-control" required>
+        <div class="form-col">
+          <div class="form-group">
+            <label for="zip" class="form-label">ZIP Code</label>
+            <input type="text" id="zip" name="zip" class="form-control" required>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -119,14 +168,24 @@
       <h3 class="section-title">Business Card</h3>
       <p>Please upload images of your business card</p>
 
-      <div class="file-upload">
-        <label for="card-front" class="form-label">Front Side (Required)</label>
-        <input type="file" id="card-front" name="card_front" accept="image/*" required>
+      <div class="file-upload-container">
+        <div class="form-group">
+          <label for="card-front" class="form-label">Front Side (Required)</label>
+          <input type="file" id="card-front" name="card_front" accept="image/*" class="form-control" required>
+        </div>
+        <div class="card-preview" id="front-preview">
+          <span class="card-preview-text">Preview will appear here</span>
+        </div>
       </div>
 
-      <div class="file-upload">
-        <label for="card-back" class="form-label">Back Side (Optional)</label>
-        <input type="file" id="card-back" name="card_back" accept="image/*">
+      <div class="file-upload-container">
+        <div class="form-group">
+          <label for="card-back" class="form-label">Back Side (Optional)</label>
+          <input type="file" id="card-back" name="card_back" accept="image/*" class="form-control">
+        </div>
+        <div class="card-preview" id="back-preview">
+          <span class="card-preview-text">Preview will appear here</span>
+        </div>
       </div>
 
       <div class="checkbox-container">
@@ -191,176 +250,119 @@
       </div>
     </div>
 
-    <div class="form-section">
-      <h3 class="section-title">Promotional Offer</h3>
-
-      <div class="checkbox-container">
-        <input type="checkbox" id="run-promotion" name="run_promotion">
-        <label for="run-promotion" class="checkbox-label">I want to run a promotional offer campaign</label>
-      </div>
-
-      <div id="promotional-details" class="promotional-section" style="display: none;">
-        <div class="form-group">
-          <label for="promotion-description" class="form-label">Promotion Description</label>
-          <textarea id="promotion-description" name="promotion_description" class="form-control"
-            placeholder="Example: We are running a special discount with 20% off all paint supplies."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label for="discount-percentage" class="form-label">Discount Percentage</label>
-          <select id="discount-percentage" name="discount_percentage" class="form-control">
-            <option value="">Select Discount</option>
-            <option value="3">3%</option>
-            <option value="5">5%</option>
-            <option value="10">10%</option>
-            <option value="15">15%</option>
-            <option value="20">20%</option>
-            <option value="25">25%</option>
-            <option value="30">30%</option>
-            <option value="35">35%</option>
-            <option value="40">40%</option>
-            <option value="45">45%</option>
-            <option value="50">50%</option>
-            <option value="55">55%</option>
-            <option value="60">60%</option>
-            <option value="65">65%</option>
-            <option value="70">70%</option>
-            <option value="75">75%</option>
-            <option value="80">80%</option>
-            <option value="85">85%</option>
-            <option value="90">90%</option>
-            <option value="100">100%</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="promo-code" class="form-label">Promotional Code</label>
-          <input type="text" id="promo-code" name="promo_code" class="form-control" readonly>
-          <p class="form-note">This code will be automatically generated for your promotion tracking.</p>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Promotion Time Period</label>
-          <div class="date-inputs">
-            <div class="form-group">
-              <label for="start-date" class="form-label">Start Date</label>
-              <input type="date" id="start-date" name="start_date" class="form-control">
-            </div>
-            <div class="form-group">
-              <label for="end-date" class="form-label">End Date</label>
-              <input type="date" id="end-date" name="end_date" class="form-control">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="subscription-info">
-      <h4>Subscription Information</h4>
-      <p>One-time account setup fee: $15.00</p>
-      <p>Monthly subscription fee: $25.00</p>
+      <h4>Premium Account - $24.99/month</h4>
+      <p>Your promoter account gives you access to our platform to reach customers and offer your products and promotional deals.</p>
     </div>
 
-    <button type="submit" class="submit-btn">Create Account</button>
-    <p class="form-note">By signing up, you agree to our Terms of Service and Privacy Policy.</p>
+    <div class="navigation-controls">
+      <a href="{% url 'register' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+      <button type="submit" class="submit-btn">Submit <i class="fas fa-check"></i></button>
+    </div>
   </form>
 </section>
-{% endblock %}
 
-{% block extra_js %}
+<!-- Script for image preview and validation -->
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    // Handle dependent dropdowns (state -> county -> city)
+  document.addEventListener('DOMContentLoaded', function() {
+    // File preview functionality
+    function setupFilePreview(fileInput, previewElement) {
+      fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            previewElement.style.backgroundImage = `url(${e.target.result})`;
+            previewElement.classList.add('has-image');
+            previewElement.querySelector('.card-preview-text').style.display = 'none';
+          }
+          reader.readAsDataURL(file);
+        } else {
+          previewElement.style.backgroundImage = 'none';
+          previewElement.classList.remove('has-image');
+          previewElement.querySelector('.card-preview-text').style.display = 'block';
+        }
+      });
+    }
+    
+    // Setup front and back previews
+    setupFilePreview(document.getElementById('card-front'), document.getElementById('front-preview'));
+    setupFilePreview(document.getElementById('card-back'), document.getElementById('back-preview'));
+    
+    // Toggle back side upload based on checkbox
+    const blankBackCheckbox = document.getElementById('blank-back');
+    const cardBackInput = document.getElementById('card-back');
+    const backPreview = document.getElementById('back-preview');
+    
+    blankBackCheckbox.addEventListener('change', function() {
+      cardBackInput.disabled = this.checked;
+      if (this.checked) {
+        cardBackInput.value = '';
+        backPreview.classList.remove('has-image');
+        backPreview.style.backgroundImage = '';
+        backPreview.innerHTML = '<span class="card-preview-text">Back side is blank</span>';
+      } else {
+        backPreview.innerHTML = '<span class="card-preview-text">Preview will appear here</span>';
+      }
+    });
+    
+    // State-county-city dynamic selection would be implemented here
+    // For the demo, we'll simulate this with some basic functionality
     const stateSelect = document.getElementById('state');
     const countySelect = document.getElementById('county');
     const citySelect = document.getElementById('city');
-
-    stateSelect.addEventListener('change', function () {
+    
+    stateSelect.addEventListener('change', function() {
       if (this.value) {
-        countySelect.removeAttribute('disabled');
-        countySelect.innerHTML = `
-          <option value="">Select County</option>
-          <option value="county1">County 1</option>
-          <option value="county2">County 2</option>
-          <option value="county3">County 3</option>
-        `;
+        countySelect.disabled = false;
+        // Here you would typically load counties via AJAX
+        // For demo purposes, we'll add placeholder counties
+        countySelect.innerHTML = '<option value="">Select County</option><option value="county1">Sample County 1</option><option value="county2">Sample County 2</option>';
       } else {
-        countySelect.setAttribute('disabled', 'disabled');
+        countySelect.disabled = true;
         countySelect.innerHTML = '<option value="">Select County</option>';
-        citySelect.setAttribute('disabled', 'disabled');
+        citySelect.disabled = true;
         citySelect.innerHTML = '<option value="">Select City</option>';
       }
     });
-
-    countySelect.addEventListener('change', function () {
+    
+    countySelect.addEventListener('change', function() {
       if (this.value) {
-        citySelect.removeAttribute('disabled');
-        citySelect.innerHTML = `
-          <option value="">Select City</option>
-          <option value="city1">City 1</option>
-          <option value="city2">City 2</option>
-          <option value="city3">City 3</option>
-        `;
+        citySelect.disabled = false;
+        // Here you would typically load cities via AJAX
+        // For demo purposes, we'll add placeholder cities
+        citySelect.innerHTML = '<option value="">Select City</option><option value="city1">Sample City 1</option><option value="city2">Sample City 2</option>';
       } else {
-        citySelect.setAttribute('disabled', 'disabled');
+        citySelect.disabled = true;
         citySelect.innerHTML = '<option value="">Select City</option>';
       }
     });
-
-    // Toggle promotional details section
-    const runPromotionCheckbox = document.getElementById('run-promotion');
-    const promotionalDetails = document.getElementById('promotional-details');
-
-    runPromotionCheckbox.addEventListener('change', function () {
-      if (this.checked) {
-        promotionalDetails.style.display = 'block';
-        generatePromoCode();
-      } else {
-        promotionalDetails.style.display = 'none';
+    
+    // Form validation
+    document.querySelector('.profile-form').addEventListener('submit', function(e) {
+      let valid = true;
+      const requiredInputs = this.querySelectorAll('[required]');
+      
+      requiredInputs.forEach(input => {
+        if (!input.value && !input.disabled) {
+          valid = false;
+          input.classList.add('error');
+        } else {
+          input.classList.remove('error');
+        }
+      });
+      
+      // Validate product categories
+      const categoryCheckboxes = document.querySelectorAll('input[name="product_categories"]:checked');
+      if (categoryCheckboxes.length === 0) {
+        valid = false;
+        // Show error message for categories
+        alert('Please select at least one product category.');
       }
-    });
-
-    // Generate promo code
-    function generatePromoCode() {
-      const businessName = document.getElementById('business-name').value || 'BIZ';
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let code = businessName.substring(0, 3).toUpperCase();
-
-      for (let i = 0; i < 4; i++) {
-        code += characters.charAt(Math.floor(Math.random() * characters.length));
-      }
-
-      document.getElementById('promo-code').value = code;
-    }
-
-    // Update promo code when business name changes
-    document.getElementById('business-name').addEventListener('change', function () {
-      if (runPromotionCheckbox.checked) {
-        generatePromoCode();
-      }
-    });
-
-    // Set minimum dates for date pickers
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('start-date').setAttribute('min', today);
-    document.getElementById('end-date').setAttribute('min', today);
-
-    // Set default dates
-    document.getElementById('start-date').value = today;
-
-    const oneMonthLater = new Date();
-    oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
-    document.getElementById('end-date').value = oneMonthLater.toISOString().split('T')[0];
-
-    // Business card back side handling
-    const cardBackInput = document.getElementById('card-back');
-    const blankBackCheckbox = document.getElementById('blank-back');
-
-    blankBackCheckbox.addEventListener('change', function () {
-      if (this.checked) {
-        cardBackInput.setAttribute('disabled', 'disabled');
-      } else {
-        cardBackInput.removeAttribute('disabled');
+      
+      if (!valid) {
+        e.preventDefault();
+        window.scrollTo(0, 0);
       }
     });
   });

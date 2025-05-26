@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Login - Business Directory 2.0{% endblock %}
+
+{% block extra_css %}
+<style>
+  .login-container {
+    max-width: 550px;
+    margin: 100px auto 150px;
+    padding: 40px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .login-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .login-title {
+    font-size: 28px;
+    color: var(--dark-gray);
+    margin-bottom: 10px;
+  }
+  
+  .login-subtitle {
+    font-size: 16px;
+    color: var(--medium-gray);
+  }
+  
+  .login-tabs {
+    display: flex;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 25px;
+  }
+  
+  .login-tab {
+    flex: 1;
+    text-align: center;
+    padding: 12px;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--medium-gray);
+    transition: all 0.3s ease;
+  }
+  
+  .login-tab.active {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+  }
+  
+  .tab-content {
+    display: none;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: border 0.3s ease;
+  }
+  
+  .form-control:focus {
+    border-color: var(--primary-color);
+    outline: none;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--dark-gray);
+  }
+  
+  .login-btn {
+    width: 100%;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .login-btn:hover {
+    background-color: #2980b9;
+  }
+  
+  .magic-link-btn {
+    width: 100%;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .magic-link-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .register-link {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 15px;
+    color: var(--medium-gray);
+  }
+  
+  .register-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .register-link a:hover {
+    text-decoration: underline;
+  }
+  
+  .social-logins {
+    margin-top: 30px;
+    text-align: center;
+  }
+  
+  .social-divider {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+    color: var(--medium-gray);
+  }
+  
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background-color: #e0e0e0;
+  }
+  
+  .divider-text {
+    padding: 0 15px;
+    font-size: 14px;
+  }
+  
+  .forgotten-password {
+    text-align: right;
+    margin-top: -15px;
+    margin-bottom: 20px;
+  }
+  
+  .forgotten-password a {
+    font-size: 14px;
+    color: var(--medium-gray);
+    text-decoration: none;
+  }
+  
+  .forgotten-password a:hover {
+    color: var(--primary-color);
+  }
+  
+  .magic-link-info {
+    background-color: #f8f9fa;
+    border-left: 4px solid #4CAF50;
+    padding: 15px;
+    margin: 20px 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--dark-gray);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+  <div class="login-header">
+    <h2 class="login-title">Welcome Back</h2>
+    <p class="login-subtitle">Log in to access your account</p>
+  </div>
+  
+  <div class="login-tabs">
+    <div class="login-tab active" id="password-tab">Password Login</div>
+    <div class="login-tab" id="magic-link-tab">Magic Link</div>
+  </div>
+  
+  <!-- Password Login Form -->
+  <div class="tab-content active" id="password-content">
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input type="email" id="email" name="email" class="form-control" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" id="password" name="password" class="form-control" required>
+      </div>
+      
+      <div class="forgotten-password">
+        <a href="#" onclick="document.getElementById('magic-link-tab').click(); return false;">Forgot password?</a>
+      </div>
+      
+      <button type="submit" class="login-btn">
+        <i class="fas fa-sign-in-alt"></i> Log In
+      </button>
+    </form>
+  </div>
+  
+  <!-- Magic Link Form -->
+  <div class="tab-content" id="magic-link-content">
+    <div class="magic-link-info">
+      <strong>No Password? No Problem!</strong>
+      <p>Enter your email address below and we'll send you a secure login link to access your account. This link is valid for 24 hours.</p>
+    </div>
+    
+    <form method="post" action="{% url 'generate_login_link' %}">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label for="magic-email" class="form-label">Email Address</label>
+        <input type="email" id="magic-email" name="email" class="form-control" required>
+      </div>
+      
+      <button type="submit" class="magic-link-btn">
+        <i class="fas fa-magic"></i> Send Magic Link
+      </button>
+    </form>
+  </div>
+  
+  <div class="social-divider">
+    <div class="divider-line"></div>
+    <div class="divider-text">OR</div>
+    <div class="divider-line"></div>
+  </div>
+  
+  <div class="register-link">
+    <p>Don't have an account? <a href="{% url 'register' %}">Sign Up</a></p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching functionality
+    const passwordTab = document.getElementById('password-tab');
+    const magicLinkTab = document.getElementById('magic-link-tab');
+    const passwordContent = document.getElementById('password-content');
+    const magicLinkContent = document.getElementById('magic-link-content');
+    
+    passwordTab.addEventListener('click', function() {
+      passwordTab.classList.add('active');
+      magicLinkTab.classList.remove('active');
+      passwordContent.classList.add('active');
+      magicLinkContent.classList.remove('active');
+    });
+    
+    magicLinkTab.addEventListener('click', function() {
+      magicLinkTab.classList.add('active');
+      passwordTab.classList.remove('active');
+      magicLinkContent.classList.add('active');
+      passwordContent.classList.remove('active');
+    });
+    
+    // If there's an error message containing "password", show the password tab
+    const errorMessages = document.querySelectorAll('.alert-danger');
+    if (errorMessages.length > 0) {
+      errorMessages.forEach(function(message) {
+        if (message.textContent.toLowerCase().includes('password')) {
+          passwordTab.click();
+        } else if (message.textContent.toLowerCase().includes('email')) {
+          // If it mentions email but not password, it's likely related to the magic link
+          magicLinkTab.click();
+        }
+      });
+    }
+  });
+</script>
+{% endblock %} 

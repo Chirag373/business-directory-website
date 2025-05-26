@@ -192,3 +192,11 @@
     margin: 5px 0 0;
     color: #666;
   }
+
+  /* Handyman Signup specific styles */
+
+  /* Any page-specific styles would go here, but most are now in the shared CSS */
+  .service-description {
+    margin-top: 20px;
+    color: var(--text-color);
+  }

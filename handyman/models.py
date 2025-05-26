@@ -28,15 +28,15 @@ class Handyman(TimeStampedModel):
     """
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='handyman_profile')
     business_name = models.CharField(max_length=200, blank=True, null=True)
-    services = models.ManyToManyField(Service, through='HandymanService', related_name='handymen')
-    bio = models.TextField()
+    services = models.ManyToManyField(Service, through='HandymanService', related_name='handymen', blank=True)
+    bio = models.TextField(blank=True)
     detailed_services_description = models.TextField(
         help_text="Detailed description of your services. Include specific keywords for better search results.",
         blank=True
     )
-    experience_years = models.PositiveIntegerField(default=0)
+    experience_years = models.PositiveIntegerField(default=0, blank=True, null=True)
     license_number = models.CharField(max_length=50, blank=True, null=True)
-    service_areas = models.ManyToManyField(Address, related_name='handymen')
+    service_areas = models.ManyToManyField(Address, related_name='handymen', blank=True)
     is_insured = models.BooleanField(default=False)
     is_licensed = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)

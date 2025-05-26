@@ -13,7 +13,7 @@
   <header class="dashboard-header">
     <h1>Welcome, <span id="user-first-name">{{ user.first_name }}</span></h1>
     <div class="logout-container">
-      <a href="" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      <a href="{% url 'logout' %}" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a>
       <button class="dashboard-hamburger" aria-label="Toggle dashboard menu">
         <i class="fas fa-bars"></i>
       </button>
@@ -74,443 +74,631 @@
   <!-- Dashboard Stats -->
   <div class="dashboard-stats">
     <div class="stat-card">
-      <div class="stat-number" id="total-offers">0</div>
+      <div class="stat-number" id="total-offers">{{ total_offers|default:"0" }}</div>
       <div class="stat-label">Total Offers</div>
     </div>
     <div class="stat-card">
-      <div class="stat-number" id="active-offers">0</div>
+      <div class="stat-number" id="active-offers">{{ active_offers|default:"0" }}</div>
       <div class="stat-label">Active Offers</div>
     </div>
     <div class="stat-card">
-      <div class="stat-number" id="expiring-soon">0</div>
+      <div class="stat-number" id="expiring-soon">{{ expiring_soon|default:"0" }}</div>
       <div class="stat-label">Expiring Soon</div>
     </div>
   </div>
 
-  <!-- Profile Management Section -->
+  <!-- Tab Content -->
   <section class="dashboard-content active" id="profile-section">
-    <h2>Profile Management</h2>
-    <div class="profile-completion">
-      <div class="completion-label">Profile Completion:</div>
-      <div class="progress-container">
-        <div class="progress-bar" id="profile-progress"></div>
-      </div>
-      <div class="completion-percentage">75%</div>
-    </div>
-
-    <form class="profile-form">
-      <div class="form-row">
-        <div class="form-group">
-          <label for="first-name">First Name</label>
-          <input type="text" id="first-name" name="first_name" value="{{ user.first_name }}">
-        </div>
-        <div class="form-group">
-          <label for="last-name">Last Name</label>
-          <input type="text" id="last-name" name="last_name" value="{{ user.last_name }}">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="address-number">Address Number</label>
-          <input type="text" id="address-number" name="address_number" value="{{ user.profile.address_number }}">
-        </div>
-        <div class="form-group">
-          <label for="address-street">Address Street</label>
-          <input type="text" id="address-street" name="address_street" value="{{ user.profile.address_street }}">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="state">State</label>
-          <select id="state" name="state">
-            <option value="">Select a State</option>
-            <!-- States would be populated dynamically -->
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="county">County</label>
-          <select id="county" name="county" disabled>
-            <option value="">Select a County</option>
-            <!-- Counties would be populated based on selected State -->
-          </select>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="city">City</label>
-          <select id="city" name="city" disabled>
-            <option value="">Select a City</option>
-            <!-- Cities would be populated based on selected County -->
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="zip">ZIP Code</label>
-          <input type="text" id="zip" name="zip" value="{{ user.profile.zip }}">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="email">Email Address</label>
-          <input type="email" id="email" name="email" value="{{ user.email }}">
-        </div>
-        <div class="form-group">
-          <label for="phone">Phone Number</label>
-          <input type="tel" id="phone" name="phone" value="{{ user.profile.phone }}">
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="primary-button">
-          <i class="fas fa-save"></i> Save Changes
-        </button>
-      </div>
-      
-      <div class="last-updated">
-        <i class="fas fa-clock"></i> Last updated: <span id="last-updated-timestamp">March 15, 2025 at 10:23 AM</span>
-      </div>
-    </form>
+    {% include "users/consumer_dashboard_profile.html" %}
   </section>
-
-  <!-- Service Preferences Section -->
   <section class="dashboard-content" id="preferences-section">
-    <h2>Service Preferences</h2>
-    <h3 class="preferences-heading">What services are you interested in?</h3>
-
-    <form class="preferences-form">
-      <div class="preferences-container">
-        <div class="service-category">
-          <label class="checkbox-container">
-            <input type="checkbox" name="service_category" value="plumbing">
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-label">Plumbing</span>
-          </label>
-        </div>
-        <div class="service-category">
-          <label class="checkbox-container">
-            <input type="checkbox" name="service_category" value="electrical">
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-label">Electrical</span>
-          </label>
-        </div>
-        <div class="service-category">
-          <label class="checkbox-container">
-            <input type="checkbox" name="service_category" value="general">
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-label">General</span>
-          </label>
-        </div>
-        <div class="service-category">
-          <label class="checkbox-container">
-            <input type="checkbox" name="service_category" value="foundation">
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-label">Foundation Repair</span>
-          </label>
-        </div>
-        <div class="service-category">
-          <label class="checkbox-container">
-            <input type="checkbox" name="service_category" value="drywall">
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-label">Drywall/Paint</span>
-          </label>
-        </div>
-        <div class="service-category">
-          <label class="checkbox-container">
-            <input type="checkbox" name="service_category" value="flooring">
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-label">Flooring</span>
-          </label>
-        </div>
-        <div class="service-category">
-          <label class="checkbox-container">
-            <input type="checkbox" name="service_category" value="moving">
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-label">Moving</span>
-          </label>
-        </div>
-        <div class="service-category">
-          <label class="checkbox-container">
-            <input type="checkbox" name="service_category" value="gardening">
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-label">Gardening</span>
-          </label>
-        </div>
-        <div class="service-category">
-          <label class="checkbox-container">
-            <input type="checkbox" name="service_category" value="bathroom">
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-label">Bathroom Renovation</span>
-          </label>
-        </div>
-        <div class="service-category">
-          <label class="checkbox-container">
-            <input type="checkbox" name="service_category" value="kitchen">
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-label">Kitchen Cabinet/Countertops</span>
-          </label>
-        </div>
-        <div class="service-category">
-          <label class="checkbox-container">
-            <input type="checkbox" name="service_category" value="concrete">
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-label">Concrete</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="form-group specific-services">
-        <label for="specific-services">Describe specific services you're looking for</label>
-        <textarea id="specific-services" name="specific_services" placeholder="Example: Need help installing a ceiling fan in my living room"></textarea>
-      </div>
-
-      <div class="toggle-container">
-        <label class="toggle-label">Send me promotional offer notifications</label>
-        <label class="switch">
-          <input type="checkbox" id="promo-toggle" name="receive_promotions" checked>
-          <span class="slider round"></span>
-        </label>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="primary-button">
-          <i class="fas fa-check"></i> Update Preferences
-        </button>
-      </div>
-    </form>
+    {% include "users/consumer_dashboard_preferences.html" %}
   </section>
-
-  <!-- Promotional Offers Section -->
   <section class="dashboard-content" id="offers-section">
-    <h2>Promotional Offers</h2>
-    
-    <div class="filters-container">
-      <div class="filter-group">
-        <label for="category-filter">Category:</label>
-        <select id="category-filter">
-          <option value="all">All Categories</option>
-          <option value="plumbing">Plumbing</option>
-          <option value="electrical">Electrical</option>
-          <option value="general">General</option>
-          <option value="foundation">Foundation Repair</option>
-          <option value="drywall">Drywall/Paint</option>
-          <option value="flooring">Flooring</option>
-          <option value="moving">Moving</option>
-          <option value="gardening">Gardening</option>
-          <option value="bathroom">Bathroom Renovation</option>
-          <option value="kitchen">Kitchen Cabinet/Countertops</option>
-          <option value="concrete">Concrete</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <label for="date-filter">Date:</label>
-        <select id="date-filter">
-          <option value="newest">Newest First</option>
-          <option value="oldest">Oldest First</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <label for="discount-filter">Discount:</label>
-        <select id="discount-filter">
-          <option value="highest">Highest First</option>
-          <option value="lowest">Lowest First</option>
-        </select>
-      </div>
-      
-      <div class="filter-toggle">
-        <label class="checkbox-container">
-          <input type="checkbox" id="active-filter" checked>
-          <span class="checkbox-custom"></span>
-          <span class="checkbox-label">Active only</span>
-        </label>
-      </div>
-    </div>
-    
-    <div class="quick-filters">
-      <button class="quick-filter-button" data-category="plumbing">Plumbing</button>
-      <button class="quick-filter-button" data-category="electrical">Electrical</button>
-      <button class="quick-filter-button" data-category="general">General</button>
-      <button class="quick-filter-button" data-category="bathroom">Bathroom</button>
-    </div>
-    
-    <div class="offers-container">
-      <!-- Example of an offer card for UI demonstration purposes -->
-      <div class="offer-card">
-        <div class="offer-card-inner">
-          <div class="offer-card-front">
-            <div class="business-card">
-              <div class="business-logo">
-                <i class="fas fa-wrench"></i>
-              </div>
-              <h3 class="business-name">Acme Plumbing Services</h3>
-              <p class="business-title">Professional Plumbing Solutions</p>
-              <p class="business-contact">555-123-4567</p>
-            </div>
-            <div class="offer-badge">
-              <div class="discount-percentage">25%</div>
-              <div class="discount-label">OFF</div>
-            </div>
-            <div class="offer-dates">
-              <span class="valid-label">Valid:</span> March 15 - April 15, 2025
-            </div>
-            <div class="offer-code-container">
-              <span class="offer-code-label">Code:</span>
-              <span class="offer-code">SPRING25</span>
-            </div>
-            <div class="offer-categories">
-              <span class="category-tag">Plumbing</span>
-              <span class="category-tag">Bathroom</span>
-            </div>
-            <button class="view-details-button">View Details</button>
-          </div>
-          <div class="offer-card-back">
-            <div class="offer-details">
-              <h3>Offer Details</h3>
-              <p>Get 25% off any plumbing service including bathroom fixture installation, pipe repairs, and drain cleaning. Perfect for spring home maintenance!</p>
-              <div class="business-details">
-                <div class="detail-item">
-                  <i class="fas fa-user"></i>
-                  <span>John Smith, Owner</span>
-                </div>
-                <div class="detail-item">
-                  <i class="fas fa-phone"></i>
-                  <span>555-123-4567</span>
-                </div>
-                <div class="detail-item">
-                  <i class="fas fa-envelope"></i>
-                  <span>info@acmeplumbing.com</span>
-                </div>
-                <div class="detail-item">
-                  <i class="fas fa-map-marker-alt"></i>
-                  <span>123 Pipe St, Plumberville, CA 90210</span>
-                </div>
-                <div class="detail-item">
-                  <i class="fas fa-clock"></i>
-                  <span>Mon-Fri: 8am-6pm, Sat: 9am-3pm</span>
-                </div>
-              </div>
-              <div class="countdown-container">
-                <div class="countdown-label">Expires in:</div>
-                <div class="countdown" data-expiry="2025-04-15">30 days</div>
-              </div>
-            </div>
-            <button class="back-to-front-button">
-              <i class="fas fa-arrow-left"></i> Back
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Empty state for when there are no offers -->
-      <div class="empty-offers hidden">
-        <div class="empty-state-illustration">
-          <i class="fas fa-tags"></i>
-        </div>
-        <h3>No promotional offers yet</h3>
-        <p>Update your service preferences to receive targeted discounts!</p>
-      </div>
-    </div>
+    {% include "users/consumer_dashboard_offers.html" %}
   </section>
-
-  <!-- Notification Settings Section -->
   <section class="dashboard-content" id="notifications-section">
-    <h2>Notification Settings</h2>
-    
-    <form class="notification-form">
-      <div class="notification-group">
-        <h3>Email Notification Preferences</h3>
-        
-        <div class="radio-option">
-          <label class="radio-container">
-            <input type="radio" name="notification_preference" value="all" checked>
-            <span class="radio-custom"></span>
-            <span class="radio-label">Receive all promotional offers</span>
-          </label>
-        </div>
-        
-        <div class="radio-option">
-          <label class="radio-container">
-            <input type="radio" name="notification_preference" value="discount">
-            <span class="radio-custom"></span>
-            <span class="radio-label">
-              Only receive offers with discounts above 
-              <select name="min_discount" class="inline-select">
-                <option value="10">10%</option>
-                <option value="15">15%</option>
-                <option value="20">20%</option>
-                <option value="25">25%</option>
-                <option value="30">30%</option>
-              </select>
-            </span>
-          </label>
-        </div>
-        
-        <div class="radio-option">
-          <label class="radio-container">
-            <input type="radio" name="notification_preference" value="categories">
-            <span class="radio-custom"></span>
-            <span class="radio-label">Only receive offers for selected categories</span>
-          </label>
-        </div>
-        
-        <div class="notification-limit">
-          <label>
-            Maximum number of notifications per
-            <select name="time_period" class="inline-select">
-              <option value="day">day</option>
-              <option value="week" selected>week</option>
-              <option value="month">month</option>
-            </select>
-          </label>
-          <div class="slider-container">
-            <input type="range" min="1" max="10" value="3" class="notification-slider" id="notification-limit">
-            <div class="slider-value" id="slider-value">3</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="notification-group">
-        <h3>Email Format Preferences</h3>
-        
-        <div class="radio-option">
-          <label class="radio-container">
-            <input type="radio" name="email_format" value="individual" checked>
-            <span class="radio-custom"></span>
-            <span class="radio-label">Individual emails</span>
-          </label>
-        </div>
-        
-        <div class="radio-option">
-          <label class="radio-container">
-            <input type="radio" name="email_format" value="daily">
-            <span class="radio-custom"></span>
-            <span class="radio-label">Daily digest</span>
-          </label>
-        </div>
-        
-        <div class="radio-option">
-          <label class="radio-container">
-            <input type="radio" name="email_format" value="weekly">
-            <span class="radio-custom"></span>
-            <span class="radio-label">Weekly summary</span>
-          </label>
-        </div>
-      </div>
-      
-      <div class="form-actions">
-        <button type="submit" class="primary-button">
-          <i class="fas fa-save"></i> Save Notification Settings
-        </button>
-      </div>
-    </form>
+    {% include "users/consumer_dashboard_notifications.html" %}
   </section>
 </main>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/consumer_dashboard.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // -----------------------
+    // Tab Navigation System
+    // -----------------------
+    
+    // Handle tab switching
+    const tabButtons = document.querySelectorAll('.tab-button, .sidebar-tab-button');
+    const tabSections = document.querySelectorAll('.dashboard-content');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        // Remove active class from all buttons and sections
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabSections.forEach(section => section.classList.remove('active'));
+        
+        // Add active class to clicked button and corresponding section
+        this.classList.add('active');
+        const tabName = this.dataset.tab;
+        document.getElementById(`${tabName}-section`).classList.add('active');
+        
+        // For mobile: close sidebar when a tab is selected
+        document.querySelector('.dashboard-sidebar').classList.remove('open');
+        document.querySelector('.dashboard-overlay').classList.remove('active');
+        
+        // Load tab-specific data
+        if (tabName === 'offers') {
+          loadOffers();
+        } else if (tabName === 'notifications') {
+          loadNotificationSettings();
+        }
+      });
+    });
+    
+    // Mobile menu toggle
+    document.querySelector('.dashboard-hamburger').addEventListener('click', function() {
+      document.querySelector('.dashboard-sidebar').classList.add('open');
+      document.querySelector('.dashboard-overlay').classList.add('active');
+    });
+    
+    document.querySelector('.close-sidebar').addEventListener('click', function() {
+      document.querySelector('.dashboard-sidebar').classList.remove('open');
+      document.querySelector('.dashboard-overlay').classList.remove('active');
+    });
+    
+    document.querySelector('.dashboard-overlay').addEventListener('click', function() {
+      document.querySelector('.dashboard-sidebar').classList.remove('open');
+      this.classList.remove('active');
+    });
+    
+    // -----------------------
+    // Profile Tab Functions
+    // -----------------------
+    
+    // Initialize the profile form data
+    function initializeProfile() {
+      const stateSelect = document.getElementById('state');
+      if (stateSelect && stateSelect.options.length <= 1) {
+        const states = {
+          'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas',
+          'CA': 'California', 'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware',
+          'FL': 'Florida', 'GA': 'Georgia', 'HI': 'Hawaii', 'ID': 'Idaho',
+          'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa', 'KS': 'Kansas',
+          'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
+          'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi',
+          'MO': 'Missouri', 'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada',
+          'NH': 'New Hampshire', 'NJ': 'New Jersey', 'NM': 'New Mexico', 'NY': 'New York',
+          'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio', 'OK': 'Oklahoma',
+          'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+          'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah',
+          'VT': 'Vermont', 'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia',
+          'WI': 'Wisconsin', 'WY': 'Wyoming'
+        };
+        
+        Object.entries(states).forEach(([code, name]) => {
+          const option = document.createElement('option');
+          option.value = code;
+          option.textContent = name;
+          stateSelect.appendChild(option);
+        });
+        
+        // Set the current state if any
+        const currentState = "{{ user.address.state|default:'' }}";
+        if (currentState) {
+          stateSelect.value = currentState;
+          // Enable county dropdown
+          document.getElementById('county').disabled = false;
+        }
+      }
+      
+      // Calculate profile completion
+      calculateProfileCompletion();
+    }
+    
+    // Calculate profile completion percentage
+    function calculateProfileCompletion() {
+      const requiredFields = [
+        document.getElementById('first-name')?.value || '',
+        document.getElementById('last-name')?.value || '',
+        document.getElementById('email')?.value || '',
+        document.getElementById('phone')?.value || '',
+        document.getElementById('address-number')?.value || '',
+        document.getElementById('address-street')?.value || '',
+        document.getElementById('state')?.value || '',
+        document.getElementById('city')?.value || '',
+        document.getElementById('zip')?.value || ''
+      ];
+      
+      const filledFields = requiredFields.filter(field => field && field.trim() !== '').length;
+      const completionPercentage = Math.round((filledFields / requiredFields.length) * 100);
+      
+      // Update the progress bar
+      const progressBar = document.getElementById('profile-progress');
+      const percentageText = document.querySelector('.completion-percentage');
+      
+      if (progressBar) progressBar.style.width = `${completionPercentage}%`;
+      if (percentageText) percentageText.textContent = `${completionPercentage}%`;
+    }
+    
+    // Handle state-county-city dependencies
+    const stateSelect = document.getElementById('state');
+    if (stateSelect) {
+      stateSelect.addEventListener('change', function() {
+        const countySelect = document.getElementById('county');
+        countySelect.disabled = !this.value;
+        countySelect.innerHTML = '<option value="">Select a County</option>';
+        
+        const citySelect = document.getElementById('city');
+        citySelect.disabled = true;
+        citySelect.innerHTML = '<option value="">Select a City</option>';
+        
+        if (this.value) {
+          // In a real application, you would make an AJAX call here to get counties
+          // For this example, we'll simulate with dummy data
+          const dummyCounties = ['County 1', 'County 2', 'County 3'];
+          dummyCounties.forEach(county => {
+            const option = document.createElement('option');
+            option.value = county;
+            option.textContent = county;
+            countySelect.appendChild(option);
+          });
+        }
+      });
+    }
+    
+    const countySelect = document.getElementById('county');
+    if (countySelect) {
+      countySelect.addEventListener('change', function() {
+        const citySelect = document.getElementById('city');
+        citySelect.disabled = !this.value;
+        citySelect.innerHTML = '<option value="">Select a City</option>';
+        
+        if (this.value) {
+          // In a real application, you would make an AJAX call here to get cities
+          // For this example, we'll simulate with dummy data
+          const dummyCities = ['City 1', 'City 2', 'City 3'];
+          dummyCities.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city;
+            citySelect.appendChild(option);
+          });
+        }
+      });
+    }
+    
+    // Profile form submission
+    const profileForm = document.querySelector('.profile-form');
+    if (profileForm) {
+      profileForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const formData = new FormData(this);
+        
+        // Send AJAX request
+        fetch(this.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            // Show success notification
+            showToast(data.message, 'success');
+            
+            // Update the last updated timestamp
+            const now = new Date();
+            const lastUpdatedEl = document.getElementById('last-updated-timestamp');
+            if (lastUpdatedEl) {
+              lastUpdatedEl.textContent = now.toLocaleString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true
+              });
+            }
+            
+            // Update first name in welcome message if changed
+            const firstName = document.getElementById('first-name').value;
+            const userNameEl = document.getElementById('user-first-name');
+            if (userNameEl) userNameEl.textContent = firstName;
+            
+            // Recalculate profile completion
+            calculateProfileCompletion();
+          } else if (data.status === 'error') {
+            // Show error notification
+            showToast(data.message, 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showToast('An error occurred while updating profile', 'error');
+        });
+      });
+    }
+    
+    // -----------------------
+    // Preferences Tab Functions
+    // -----------------------
+    
+    // Handle AJAX form submission for preferences
+    const preferencesForm = document.querySelector('.preferences-form');
+    if (preferencesForm) {
+      preferencesForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const formData = new FormData(this);
+        
+        // Send AJAX request
+        fetch(this.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            showToast(data.message, 'success');
+          } else if (data.status === 'error') {
+            showToast(data.message, 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showToast('An error occurred while updating preferences', 'error');
+        });
+      });
+    }
+    
+    // -----------------------
+    // Offers Tab Functions
+    // -----------------------
+    
+    // Load offers data
+    function loadOffers() {
+      const offersContainer = document.querySelector('.offers-container');
+      if (!offersContainer) return;
+      
+      // Show loading state
+      offersContainer.innerHTML = '<div class="loading">Loading offers...</div>';
+      
+      // Get filter values
+      const categoryFilter = document.getElementById('category-filter')?.value || '';
+      const dateFilter = document.getElementById('date-filter')?.value || 'newest';
+      const discountFilter = document.getElementById('discount-filter')?.value || 'highest';
+      const activeOnly = document.getElementById('active-filter')?.checked || true;
+      const searchValue = document.getElementById('offer-search')?.value || '';
+      
+      // Make API call to get offers
+      fetch(`{% url 'filter_offers' %}?category=${categoryFilter}&date=${dateFilter}&discount=${discountFilter}&active_only=${activeOnly}&search=${searchValue}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Update stats
+        document.getElementById('total-offers').textContent = data.total_offers;
+        document.getElementById('active-offers').textContent = data.total_offers;
+        document.getElementById('expiring-soon').textContent = data.expiring_soon_count;
+        
+        // Render offers
+        renderOffers(data.offers);
+      })
+      .catch(error => {
+        console.error('Error loading offers:', error);
+        offersContainer.innerHTML = '<div class="error">Failed to load offers. Please try again.</div>';
+      });
+    }
+    
+    // Render offers from data
+    function renderOffers(offers) {
+      const offersContainer = document.querySelector('.offers-container');
+      if (!offersContainer) return;
+      
+      // Clear container
+      offersContainer.innerHTML = '';
+      
+      // Show empty state if no offers
+      if (!offers || offers.length === 0) {
+        offersContainer.innerHTML = `
+          <div class="empty-offers">
+            <div class="empty-state-illustration">
+              <i class="fas fa-tags"></i>
+            </div>
+            <h3>No promotional offers match your filters</h3>
+            <p>Try adjusting your filter criteria or check back later for new offers!</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Create offer cards
+      offers.forEach(offer => {
+        const categoryTags = offer.categories.map(cat => 
+          `<span class="category-tag">${typeof cat === 'string' ? cat : cat.name}</span>`
+        ).join('');
+        
+        const expiryClass = offer.expiring_soon ? 'expiring-soon' : '';
+        const matchesPreferences = offer.categories_match_preferences ? 'matches-preferences' : '';
+        
+        const offerCard = document.createElement('div');
+        offerCard.className = `offer-card ${expiryClass} ${matchesPreferences}`;
+        offerCard.innerHTML = `
+          <div class="offer-card-inner">
+            <div class="offer-card-front">
+              <div class="business-card">
+                <div class="business-logo">
+                  <i class="fas fa-wrench"></i>
+                </div>
+                <h3 class="business-name">${offer.business_name}</h3>
+                <p class="business-title">Professional Services</p>
+                <p class="business-contact">${offer.business_phone}</p>
+              </div>
+              <div class="offer-badge">
+                <div class="discount-percentage">${offer.discount_percentage}%</div>
+                <div class="discount-label">OFF</div>
+              </div>
+              <div class="offer-dates">
+                <span class="valid-label">Valid:</span> ${offer.start_date} - ${offer.end_date}
+              </div>
+              <div class="offer-code-container">
+                <span class="offer-code-label">Code:</span>
+                <span class="offer-code">${offer.code}</span>
+              </div>
+              <div class="offer-categories">
+                ${categoryTags}
+              </div>
+              <button class="view-details-button">View Details</button>
+            </div>
+            <div class="offer-card-back">
+              <div class="offer-details">
+                <h3>${offer.title || 'Offer Details'}</h3>
+                <p>${offer.description}</p>
+                <div class="business-details">
+                  <div class="detail-item">
+                    <i class="fas fa-user"></i>
+                    <span>Business Owner</span>
+                  </div>
+                  <div class="detail-item">
+                    <i class="fas fa-phone"></i>
+                    <span>${offer.business_phone}</span>
+                  </div>
+                  <div class="detail-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>${offer.business_email}</span>
+                  </div>
+                  <div class="detail-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>${offer.business_address}</span>
+                  </div>
+                </div>
+                <div class="countdown-container">
+                  <div class="countdown-label">Expires in:</div>
+                  <div class="countdown">${offer.days_until_expiry} days</div>
+                </div>
+              </div>
+              <button class="back-to-front-button">
+                <i class="fas fa-arrow-left"></i> Back
+              </button>
+            </div>
+          </div>
+        `;
+        offersContainer.appendChild(offerCard);
+        
+        // Add flip card functionality
+        const viewDetailsBtn = offerCard.querySelector('.view-details-button');
+        const backToFrontBtn = offerCard.querySelector('.back-to-front-button');
+        
+        viewDetailsBtn.addEventListener('click', () => {
+          offerCard.querySelector('.offer-card-inner').classList.add('flipped');
+        });
+        
+        backToFrontBtn.addEventListener('click', () => {
+          offerCard.querySelector('.offer-card-inner').classList.remove('flipped');
+        });
+      });
+    }
+    
+    // Add search input to offers container and set up filter handlers
+    function setupOffersFiltering() {
+      // Add search input
+      const filtersContainer = document.querySelector('.filters-container');
+      if (filtersContainer && !document.getElementById('offer-search')) {
+        const searchDiv = document.createElement('div');
+        searchDiv.className = 'search-container';
+        searchDiv.innerHTML = `
+          <input type="text" id="offer-search" placeholder="Search offers...">
+          <button id="search-button"><i class="fas fa-search"></i></button>
+        `;
+        filtersContainer.insertBefore(searchDiv, filtersContainer.firstChild);
+        
+        // Add event listener for search button
+        document.getElementById('search-button').addEventListener('click', loadOffers);
+        
+        // Add debounced input event for search
+        const searchInput = document.getElementById('offer-search');
+        let searchTimeout;
+        searchInput.addEventListener('input', () => {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(loadOffers, 300); // 300ms debounce
+        });
+      }
+      
+      // Set up filter change handlers
+      const filterElements = [
+        document.getElementById('category-filter'),
+        document.getElementById('date-filter'),
+        document.getElementById('discount-filter'),
+        document.getElementById('active-filter')
+      ];
+      
+      filterElements.forEach(element => {
+        if (element) element.addEventListener('change', loadOffers);
+      });
+      
+      // Set up quick filter buttons
+      const quickFilterButtons = document.querySelectorAll('.quick-filter-button');
+      quickFilterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const category = button.dataset.category;
+          const categoryFilter = document.getElementById('category-filter');
+          if (categoryFilter) {
+            categoryFilter.value = category;
+            loadOffers();
+          }
+        });
+      });
+    }
+    
+    // -----------------------
+    // Notifications Tab Functions
+    // -----------------------
+    
+    // Load notification settings from API
+    function loadNotificationSettings() {
+      const notificationForm = document.querySelector('.notification-form');
+      if (!notificationForm) return;
+      
+      // Fetch current notification settings
+      fetch('{% url "user_notifications" %}', {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Set radio button values
+        const notificationPreference = document.querySelector(`input[name="notification_preference"][value="${data.notification_preference}"]`);
+        if (notificationPreference) notificationPreference.checked = true;
+        
+        // Set dropdown values
+        const minDiscount = document.querySelector('select[name="min_discount"]');
+        if (minDiscount) minDiscount.value = data.min_discount;
+        
+        const timePeriod = document.querySelector('select[name="time_period"]');
+        if (timePeriod) timePeriod.value = data.time_period;
+        
+        // Set slider value
+        const notificationLimit = document.getElementById('notification-limit');
+        const sliderValue = document.getElementById('slider-value');
+        if (notificationLimit) {
+          notificationLimit.value = data.notification_limit;
+          if (sliderValue) sliderValue.textContent = data.notification_limit;
+        }
+        
+        // Set email format
+        const emailFormat = document.querySelector(`input[name="email_format"][value="${data.email_format}"]`);
+        if (emailFormat) emailFormat.checked = true;
+      })
+      .catch(error => {
+        console.error('Error loading notification settings:', error);
+        showToast('Error loading notification settings', 'error');
+      });
+    }
+    
+    // Handle notification settings form submission
+    const notificationForm = document.querySelector('.notification-form');
+    if (notificationForm) {
+      notificationForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const formData = new FormData(this);
+        
+        // Send AJAX request
+        fetch('{% url "user_notifications" %}', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            showToast(data.message, 'success');
+          } else {
+            showToast('An error occurred while updating notification settings', 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showToast('An error occurred while updating notification settings', 'error');
+        });
+      });
+    }
+    
+    // Initialize notification slider value display
+    const notificationSlider = document.getElementById('notification-limit');
+    if (notificationSlider) {
+      const sliderValue = document.getElementById('slider-value');
+      if (sliderValue) sliderValue.textContent = notificationSlider.value;
+      
+      notificationSlider.addEventListener('input', function() {
+        if (sliderValue) sliderValue.textContent = this.value;
+      });
+    }
+    
+    // -----------------------
+    // Utility Functions
+    // -----------------------
+    
+    // Helper function for displaying toasts
+    function showToast(message, type) {
+      if (typeof Toastify === 'undefined') {
+        console.log(message);
+        return;
+      }
+      
+      Toastify({
+        text: message,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: type === 'success' ? "#4CAF50" : 
+                        type === 'error' ? "#F44336" : 
+                        type === 'info' ? "#2196F3" : "#FF9800"
+      }).showToast();
+    }
+    
+    // -----------------------
+    // Initialization
+    // -----------------------
+    
+    // Initialize everything
+    function init() {
+      // Initialize profile tab
+      initializeProfile();
+      
+      // Setup offers filtering
+      setupOffersFiltering();
+      
+      // Check which tab is active and load appropriate data
+      if (document.querySelector('.tab-button[data-tab="offers"].active')) {
+        loadOffers();
+      } else if (document.querySelector('.tab-button[data-tab="notifications"].active')) {
+        loadNotificationSettings();
+      }
+    }
+    
+    // Run initialization
+    init();
+  });
+</script>
 {% endblock %} 

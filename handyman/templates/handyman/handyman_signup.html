@@ -4,357 +4,15 @@
 {% block title %}Handyman Signup - Business Directory 2.0{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/signup_shared.css' %}">
 <link rel="stylesheet" href="{% static 'css/handyman_signup.css' %}">
-<style>
-  /* Additional styles specific to handyman form */
-  .progress-indicator {
-    display: flex;
-    margin-bottom: 30px;
-    padding: 0;
-    list-style: none;
-  }
-  
-  .progress-step {
-    flex: 1;
-    text-align: center;
-    position: relative;
-    padding-top: 25px;
-  }
-  
-  .progress-step::before {
-    content: '';
-    position: absolute;
-    top: 7px;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background-color: #e0e0e0;
-    z-index: 1;
-  }
-  
-  .progress-step:first-child::before {
-    left: 50%;
-    width: 50%;
-  }
-  
-  .progress-step:last-child::before {
-    width: 50%;
-  }
-  
-  .progress-number {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background-color: #e0e0e0;
-    color: #666;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 10px;
-    position: relative;
-    z-index: 2;
-  }
-  
-  .progress-label {
-    font-size: 0.85rem;
-    color: #666;
-  }
-  
-  .progress-step.active .progress-number {
-    background-color: var(--primary-color);
-    color: white;
-  }
-  
-  .progress-step.active .progress-label {
-    color: var(--dark-gray);
-    font-weight: 600;
-  }
-  
-  .progress-step.completed::before,
-  .progress-step.active::before {
-    background-color: var(--primary-color);
-  }
-  
-  .progress-step.completed .progress-number {
-    background-color: var(--primary-color);
-    color: white;
-  }
-  
-  .progress-step.completed .progress-number::after {
-    content: '✓';
-    position: absolute;
-  }
-  
-  .form-row {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 20px;
-  }
-  
-  .form-col {
-    flex: 1;
-  }
-  
-  @media (max-width: 576px) {
-    .form-row {
-      flex-direction: column;
-      gap: 0;
-    }
-  }
-  
-  .card-preview {
-    width: 100%;
-    max-width: 350px;
-    height: 200px;
-    border: 2px dashed #ddd;
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #aaa;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    position: relative;
-  }
-  
-  .card-preview.has-image {
-    border-style: solid;
-    border-color: #e0e0e0;
-    color: transparent;
-  }
-  
-  .card-preview-text {
-    font-size: 0.9rem;
-  }
-  
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-  }
-  
-  .modal-overlay.active {
-    opacity: 1;
-    visibility: visible;
-  }
-  
-  .modal-content {
-    background-color: white;
-    border-radius: 8px;
-    max-width: 500px;
-    width: 90%;
-    padding: 30px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    position: relative;
-    transform: translateY(-20px);
-    transition: transform 0.3s ease;
-  }
-  
-  .modal-overlay.active .modal-content {
-    transform: translateY(0);
-  }
-  
-  .modal-title {
-    font-size: 1.5rem;
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: var(--dark-gray);
-  }
-  
-  .modal-message {
-    color: #666;
-    line-height: 1.5;
-    margin-bottom: 25px;
-  }
-  
-  .modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 15px;
-  }
-  
-  .modal-btn {
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  
-  .modal-cancel {
-    background-color: #f5f5f5;
-    border: 1px solid #ddd;
-    color: #666;
-  }
-  
-  .modal-cancel:hover {
-    background-color: #ebebeb;
-  }
-  
-  .modal-proceed {
-    background-color: var(--primary-color);
-    border: none;
-    color: white;
-  }
-  
-  .modal-proceed:hover {
-    background-color: #2980b9;
-  }
-  
-  .services-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 10px;
-  }
-  
-  @media (max-width: 768px) {
-    .services-container {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .services-container {
-      grid-template-columns: 1fr;
-    }
-  }
-  
-  .file-upload-container {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 20px;
-  }
-  
-  .file-upload-row {
-    display: flex;
-    gap: 20px;
-    margin-top: 10px;
-  }
-  
-  @media (max-width: 768px) {
-    .file-upload-row {
-      flex-direction: column;
-    }
-  }
-  
-  .promotional-section {
-    margin-top: 15px;
-    padding: 15px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-  }
-  
-  .date-inputs {
-    display: flex;
-    gap: 20px;
-  }
-  
-  @media (max-width: 576px) {
-    .date-inputs {
-      flex-direction: column;
-      gap: 15px;
-    }
-  }
-  
-  .subscription-info {
-    margin-top: 30px;
-    padding: 15px;
-    border-radius: 8px;
-    background-color: #edf7ff;
-    border: 1px solid #d0e8ff;
-  }
-  
-  .subscription-title {
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: var(--dark-gray);
-  }
-  
-  .subscription-details {
-    font-size: 0.9rem;
-    color: #666;
-    line-height: 1.5;
-  }
-  
-  .subscription-price {
-    font-weight: 600;
-    color: var(--primary-color);
-  }
-  
-  .alert-box {
-    padding: 15px;
-    border-radius: 6px;
-    background-color: #fff4e5;
-    border-left: 4px solid #ffab2e;
-    margin-bottom: 25px;
-  }
-  
-  .alert-box p {
-    margin: 0;
-    color: #754b00;
-    line-height: 1.5;
-  }
-  
-  /* Form validation styles */
-  .form-control.error {
-    border-color: #ff5252;
-  }
-  
-  .error-message {
-    background-color: #ff5252;
-    color: white;
-    padding: 12px 15px;
-    border-radius: 6px;
-    margin-top: 20px;
-    display: flex;
-    align-items: center;
-    animation: fadeIn 0.3s ease;
-  }
-  
-  .error-message i {
-    margin-right: 8px;
-  }
-  
-  .error-message.fade-out {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-</style>
 {% endblock %}
 
 {% block content %}
-<!-- Business Card Modal -->
-<div class="modal-overlay" id="business-card-modal">
-  <div class="modal-content">
-    <h3 class="modal-title">Business Card Required</h3>
-    <p class="modal-message">Do you have a business card? Our system requires you have a business card to register as a handyman service provider.</p>
-    <p class="modal-message">You can cancel and sign up later when you have your business card ready.</p>
-    <div class="modal-actions">
-      <button class="modal-btn modal-cancel" id="modal-cancel">Cancel</button>
-      <button class="modal-btn modal-proceed" id="modal-proceed">I have a business card</button>
-    </div>
-  </div>
-</div>
-
-<!-- Profile Form Section -->
-<section class="profile-section" style="display: none;">
+<section class="profile-section">
   <h2 class="profile-title">Handyman Registration</h2>
   <p class="profile-subtitle">Create your business account to offer your services</p>
-
+  
   <!-- Progress Indicator -->
   <ul class="progress-indicator">
     <li class="progress-step completed">
@@ -375,7 +33,7 @@
     <p><strong>Note:</strong> Please make sure your business card is clear and legible. This helps us verify your business information.</p>
   </div>
 
-  <form class="profile-form" method="post" action="" enctype="multipart/form-data">
+  <form class="profile-form" method="post" action="{% url 'signup_handyman' %}" enctype="multipart/form-data">
     {% csrf_token %}
 
     <div class="form-section">
@@ -504,6 +162,79 @@
     </div>
 
     <div class="form-section">
+      <h3 class="section-title">Service Information</h3>
+      
+      <div class="form-group">
+        <label for="service-description" class="form-label">Service Description</label>
+        <textarea id="service-description" name="service_description" class="form-control" rows="4" required placeholder="Describe the services you offer"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Service Categories</label>
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input type="checkbox" id="cat-plumbing" name="service_categories" value="Plumbing">
+            <label for="cat-plumbing">Plumbing</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="cat-electrical" name="service_categories" value="Electrical">
+            <label for="cat-electrical">Electrical</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="cat-carpentry" name="service_categories" value="Carpentry">
+            <label for="cat-carpentry">Carpentry</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="cat-painting" name="service_categories" value="Painting">
+            <label for="cat-painting">Painting</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="cat-landscaping" name="service_categories" value="Landscaping">
+            <label for="cat-landscaping">Landscaping</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="cat-general" name="service_categories" value="General Repairs">
+            <label for="cat-general">General Repairs</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="checkbox-container">
+          <input type="checkbox" id="run-promotion" name="run_promotion">
+          <label for="run-promotion" class="checkbox-label">Create a promotional offer</label>
+        </div>
+      </div>
+      
+      <div id="promotion-options" style="display: none;">
+        <div class="form-row">
+          <div class="form-col">
+            <div class="form-group">
+              <label for="discount-percentage" class="form-label">Discount Percentage</label>
+              <select id="discount-percentage" name="discount_percentage" class="form-control">
+                <option value="">Select discount</option>
+                <option value="5">5%</option>
+                <option value="10">10%</option>
+                <option value="15">15%</option>
+                <option value="20">20%</option>
+                <option value="25">25%</option>
+                <option value="30">30%</option>
+                <option value="50">50%</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-col">
+            <div class="form-group">
+              <label for="discount-description" class="form-label">Promotion Description (Optional)</label>
+              <input type="text" id="discount-description" name="discount_description" class="form-control" placeholder="E.g., First-time client discount">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
       <h3 class="section-title">Business Card</h3>
       <p>Please upload images of your business card</p>
 
@@ -533,248 +264,56 @@
       </div>
     </div>
 
-    <div class="form-section">
-      <h3 class="section-title">Service Information</h3>
-
-      <div class="form-group">
-        <label class="form-label">Select service categories you offer:</label>
-        <div class="services-container">
-          <div class="checkbox-container">
-            <input type="checkbox" id="plumbing" name="service_categories" value="plumbing">
-            <label for="plumbing" class="checkbox-label">Plumbing</label>
-          </div>
-          <div class="checkbox-container">
-            <input type="checkbox" id="electrical" name="service_categories" value="electrical">
-            <label for="electrical" class="checkbox-label">Electrical</label>
-          </div>
-          <div class="checkbox-container">
-            <input type="checkbox" id="concrete" name="service_categories" value="concrete">
-            <label for="concrete" class="checkbox-label">Concrete</label>
-          </div>
-          <div class="checkbox-container">
-            <input type="checkbox" id="remodeling" name="service_categories" value="remodeling">
-            <label for="remodeling" class="checkbox-label">Remodeling</label>
-          </div>
-          <div class="checkbox-container">
-            <input type="checkbox" id="roofing" name="service_categories" value="roofing">
-            <label for="roofing" class="checkbox-label">Roofing</label>
-          </div>
-          <div class="checkbox-container">
-            <input type="checkbox" id="painting" name="service_categories" value="painting">
-            <label for="painting" class="checkbox-label">Painting</label>
-          </div>
-          <div class="checkbox-container">
-            <input type="checkbox" id="flooring" name="service_categories" value="flooring">
-            <label for="flooring" class="checkbox-label">Flooring</label>
-          </div>
-          <div class="checkbox-container">
-            <input type="checkbox" id="landscaping" name="service_categories" value="landscaping">
-            <label for="landscaping" class="checkbox-label">Landscaping</label>
-          </div>
-          <div class="checkbox-container">
-            <input type="checkbox" id="hvac" name="service_categories" value="hvac">
-            <label for="hvac" class="checkbox-label">HVAC</label>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="service-description" class="form-label">Service Description</label>
-        <p class="form-note">Please use precise keywords for your services.</p>
-        <textarea id="service-description" name="service_description" class="form-control" required></textarea>
-      </div>
-
-      <div class="form-group">
-        <label for="discount-description" class="form-label">Discount Offer Description</label>
-        <textarea id="discount-description" name="discount_description" class="form-control"></textarea>
-      </div>
-    </div>
-
-    <div class="form-section">
-      <h3 class="section-title">Promotional Offer</h3>
-
-      <div class="checkbox-container">
-        <input type="checkbox" id="run-promotion" name="run_promotion">
-        <label for="run-promotion" class="checkbox-label">Do you want to run a promotional offer campaign?</label>
-      </div>
-
-      <div id="promotional-details" class="promotional-section" style="display: none;">
-        <div class="form-group">
-          <label for="promotion-description" class="form-label">Promotion Description</label>
-          <textarea id="promotion-description" name="promotion_description" class="form-control"
-            placeholder="Example: We are offering a special discount with 20% off all plumbing services."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label for="discount-percentage" class="form-label">Discount Percentage</label>
-          <select id="discount-percentage" name="discount_percentage" class="form-control">
-            <option value="">Select Discount</option>
-            <option value="3">3%</option>
-            <option value="5">5%</option>
-            <option value="10">10%</option>
-            <option value="15">15%</option>
-            <option value="20">20%</option>
-            <option value="25">25%</option>
-            <option value="30">30%</option>
-            <option value="35">35%</option>
-            <option value="40">40%</option>
-            <option value="45">45%</option>
-            <option value="50">50%</option>
-            <option value="55">55%</option>
-            <option value="60">60%</option>
-            <option value="65">65%</option>
-            <option value="70">70%</option>
-            <option value="75">75%</option>
-            <option value="80">80%</option>
-            <option value="85">85%</option>
-            <option value="90">90%</option>
-            <option value="100">100%</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="promo-code" class="form-label">Promotional Code</label>
-          <div class="input-with-button">
-            <input type="text" id="promo-code" name="promo_code" class="form-control" readonly>
-            <button type="button" id="generate-code" class="btn-generate">Generate Code</button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Promotion Time Period</label>
-          <div class="date-inputs">
-            <div class="form-group">
-              <label for="start-date" class="form-label">Start Date</label>
-              <input type="date" id="start-date" name="start_date" class="form-control">
-            </div>
-            <div class="form-group">
-              <label for="end-date" class="form-label">End Date</label>
-              <input type="date" id="end-date" name="end_date" class="form-control">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="subscription-info">
-      <h4 class="subscription-title">Subscription Information</h4>
-      <p class="subscription-details">By signing up as a handyman, you're subscribing to our monthly service provider plan. This gives you access to our platform and allows customers to find and connect with your business.</p>
-      <p class="subscription-details">Monthly subscription fee: <span class="subscription-price">$29.99/month</span></p>
-      <p class="subscription-details">You will be billed after your account is approved.</p>
+      <h4>Standard Account - $19.99/month</h4>
+      <p>Your handyman account gives you visibility to customers and the ability to offer your services with all basic features.</p>
     </div>
 
-    <div class="form-actions">
-      <a href="{% url 'signup' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
-      <button type="submit" class="submit-btn active">Submit</button>
+    <div class="navigation-controls">
+      <a href="{% url 'register' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+      <button type="submit" class="submit-btn">Submit <i class="fas fa-check"></i></button>
     </div>
   </form>
 </section>
-{% endblock %}
 
-{% block extra_js %}
+<!-- Script for image preview and validation -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Business Card Modal
-    const modal = document.getElementById('business-card-modal');
-    const cancelBtn = document.getElementById('modal-cancel');
-    const proceedBtn = document.getElementById('modal-proceed');
-    const profileSection = document.querySelector('.profile-section');
+    // File preview functionality
+    function setupFilePreview(fileInput, previewElement) {
+      fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            previewElement.style.backgroundImage = `url(${e.target.result})`;
+            previewElement.classList.add('has-image');
+            previewElement.querySelector('.card-preview-text').style.display = 'none';
+          }
+          reader.readAsDataURL(file);
+        } else {
+          previewElement.style.backgroundImage = 'none';
+          previewElement.classList.remove('has-image');
+          previewElement.querySelector('.card-preview-text').style.display = 'block';
+        }
+      });
+    }
     
-    // Show modal on page load
-    modal.classList.add('active');
+    // Setup front and back previews
+    setupFilePreview(document.getElementById('card-front'), document.getElementById('front-preview'));
+    setupFilePreview(document.getElementById('card-back'), document.getElementById('back-preview'));
     
-    cancelBtn.addEventListener('click', function() {
-      modal.classList.remove('active');
-      // Redirect to signup page
-      window.location.href = "{% url 'signup' %}";
-    });
-    
-    proceedBtn.addEventListener('click', function() {
-      modal.classList.remove('active');
-      profileSection.style.display = 'block';
-    });
-    
-    // Toggle promotional details section
+    // Promotion options toggle
     const runPromotionCheckbox = document.getElementById('run-promotion');
-    const promotionalDetails = document.getElementById('promotional-details');
+    const promotionOptions = document.getElementById('promotion-options');
     
-    runPromotionCheckbox.addEventListener('change', function() {
-      promotionalDetails.style.display = this.checked ? 'block' : 'none';
-    });
+    if (runPromotionCheckbox && promotionOptions) {
+      runPromotionCheckbox.addEventListener('change', function() {
+        promotionOptions.style.display = this.checked ? 'block' : 'none';
+      });
+    }
     
-    // Generate random promotional code
-    const generateCodeBtn = document.getElementById('generate-code');
-    const promoCodeInput = document.getElementById('promo-code');
-    
-    generateCodeBtn.addEventListener('click', function() {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let code = '';
-      for (let i = 0; i < 8; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      promoCodeInput.value = code;
-    });
-    
-    // Toggle back side upload based on checkbox
-    const blankBackCheckbox = document.getElementById('blank-back');
-    const cardBackInput = document.getElementById('card-back');
-    const backPreview = document.getElementById('back-preview');
-    
-    blankBackCheckbox.addEventListener('change', function() {
-      cardBackInput.disabled = this.checked;
-      if (this.checked) {
-        cardBackInput.value = '';
-        backPreview.classList.remove('has-image');
-        backPreview.style.backgroundImage = '';
-        backPreview.innerHTML = '<span class="card-preview-text">Back side is blank</span>';
-      } else {
-        backPreview.innerHTML = '<span class="card-preview-text">Preview will appear here</span>';
-      }
-    });
-    
-    // Business card image previews
-    const cardFrontInput = document.getElementById('card-front');
-    const frontPreview = document.getElementById('front-preview');
-    
-    cardFrontInput.addEventListener('change', function() {
-      if (this.files && this.files[0]) {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-          frontPreview.style.backgroundImage = `url(${e.target.result})`;
-          frontPreview.classList.add('has-image');
-          frontPreview.innerHTML = '';
-        }
-        
-        reader.readAsDataURL(this.files[0]);
-      } else {
-        frontPreview.style.backgroundImage = '';
-        frontPreview.classList.remove('has-image');
-        frontPreview.innerHTML = '<span class="card-preview-text">Preview will appear here</span>';
-      }
-    });
-    
-    cardBackInput.addEventListener('change', function() {
-      if (this.files && this.files[0]) {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-          backPreview.style.backgroundImage = `url(${e.target.result})`;
-          backPreview.classList.add('has-image');
-          backPreview.innerHTML = '';
-          blankBackCheckbox.checked = false;
-        }
-        
-        reader.readAsDataURL(this.files[0]);
-      } else {
-        backPreview.style.backgroundImage = '';
-        backPreview.classList.remove('has-image');
-        backPreview.innerHTML = '<span class="card-preview-text">Preview will appear here</span>';
-      }
-    });
-    
-    // State-county-city dynamic selection would be implemented here
-    // For the demo, we'll simulate this with some basic functionality
+    // State-county-city dynamic selection 
     const stateSelect = document.getElementById('state');
     const countySelect = document.getElementById('county');
     const citySelect = document.getElementById('city');
@@ -806,14 +345,12 @@
     });
     
     // Form validation
-    const form = document.querySelector('.profile-form');
-    
-    form.addEventListener('submit', function(e) {
+    document.querySelector('.profile-form').addEventListener('submit', function(e) {
       let valid = true;
-      const requiredInputs = form.querySelectorAll('[required]:not(:disabled)');
+      const requiredInputs = this.querySelectorAll('[required]');
       
       requiredInputs.forEach(input => {
-        if (!input.value) {
+        if (!input.value && !input.disabled) {
           valid = false;
           input.classList.add('error');
         } else {
@@ -821,67 +358,82 @@
         }
       });
       
-      // Validate service categories
+      const frontCard = document.getElementById('card-front');
+      const blankBack = document.getElementById('blank-back');
+      const backCard = document.getElementById('card-back');
+      
+      // Validate business card upload
+      if (!frontCard.files.length) {
+        valid = false;
+        frontCard.classList.add('error');
+      }
+      
+      if (!blankBack.checked && !backCard.files.length) {
+        valid = false;
+        backCard.classList.add('error');
+      }
+      
+      // Validate that at least one service category is selected
       const serviceCategories = document.querySelectorAll('input[name="service_categories"]:checked');
       if (serviceCategories.length === 0) {
         valid = false;
-        showError('Please select at least one service category.');
+        document.querySelector('.checkbox-group').classList.add('error');
+        alert('Please select at least one service category.');
+      } else {
+        document.querySelector('.checkbox-group').classList.remove('error');
       }
       
-      // Validate promotional details if promotion is checked
-      if (runPromotionCheckbox.checked) {
-        const promotionDesc = document.getElementById('promotion-description').value;
+      // Validate promotion details if promotion is enabled
+      if (document.getElementById('run-promotion').checked) {
         const discountPercentage = document.getElementById('discount-percentage').value;
-        const promoCode = document.getElementById('promo-code').value;
-        const startDate = document.getElementById('start-date').value;
-        const endDate = document.getElementById('end-date').value;
-        
-        if (!promotionDesc || !discountPercentage || !promoCode || !startDate || !endDate) {
+        if (!discountPercentage) {
           valid = false;
-          showError('Please complete all promotional offer details.');
-        }
-        
-        if (startDate && endDate && new Date(startDate) >= new Date(endDate)) {
-          valid = false;
-          showError('End date must be after start date.');
+          document.getElementById('discount-percentage').classList.add('error');
+        } else {
+          document.getElementById('discount-percentage').classList.remove('error');
         }
       }
       
       if (!valid) {
         e.preventDefault();
-        if (!document.querySelector('.error-message')) {
-          showError('Please fill in all required fields correctly.');
-        }
-        // Scroll to the first error
-        const firstError = document.querySelector('.error');
-        if (firstError) {
-          firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        window.scrollTo(0, 0);
       }
     });
-    
-    // Error display function
-    function showError(message) {
-      // Remove any existing error messages
-      const existingError = document.querySelector('.error-message');
-      if (existingError) {
-        existingError.remove();
-      }
-      
-      // Create and display new error message
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'error-message';
-      errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-      
-      const formActions = document.querySelector('.form-actions');
-      formActions.insertAdjacentElement('beforebegin', errorDiv);
-      
-      // Auto-dismiss after 5 seconds
-      setTimeout(() => {
-        errorDiv.classList.add('fade-out');
-        setTimeout(() => errorDiv.remove(), 300);
-      }, 5000);
-    }
   });
 </script>
+
+<style>
+  /* Checkbox group styles */
+  .checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  .checkbox-item input[type="checkbox"] {
+    margin-right: 8px;
+  }
+  
+  .checkbox-group.error {
+    border: 1px solid #e74c3c;
+    padding: 10px;
+    border-radius: var(--border-radius);
+    background-color: rgba(231, 76, 60, 0.05);
+  }
+  
+  /* Promotion options styling */
+  #promotion-options {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: var(--light-bg-color);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+  }
+</style>
 {% endblock %} 

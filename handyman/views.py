@@ -1,9 +1,892 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
+from django.contrib import messages
+from django.utils.text import slugify
+from django.utils import timezone
+from django.urls import reverse
+from django.core.mail import send_mail
+from django.conf import settings
+import uuid
+import os
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.http import JsonResponse
+from datetime import timedelta
+
+from users.models import User, UserType, UserProfile
+from core.models import Address, Category
+from users.utils import send_login_email
+from .models import Handyman, Service, HandymanService, HandymanPromotion, HandymanJob
 
 # Create your views here.
 def signup_handyman(request):
+    if request.method == 'POST':
+        # Personal Information
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        
+        # Business Information
+        business_name = request.POST.get('business_name')
+        website = request.POST.get('website')
+        
+        # Contact Information
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        
+        # Address fields
+        street_number = request.POST.get('address_number')
+        street_address = request.POST.get('address')
+        street = f"{street_number} {street_address}".strip()
+        city = request.POST.get('city')
+        state = request.POST.get('state')
+        county = request.POST.get('county')
+        postal_code = request.POST.get('zip')
+        
+        # Service Information
+        service_description = request.POST.get('service_description')
+        service_categories = request.POST.getlist('service_categories')
+        discount_description = request.POST.get('discount_description')
+        
+        # Promotional Offer
+        run_promotion = request.POST.get('run_promotion')
+        discount_percentage = request.POST.get('discount_percentage')
+        promo_start_date = request.POST.get('start_date')
+        promo_end_date = request.POST.get('end_date')
+        
+        # Validate required fields
+        if not all([first_name, last_name, email, phone, business_name, 
+                  street, city, state, postal_code, service_description]):
+            messages.error(request, 'Please fill in all required fields.')
+            return render(request, 'handyman/handyman_signup.html')
+        
+        # Check if user already exists
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'A user with that email already exists.')
+            return render(request, 'handyman/handyman_signup.html')
+        
+        try:
+            # Create address independently
+            print("Creating address...")
+            address = Address.objects.create(
+                street=street,
+                city=city,
+                state=state,
+                postal_code=postal_code,
+            )
+            print(f"Address created: {address.id}")
+            
+            # Generate a random temporary password
+            temp_password = uuid.uuid4().hex[:8]
+            
+            # Create user independently
+            print("Creating user...")
+            user = User.objects.create_user(
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                phone_number=phone,
+                address=address,
+                business_name=business_name,
+                website=website,
+                user_type=UserType.HANDYMAN,
+                service_description=service_description,
+                password=temp_password
+            )
+            print(f"User created: {user.id}")
+            
+            # Handle file uploads
+            if 'card_front' in request.FILES:
+                card_front = request.FILES.get('card_front')
+                if card_front:
+                    user.business_card_front = card_front
+                    user.save()
+            
+            if 'card_back' in request.FILES:
+                card_back = request.FILES.get('card_back')
+                if card_back:
+                    user.business_card_back = card_back
+                    user.save()
+            
+            blank_back = request.POST.get('blank_back') == 'on'
+            if blank_back:
+                user.has_blank_card_back = blank_back
+                user.save()
+            
+            # Create user profile
+            UserProfile.objects.create(user=user)
+            
+            # Create handyman profile independently, without ManyToMany fields
+            print("Creating handyman profile...")
+            handyman = Handyman(
+                user=user,
+                business_name=business_name,
+                bio=service_description or f"Handyman services provided by {business_name}",
+                detailed_services_description=service_description or "",
+                experience_years=0,
+                offers_promotions=run_promotion == 'on'
+            )
+            # Save handyman object first before adding any ManyToMany relationships
+            handyman.save()
+            print(f"Handyman created: {handyman.id}")
+            
+            # AFTER handyman is saved, we can add the service areas
+            try:
+                print("Adding service area...")
+                handyman.service_areas.add(address)
+                print("Service area added successfully")
+            except Exception as e:
+                print(f"Warning: Could not add service area: {str(e)}")
+                # Continue anyway - we don't want to fail registration for this
+            
+            # Add service categories
+            added_services = 0
+            print(f"Adding service categories: {service_categories}")
+            for category_name in service_categories:
+                if not category_name:
+                    continue
+                
+                try:    
+                    print(f"Creating service: {category_name}")
+                    service, created = Service.objects.get_or_create(
+                        name=category_name,
+                        defaults={'description': f'Services related to {category_name}', 'slug': slugify(category_name)}
+                    )
+                    print(f"Service created/found: {service.id}, Created: {created}")
+                    
+                    print("Creating handyman service relationship...")
+                    HandymanService.objects.create(
+                        handyman=handyman,
+                        service=service
+                    )
+                    added_services += 1
+                    print("HandymanService created successfully")
+                except Exception as e:
+                    print(f"Warning: Could not add service {category_name}: {str(e)}")
+                    # Continue with other services
+            
+            if added_services == 0 and service_categories:
+                messages.warning(request, "Could not add any services to your profile. You can add them later from your dashboard.")
+            
+            # Create promotion if selected
+            if run_promotion == 'on' and discount_percentage:
+                try:
+                    print(f"Creating promotion with discount: {discount_percentage}%")
+                    discount_percent = int(discount_percentage)
+                    
+                    # Ensure discount percent is in valid choices
+                    valid_discount_choices = [3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 100]
+                    if discount_percent not in valid_discount_choices:
+                        # Use nearest valid discount
+                        discount_percent = min(valid_discount_choices, key=lambda x: abs(x - discount_percent))
+                        print(f"Invalid discount percentage provided, using nearest valid value: {discount_percent}%")
+                    
+                    # Generate a unique promo code
+                    promo_code = f"PROMO-{uuid.uuid4().hex[:8].upper()}"
+                    print(f"Promotion code generated: {promo_code}")
+                    
+                    # Create promotion with proper dates
+                    start_date = promo_start_date or timezone.now().date()
+                    end_date = promo_end_date or (timezone.now().date() + timezone.timedelta(days=30))
+                    
+                    if isinstance(start_date, str):
+                        start_date = timezone.datetime.strptime(start_date, "%Y-%m-%d").date()
+                    
+                    if isinstance(end_date, str):
+                        end_date = timezone.datetime.strptime(end_date, "%Y-%m-%d").date()
+                    
+                    print(f"Promotion period: {start_date} to {end_date}")
+                    
+                    # Make sure we have at least one service to associate with the promotion
+                    service_for_promo = None
+                    if added_services > 0:
+                        first_category = service_categories[0]
+                        print(f"Using category for promotion: {first_category}")
+                        service_for_promo, _ = Service.objects.get_or_create(
+                            name=first_category,
+                            defaults={'description': f'Services related to {first_category}', 
+                                    'slug': slugify(first_category)}
+                        )
+                        print(f"Service for promotion: {service_for_promo.id}")
+                        
+                        # Only create the promotion if we have a valid service
+                        if service_for_promo:
+                            print("Creating promotion...")
+                            try:
+                                HandymanPromotion.objects.create(
+                                    handyman=handyman,
+                                    service=service_for_promo,  # Add the service to the promotion
+                                    description=discount_description or f"Special offer: {discount_percent}% off services",
+                                    discount_percentage=discount_percent,
+                                    code=promo_code,
+                                    start_date=start_date,
+                                    end_date=end_date,
+                                    is_active=True
+                                )
+                                print("Promotion created successfully")
+                            except Exception as e:
+                                print(f"Error creating promotion: {str(e)}")
+                                # Don't fail the whole signup if just the promotion fails
+                                messages.warning(request, f'Your account was created, but there was an error setting up the promotion: {str(e)}')
+                        else:
+                            print("No service for promotion, skipping creation")
+                            messages.warning(request, 'Your account was created, but the promotion could not be added because no service category was selected.')
+                    else:
+                        messages.warning(request, 'Your account was created, but the promotion could not be added because no services were available.')
+                except Exception as e:
+                    print(f"Error with promotion setup: {str(e)}")
+                    # Don't fail the whole signup if just the promotion fails
+                    messages.warning(request, f'Your account was created, but there was an error setting up the promotion: {str(e)}')
+            
+            # Send login email with magic link
+            print("Sending login email...")
+            send_login_email(request, user, "Handyman")
+            print("Login email sent")
+            
+            # Add success message
+            messages.success(request, 'Your handyman account has been created successfully! Please check your email (or console for now) to get your login link.')
+            
+            print("Registration complete, redirecting to check_email page")
+            # Redirect to a "check your email" page
+            return render(request, 'users/check_email.html', {'email': email})
+            
+        except Exception as e:
+            import traceback
+            print(f"ERROR DURING REGISTRATION: {str(e)}")
+            print("TRACEBACK:")
+            traceback.print_exc()
+            messages.error(request, f'An error occurred during registration: {str(e)}')
+            return render(request, 'handyman/handyman_signup.html')
+    
+    # For GET requests
     return render(request, 'handyman/handyman_signup.html')
 
+@login_required
 def dashboard(request):
     """View function for the handyman dashboard."""
-    return render(request, 'handyman/handyman_dashboard.html')
+    user = request.user
+    
+    # If user's token is valid, clear it as they're now logged in
+    # This ensures tokens are truly one-time use
+    if user.login_token and user.is_token_valid():
+        user.clear_token()
+        
+    # Verify this user is supposed to be a handyman
+    if user.user_type != UserType.HANDYMAN:
+        messages.error(request, "Your account is not registered as a handyman. Please contact support.")
+        return redirect('login')
+        
+    # Get the handyman profile
+    try:
+        handyman = Handyman.objects.get(user=user)
+    except Handyman.DoesNotExist:
+        # Instead of trying to create a profile automatically, redirect to a setup page
+        messages.info(request, "Please complete your handyman profile setup.")
+        return redirect('handyman_setup')
+    
+    # Get today's date for calculations
+    today = timezone.now().date()
+    
+    # Calculate dashboard stats
+    # 1. Get active promotions
+    active_promotions = HandymanPromotion.objects.filter(
+        handyman=handyman,
+        is_active=True,
+        start_date__lte=today,
+        end_date__gte=today
+    ).order_by('-created_at')
+    
+    # 2. Calculate profile views (placeholder for now)
+    profile_views = 0  # This would be implemented with a tracking system
+    
+    # 3. Calculate promotional matches (placeholder)
+    promotional_matches = 0
+    
+    # 4. Calculate notifications sent (placeholder)
+    notifications_sent = 0
+    
+    # 5. Calculate website clicks (placeholder) 
+    website_clicks = 0
+    
+    # Get the handyman's services
+    handyman_services = HandymanService.objects.filter(
+        handyman=handyman
+    )
+    
+    # Format services for the template
+    services_data = []
+    for service in handyman_services:
+        services_data.append({
+            'id': service.id,
+            'name': service.service.name,
+            'hourly_rate': service.hourly_rate,
+            'flat_rate': service.flat_rate
+        })
+    
+    # Format promotions for the template
+    promotions_data = []
+    for promo in active_promotions:
+        days_until_expiry = (promo.end_date - today).days
+        expiring_soon = days_until_expiry <= 7 and days_until_expiry >= 0
+        
+        promotions_data.append({
+            'id': promo.id,
+            'description': promo.description,
+            'discount_percentage': promo.discount_percentage,
+            'code': promo.code,
+            'start_date': promo.start_date,
+            'end_date': promo.end_date,
+            'days_until_expiry': days_until_expiry,
+            'expiring_soon': expiring_soon,
+            'service': promo.service.name if promo.service else "All Services"
+        })
+    
+    # Get recent jobs
+    recent_jobs = HandymanJob.objects.filter(
+        handyman=handyman
+    ).order_by('-created_at')[:5]
+    
+    # Format jobs data
+    jobs_data = []
+    for job in recent_jobs:
+        jobs_data.append({
+            'id': job.id,
+            'client_name': job.client.get_full_name() or job.client.email,
+            'service': job.service.name,
+            'scheduled_date': job.scheduled_date,
+            'scheduled_time': job.scheduled_time,
+            'status': job.status,
+            'address': str(job.address)
+        })
+    
+    # Prepare address data for display
+    address_number = ''
+    address_street = ''
+    
+    if user.address:
+        # Split street into number and name if possible
+        street_parts = user.address.street.split(' ', 1) if user.address.street else ['', '']
+        address_number = street_parts[0] if len(street_parts) > 0 else ''
+        address_street = street_parts[1] if len(street_parts) > 1 else ''
+    
+    # Get all service categories
+    all_categories = Category.objects.all()
+    services = Service.objects.all()
+    
+    # Format for template
+    formatted_categories = [
+        {'value': category.slug, 'name': category.name} for category in all_categories
+    ]
+    
+    # Create a list of US states
+    states = [
+        ('AL', 'Alabama'), ('AK', 'Alaska'), ('AZ', 'Arizona'), ('AR', 'Arkansas'),
+        ('CA', 'California'), ('CO', 'Colorado'), ('CT', 'Connecticut'), ('DE', 'Delaware'),
+        ('FL', 'Florida'), ('GA', 'Georgia'), ('HI', 'Hawaii'), ('ID', 'Idaho'),
+        ('IL', 'Illinois'), ('IN', 'Indiana'), ('IA', 'Iowa'), ('KS', 'Kansas'),
+        ('KY', 'Kentucky'), ('LA', 'Louisiana'), ('ME', 'Maine'), ('MD', 'Maryland'),
+        ('MA', 'Massachusetts'), ('MI', 'Michigan'), ('MN', 'Minnesota'), ('MS', 'Mississippi'),
+        ('MO', 'Missouri'), ('MT', 'Montana'), ('NE', 'Nebraska'), ('NV', 'Nevada'),
+        ('NH', 'New Hampshire'), ('NJ', 'New Jersey'), ('NM', 'New Mexico'), ('NY', 'New York'),
+        ('NC', 'North Carolina'), ('ND', 'North Dakota'), ('OH', 'Ohio'), ('OK', 'Oklahoma'),
+        ('OR', 'Oregon'), ('PA', 'Pennsylvania'), ('RI', 'Rhode Island'), ('SC', 'South Carolina'),
+        ('SD', 'South Dakota'), ('TN', 'Tennessee'), ('TX', 'Texas'), ('UT', 'Utah'),
+        ('VT', 'Vermont'), ('VA', 'Virginia'), ('WA', 'Washington'), ('WV', 'West Virginia'),
+        ('WI', 'Wisconsin'), ('WY', 'Wyoming')
+    ]
+    
+    context = {
+        'handyman': handyman,
+        'profile_views': profile_views,
+        'promotional_matches': promotional_matches,
+        'notifications_sent': notifications_sent,
+        'website_clicks': website_clicks,
+        'services': services_data,
+        'promotions': promotions_data,
+        'jobs': jobs_data,
+        'address_number': address_number,
+        'address_street': address_street,
+        'all_categories': formatted_categories,
+        'all_services': services,
+        'states': states,
+        'has_active_promotion': active_promotions.exists(),
+        'active_promotion': active_promotions.first() if active_promotions.exists() else None,
+        'service_description': handyman.detailed_services_description or handyman.bio
+    }
+    
+    return render(request, 'handyman/handyman_dashboard.html', context)
+
+@login_required
+def profile_tab(request):
+    """View function for the profile tab in handyman dashboard."""
+    user = request.user
+    
+    try:
+        handyman = Handyman.objects.get(user=user)
+    except Handyman.DoesNotExist:
+        return redirect('handyman_dashboard')
+    
+    context = {
+        'handyman': handyman,
+    }
+    
+    return render(request, 'handyman/handyman_dashboard_profile.html', context)
+
+@login_required
+def promotions_tab(request):
+    """View function for the promotions tab in handyman dashboard."""
+    user = request.user
+    
+    try:
+        handyman = Handyman.objects.get(user=user)
+    except Handyman.DoesNotExist:
+        return redirect('handyman_dashboard')
+    
+    # Get today's date for calculations
+    today = timezone.now().date()
+    
+    # Get all promotions for this handyman
+    all_promotions = HandymanPromotion.objects.filter(handyman=handyman).order_by('-created_at')
+    
+    # Get active promotions
+    active_promotions = all_promotions.filter(
+        is_active=True,
+        start_date__lte=today,
+        end_date__gte=today
+    )
+    
+    # Get expired promotions
+    expired_promotions = all_promotions.filter(
+        end_date__lt=today
+    )
+    
+    # Get upcoming promotions
+    upcoming_promotions = all_promotions.filter(
+        start_date__gt=today
+    )
+    
+    # Get handyman services for the promotion form
+    services = HandymanService.objects.filter(handyman=handyman)
+    
+    context = {
+        'handyman': handyman,
+        'active_promotions': active_promotions,
+        'expired_promotions': expired_promotions,
+        'upcoming_promotions': upcoming_promotions,
+        'services': services,
+    }
+    
+    return render(request, 'handyman/handyman_dashboard_promotions.html', context)
+
+@login_required
+def services_tab(request):
+    """View function for the services tab in handyman dashboard."""
+    user = request.user
+    
+    try:
+        handyman = Handyman.objects.get(user=user)
+    except Handyman.DoesNotExist:
+        return redirect('handyman_dashboard')
+    
+    # Get all services offered by this handyman
+    handyman_services = HandymanService.objects.filter(handyman=handyman)
+    
+    # Get all available services for the form
+    all_services = Service.objects.all()
+    
+    context = {
+        'handyman': handyman,
+        'handyman_services': handyman_services,
+        'all_services': all_services,
+    }
+    
+    return render(request, 'handyman/handyman_dashboard_services.html', context)
+
+@login_required
+def jobs_tab(request):
+    """View function for the jobs tab in handyman dashboard."""
+    user = request.user
+    
+    try:
+        handyman = Handyman.objects.get(user=user)
+    except Handyman.DoesNotExist:
+        return redirect('handyman_dashboard')
+    
+    # Get all jobs for this handyman
+    all_jobs = HandymanJob.objects.filter(handyman=handyman).order_by('-created_at')
+    
+    # Get pending jobs
+    pending_jobs = all_jobs.filter(status='pending')
+    
+    # Get in_progress jobs
+    active_jobs = all_jobs.filter(status='in_progress')
+    
+    # Get completed jobs
+    completed_jobs = all_jobs.filter(status='completed')
+    
+    context = {
+        'handyman': handyman,
+        'all_jobs': all_jobs,
+        'pending_jobs': pending_jobs,
+        'active_jobs': active_jobs,
+        'completed_jobs': completed_jobs,
+    }
+    
+    return render(request, 'handyman/handyman_dashboard_jobs.html', context)
+
+@login_required
+def update_profile(request):
+    """Update handyman profile information."""
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        user = request.user
+        
+        try:
+            handyman = Handyman.objects.get(user=user)
+        except Handyman.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Handyman profile not found'})
+        
+        # Get form data
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        business_name = request.POST.get('business_name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        website = request.POST.get('website')
+        experience_years = request.POST.get('experience_years')
+        license_number = request.POST.get('license_number')
+        is_licensed = request.POST.get('is_licensed') == 'on'
+        is_insured = request.POST.get('is_insured') == 'on'
+        
+        # Address information
+        address_number = request.POST.get('address_number')
+        address_street = request.POST.get('address_street')
+        state = request.POST.get('state')
+        city = request.POST.get('city')
+        zip_code = request.POST.get('zip')
+        
+        # Update user information
+        user.first_name = first_name
+        user.last_name = last_name
+        user.business_name = business_name
+        user.phone_number = phone
+        user.website = website
+        
+        # Only update email if it's different and not already taken
+        if email != user.email:
+            if User.objects.filter(email=email).exists():
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'This email is already registered to another account.'
+                })
+            user.email = email
+        
+        # Update or create address
+        if user.address:
+            address = user.address
+            address.street = f"{address_number} {address_street}" if address_number else address_street
+            address.city = city
+            address.state = state
+            address.postal_code = zip_code
+            address.save()
+        else:
+            address = Address.objects.create(
+                street=f"{address_number} {address_street}" if address_number else address_street,
+                city=city,
+                state=state,
+                postal_code=zip_code
+            )
+            user.address = address
+        
+        # Save user changes
+        user.save()
+        
+        # Update handyman profile
+        if experience_years:
+            try:
+                handyman.experience_years = int(experience_years)
+            except ValueError:
+                pass
+        
+        handyman.license_number = license_number
+        handyman.is_licensed = is_licensed
+        handyman.is_insured = is_insured
+        handyman.business_name = business_name
+        
+        # Save handyman changes
+        handyman.save()
+        
+        return JsonResponse({'status': 'success', 'message': 'Profile updated successfully'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
+@login_required
+def update_service_description(request):
+    """Update handyman service description."""
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        user = request.user
+        
+        try:
+            handyman = Handyman.objects.get(user=user)
+        except Handyman.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Handyman profile not found'})
+        
+        # Get new description
+        service_description = request.POST.get('service_description')
+        
+        if service_description:
+            handyman.detailed_services_description = service_description
+            handyman.bio = service_description
+            handyman.save()
+            
+            # Also update in user model if it exists there
+            user.service_description = service_description
+            user.save()
+            
+            return JsonResponse({'status': 'success', 'message': 'Service description updated successfully'})
+        
+        return JsonResponse({'status': 'error', 'message': 'Service description cannot be empty'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
+@login_required
+def add_service(request):
+    """Add a new service for the handyman."""
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        user = request.user
+        
+        try:
+            handyman = Handyman.objects.get(user=user)
+        except Handyman.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Handyman profile not found'})
+        
+        # Get form data
+        service_id = request.POST.get('service_id')
+        hourly_rate = request.POST.get('hourly_rate')
+        flat_rate = request.POST.get('flat_rate')
+        
+        # Validate data
+        if not service_id:
+            return JsonResponse({'status': 'error', 'message': 'Service selection is required'})
+        
+        try:
+            service = Service.objects.get(id=service_id)
+        except Service.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Selected service does not exist'})
+        
+        # Check if this service is already added
+        if HandymanService.objects.filter(handyman=handyman, service=service).exists():
+            return JsonResponse({'status': 'error', 'message': 'You already offer this service'})
+        
+        # Create new handyman service
+        handyman_service = HandymanService.objects.create(
+            handyman=handyman,
+            service=service,
+            hourly_rate=hourly_rate if hourly_rate else None,
+            flat_rate=flat_rate if flat_rate else None
+        )
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Service added successfully',
+            'service': {
+                'id': handyman_service.id,
+                'name': service.name,
+                'hourly_rate': handyman_service.hourly_rate,
+                'flat_rate': handyman_service.flat_rate
+            }
+        })
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
+@login_required
+def create_promotion(request):
+    """Create a new promotion for the handyman."""
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        user = request.user
+        
+        try:
+            handyman = Handyman.objects.get(user=user)
+        except Handyman.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Handyman profile not found'})
+        
+        # Get form data
+        description = request.POST.get('promotion_description')
+        discount_percentage = request.POST.get('discount_percentage')
+        service_id = request.POST.get('service_id')
+        start_date_str = request.POST.get('start_date')
+        end_date_str = request.POST.get('end_date')
+        
+        # Validate data
+        if not all([description, discount_percentage]):
+            return JsonResponse({'status': 'error', 'message': 'Description and discount percentage are required'})
+        
+        # Process dates
+        try:
+            start_date = timezone.datetime.strptime(start_date_str, "%Y-%m-%d").date() if start_date_str else timezone.now().date()
+            end_date = timezone.datetime.strptime(end_date_str, "%Y-%m-%d").date() if end_date_str else (timezone.now().date() + timezone.timedelta(days=30))
+        except ValueError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid date format'})
+        
+        # Ensure start date is not in the past
+        if start_date < timezone.now().date():
+            start_date = timezone.now().date()
+        
+        # Ensure end date is after start date
+        if end_date <= start_date:
+            end_date = start_date + timezone.timedelta(days=30)
+        
+        # Get service if provided
+        service = None
+        if service_id:
+            try:
+                service = Service.objects.get(id=service_id)
+            except Service.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Selected service does not exist'})
+        
+        # Generate a unique promo code
+        promo_code = f"PROMO-{uuid.uuid4().hex[:8].upper()}"
+        
+        # Create the promotion
+        try:
+            promotion = HandymanPromotion.objects.create(
+                handyman=handyman,
+                service=service,
+                description=description,
+                discount_percentage=int(discount_percentage),
+                code=promo_code,
+                start_date=start_date,
+                end_date=end_date,
+                is_active=True
+            )
+            
+            # Update handyman to indicate they offer promotions
+            handyman.offers_promotions = True
+            handyman.save()
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Promotion created successfully',
+                'promotion': {
+                    'id': promotion.id,
+                    'description': promotion.description,
+                    'discount_percentage': promotion.discount_percentage,
+                    'code': promotion.code,
+                    'start_date': promotion.start_date.strftime("%Y-%m-%d"),
+                    'end_date': promotion.end_date.strftime("%Y-%m-%d"),
+                    'service': service.name if service else 'All Services'
+                }
+            })
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f'Error creating promotion: {str(e)}'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
+@login_required
+def deactivate_promotion(request, promotion_id):
+    """Deactivate a promotion."""
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        user = request.user
+        
+        try:
+            handyman = Handyman.objects.get(user=user)
+            promotion = HandymanPromotion.objects.get(id=promotion_id, handyman=handyman)
+        except (Handyman.DoesNotExist, HandymanPromotion.DoesNotExist):
+            return JsonResponse({'status': 'error', 'message': 'Promotion not found'})
+        
+        promotion.is_active = False
+        promotion.save()
+        
+        return JsonResponse({'status': 'success', 'message': 'Promotion deactivated successfully'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
+@login_required
+def update_job_status(request, job_id):
+    """Update the status of a job."""
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        user = request.user
+        new_status = request.POST.get('status')
+        
+        if not new_status:
+            return JsonResponse({'status': 'error', 'message': 'New status is required'})
+        
+        try:
+            handyman = Handyman.objects.get(user=user)
+            job = HandymanJob.objects.get(id=job_id, handyman=handyman)
+        except (Handyman.DoesNotExist, HandymanJob.DoesNotExist):
+            return JsonResponse({'status': 'error', 'message': 'Job not found'})
+        
+        # Validate status transition
+        valid_statuses = ['pending', 'accepted', 'in_progress', 'completed', 'cancelled']
+        if new_status not in valid_statuses:
+            return JsonResponse({'status': 'error', 'message': 'Invalid status'})
+        
+        # Update job status
+        job.status = new_status
+        if new_status == 'completed':
+            job.completed_at = timezone.now()
+        job.save()
+        
+        return JsonResponse({'status': 'success', 'message': f'Job status updated to {new_status}'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
+@login_required
+def handyman_setup(request):
+    """View for setting up a handyman profile for existing users."""
+    user = request.user
+    
+    # Ensure the user doesn't already have a handyman profile
+    try:
+        handyman = Handyman.objects.get(user=user)
+        # If profile exists, redirect to dashboard
+        messages.info(request, "Your handyman profile is already set up.")
+        return redirect('handyman_dashboard')
+    except Handyman.DoesNotExist:
+        pass
+    
+    if request.method == 'POST':
+        business_name = request.POST.get('business_name') or f"{user.first_name}'s Services"
+        bio = request.POST.get('bio') or user.service_description or "Handyman services"
+        
+        print(f"DEBUG: Creating handyman for user ID: {user.id}")
+        print(f"DEBUG: User type: {user.user_type}")
+        print(f"DEBUG: Business name: {business_name}")
+        
+        try:
+            # Create a minimal handyman record with only required fields
+            print("DEBUG: Creating handyman with minimal fields")
+            handyman = Handyman()
+            handyman.user = user
+            handyman.business_name = business_name 
+            handyman.bio = bio
+            # Skip all other fields for now - we can add them later
+            
+            # Save the record
+            print("DEBUG: Calling handyman.save()")
+            handyman.save()
+            print(f"DEBUG: Handyman saved successfully with ID {handyman.id}")
+            
+            messages.success(request, "Your handyman profile has been created successfully!")
+            return redirect('handyman_dashboard')
+            
+        except Exception as e:
+            import traceback
+            print(f"ERROR creating handyman profile: {str(e)}")
+            print("TRACEBACK:")
+            traceback.print_exc()
+            
+            # Check Django model fields
+            print("DEBUG: Checking Handyman model fields")
+            for field in Handyman._meta.fields:
+                print(f"Field: {field.name}, Required: {not field.null and not field.blank}, Type: {field.get_internal_type()}")
+            
+            messages.error(request, f"There was an error setting up your profile: {str(e)}")
+    
+    # For GET requests, prepare any prefilled data
+    context = {
+        'business_name': user.business_name or f"{user.first_name}'s Services",
+        'bio': user.service_description or "",
+        'service_description': user.service_description or ""
+    }
+    
+    return render(request, 'handyman/handyman_setup.html', context)

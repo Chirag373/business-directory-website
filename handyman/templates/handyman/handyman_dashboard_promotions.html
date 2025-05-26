@@ -1,0 +1,436 @@
+{% extends "handyman/handyman_dashboard.html" %}
+{% load static %}
+
+{% block dashboard_content %}
+<section class="dashboard-content active" id="promotions-section">
+  <h2>Promotions Management</h2>
+  
+  <!-- Active Promotions Section -->
+  <div class="promotions-section">
+    <h3>Active Promotions</h3>
+    <div class="promotions-list" id="active-promotions-list">
+      {% if active_promotions %}
+        {% for promotion in active_promotions %}
+          <div class="promotion-card active" data-promotion-id="{{ promotion.id }}">
+            <div class="promotion-header">
+              <div class="discount-badge">{{ promotion.discount_percentage }}% OFF</div>
+              <div class="promotion-timer">
+                <i class="fas fa-clock"></i>
+                <span class="promotion-countdown" data-end-date="{{ promotion.end_date|date:'Y-m-d' }}">
+                  {% if promotion.days_until_expiry <= 0 %}
+                    Expires today
+                  {% else %}
+                    {{ promotion.days_until_expiry }} days remaining
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+            <div class="promotion-body">
+              <p class="promotion-description">{{ promotion.description }}</p>
+              <div class="promotion-code-display">
+                <span class="code-label">Code:</span>
+                <span class="code-value">{{ promotion.code }}</span>
+              </div>
+              <div class="promotion-service">
+                <span class="service-label">Service:</span>
+                <span class="service-value">{{ promotion.service.name|default:"All Services" }}</span>
+              </div>
+            </div>
+            <div class="promotion-footer">
+              <span class="promotion-dates">Valid: {{ promotion.start_date|date:"M d, Y" }} - {{ promotion.end_date|date:"M d, Y" }}</span>
+              <button class="deactivate-promotion-btn" data-promotion-id="{{ promotion.id }}">
+                <i class="fas fa-power-off"></i> Deactivate
+              </button>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <i class="fas fa-tag empty-icon"></i>
+          <p>You have no active promotions</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  
+  <!-- Create Promotion Section -->
+  <div class="create-promotion-section">
+    <h3><i class="fas fa-plus-circle"></i> Create Promotion</h3>
+    <form class="promotion-form" id="promotion-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="promotion-description">Promotion Description</label>
+        <textarea id="promotion-description" name="promotion_description" rows="3" placeholder="Describe your promotion..."></textarea>
+        <div class="character-count"><span id="description-chars">0</span>/150</div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="discount-percentage">Discount Percentage</label>
+          <select id="discount-percentage" name="discount_percentage" required>
+            <option value="">Select discount %</option>
+            <option value="3">3%</option>
+            <option value="5">5%</option>
+            <option value="10">10%</option>
+            <option value="15">15%</option>
+            <option value="20">20%</option>
+            <option value="25">25%</option>
+            <option value="30">30%</option>
+            <option value="35">35%</option>
+            <option value="40">40%</option>
+            <option value="45">45%</option>
+            <option value="50">50%</option>
+            <option value="55">55%</option>
+            <option value="60">60%</option>
+            <option value="65">65%</option>
+            <option value="70">70%</option>
+            <option value="75">75%</option>
+            <option value="80">80%</option>
+            <option value="85">85%</option>
+            <option value="90">90%</option>
+            <option value="100">100%</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="service-id">Apply to Service (Optional)</label>
+          <select id="service-id" name="service_id">
+            <option value="">All Services</option>
+            {% for service in services %}
+              <option value="{{ service.service.id }}">{{ service.service.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="start-date">Start Date</label>
+          <input type="date" id="start-date" name="start_date" min="{{ today|date:'Y-m-d' }}" value="{{ today|date:'Y-m-d' }}">
+        </div>
+        <div class="form-group">
+          <label for="end-date">End Date</label>
+          <input type="date" id="end-date" name="end_date" min="{{ today|date:'Y-m-d' }}">
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="create-promotion-button">Create Promotion</button>
+        <div class="promotion-status-message"></div>
+      </div>
+    </form>
+  </div>
+  
+  <!-- Past Promotions Section -->
+  <div class="promotions-section collapsed" id="past-promotions-section">
+    <div class="section-header" id="past-promotions-toggle">
+      <h3>Past Promotions</h3>
+      <i class="fas fa-chevron-down toggle-icon"></i>
+    </div>
+    
+    <div class="past-promotions-container" style="display: none;">
+      <!-- Expired Promotions -->
+      <div class="expired-promotions">
+        <h4>Expired</h4>
+        <div class="promotions-list" id="expired-promotions-list">
+          {% if expired_promotions %}
+            {% for promotion in expired_promotions %}
+              <div class="promotion-card expired" data-promotion-id="{{ promotion.id }}">
+                <div class="promotion-header">
+                  <div class="discount-badge">{{ promotion.discount_percentage }}% OFF</div>
+                  <div class="promotion-status">
+                    <span class="status-badge expired">Expired</span>
+                  </div>
+                </div>
+                <div class="promotion-body">
+                  <p class="promotion-description">{{ promotion.description }}</p>
+                </div>
+                <div class="promotion-footer">
+                  <span class="promotion-dates">Ended: {{ promotion.end_date|date:"M d, Y" }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state small">
+              <p>No expired promotions</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Upcoming Promotions -->
+      <div class="upcoming-promotions">
+        <h4>Upcoming</h4>
+        <div class="promotions-list" id="upcoming-promotions-list">
+          {% if upcoming_promotions %}
+            {% for promotion in upcoming_promotions %}
+              <div class="promotion-card upcoming" data-promotion-id="{{ promotion.id }}">
+                <div class="promotion-header">
+                  <div class="discount-badge">{{ promotion.discount_percentage }}% OFF</div>
+                  <div class="promotion-status">
+                    <span class="status-badge upcoming">Upcoming</span>
+                  </div>
+                </div>
+                <div class="promotion-body">
+                  <p class="promotion-description">{{ promotion.description }}</p>
+                </div>
+                <div class="promotion-footer">
+                  <span class="promotion-dates">Starts: {{ promotion.start_date|date:"M d, Y" }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state small">
+              <p>No upcoming promotions</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Character count for promotion description
+    const descriptionTextarea = document.getElementById('promotion-description');
+    const charCount = document.getElementById('description-chars');
+    
+    if (descriptionTextarea && charCount) {
+      descriptionTextarea.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+      });
+    }
+    
+    // Toggle past promotions section
+    const pastPromotionsToggle = document.getElementById('past-promotions-toggle');
+    const pastPromotionsContainer = document.querySelector('.past-promotions-container');
+    const toggleIcon = document.querySelector('.toggle-icon');
+    
+    if (pastPromotionsToggle && pastPromotionsContainer) {
+      pastPromotionsToggle.addEventListener('click', function() {
+        const isVisible = pastPromotionsContainer.style.display !== 'none';
+        pastPromotionsContainer.style.display = isVisible ? 'none' : 'block';
+        toggleIcon.classList.toggle('fa-chevron-down', isVisible);
+        toggleIcon.classList.toggle('fa-chevron-up', !isVisible);
+      });
+    }
+    
+    // Handle promotion form submission
+    const promotionForm = document.getElementById('promotion-form');
+    const statusMessage = document.querySelector('.promotion-status-message');
+    
+    // Initialize date values for the form
+    function initializeDates() {
+      const startDateInput = document.getElementById('start-date');
+      const endDateInput = document.getElementById('end-date');
+      
+      if (startDateInput && endDateInput) {
+        const today = new Date();
+        const thirtyDaysLater = new Date();
+        thirtyDaysLater.setDate(today.getDate() + 30);
+        
+        endDateInput.value = thirtyDaysLater.toISOString().split('T')[0];
+        
+        startDateInput.addEventListener('change', function() {
+          // Make sure end date is not before start date
+          const startDate = new Date(this.value);
+          const endDate = new Date(endDateInput.value);
+          
+          if (endDate <= startDate) {
+            const newEndDate = new Date(startDate);
+            newEndDate.setDate(startDate.getDate() + 30);
+            endDateInput.value = newEndDate.toISOString().split('T')[0];
+          }
+          
+          // Update min value for end date
+          endDateInput.min = this.value;
+        });
+      }
+    }
+    
+    // Call the initialize dates function
+    initializeDates();
+    
+    // Helper function to calculate days until expiry
+    function calculateDaysUntilExpiry(endDateStr) {
+      const endDate = new Date(endDateStr);
+      const today = new Date();
+      const timeDiff = endDate.getTime() - today.getTime();
+      return Math.ceil(timeDiff / (1000 * 3600 * 24));
+    }
+    
+    if (promotionForm) {
+      promotionForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        // Clear any previous messages
+        statusMessage.textContent = '';
+        statusMessage.className = 'promotion-status-message';
+        
+        const formData = new FormData(promotionForm);
+        
+        fetch('{% url "handyman_create_promotion" %}', {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+          },
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            statusMessage.textContent = data.message;
+            statusMessage.classList.add('success');
+            
+            // Add the new promotion to the active promotions list
+            const activePromotionsList = document.getElementById('active-promotions-list');
+            const emptyState = activePromotionsList.querySelector('.empty-state');
+            
+            if (emptyState) {
+              emptyState.remove();
+            }
+            
+            // Create new promotion card
+            const promotionCard = document.createElement('div');
+            promotionCard.className = 'promotion-card active';
+            promotionCard.dataset.promotionId = data.promotion.id;
+            
+            // Calculate days until expiry
+            const daysUntilExpiry = calculateDaysUntilExpiry(data.promotion.end_date);
+            
+            promotionCard.innerHTML = `
+              <div class="promotion-header">
+                <div class="discount-badge">${data.promotion.discount_percentage}% OFF</div>
+                <div class="promotion-timer">
+                  <i class="fas fa-clock"></i>
+                  <span class="promotion-countdown" data-end-date="${data.promotion.end_date}">
+                    ${daysUntilExpiry <= 0 ? 'Expires today' : daysUntilExpiry + ' days remaining'}
+                  </span>
+                </div>
+              </div>
+              <div class="promotion-body">
+                <p class="promotion-description">${data.promotion.description}</p>
+                <div class="promotion-code-display">
+                  <span class="code-label">Code:</span>
+                  <span class="code-value">${data.promotion.code}</span>
+                </div>
+                <div class="promotion-service">
+                  <span class="service-label">Service:</span>
+                  <span class="service-value">${data.promotion.service}</span>
+                </div>
+              </div>
+              <div class="promotion-footer">
+                <span class="promotion-dates">Valid: ${new Date(data.promotion.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${new Date(data.promotion.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <button class="deactivate-promotion-btn" data-promotion-id="${data.promotion.id}">
+                  <i class="fas fa-power-off"></i> Deactivate
+                </button>
+              </div>
+            `;
+            
+            activePromotionsList.appendChild(promotionCard);
+            
+            // Add event listener for the new deactivate button
+            const deactivateBtn = promotionCard.querySelector('.deactivate-promotion-btn');
+            if (deactivateBtn) {
+              deactivateBtn.addEventListener('click', handleDeactivatePromotion);
+            }
+            
+            // Reset the form
+            promotionForm.reset();
+            
+            // Reset date fields
+            initializeDates();
+            
+            if (charCount) {
+              charCount.textContent = '0';
+            }
+          } else {
+            statusMessage.textContent = data.message;
+            statusMessage.classList.add('error');
+          }
+        })
+        .catch(error => {
+          console.error('Error creating promotion:', error);
+          statusMessage.textContent = 'An error occurred while creating the promotion.';
+          statusMessage.classList.add('error');
+        });
+      });
+    }
+    
+    // Handle deactivating promotions
+    const deactivateButtons = document.querySelectorAll('.deactivate-promotion-btn');
+    
+    function handleDeactivatePromotion() {
+      const promotionId = this.dataset.promotionId;
+      const promotionCard = this.closest('.promotion-card');
+      
+      if (confirm('Are you sure you want to deactivate this promotion?')) {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        fetch(`{% url "handyman_deactivate_promotion" promotion_id=0 %}`.replace('0', promotionId), {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+          },
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            // Remove from active list
+            promotionCard.remove();
+            
+            // Check if there are no more active promotions
+            const activePromotionsList = document.getElementById('active-promotions-list');
+            if (activePromotionsList.children.length === 0) {
+              activePromotionsList.innerHTML = `
+                <div class="empty-state">
+                  <i class="fas fa-tag empty-icon"></i>
+                  <p>You have no active promotions</p>
+                </div>
+              `;
+            }
+            
+            alert(data.message);
+          } else {
+            alert(data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error deactivating promotion:', error);
+          alert('An error occurred while deactivating the promotion.');
+        });
+      }
+    }
+    
+    deactivateButtons.forEach(button => {
+      button.addEventListener('click', handleDeactivatePromotion);
+    });
+    
+    // Update countdown timers
+    function updateCountdowns() {
+      const countdowns = document.querySelectorAll('.promotion-countdown');
+      const today = new Date();
+      
+      countdowns.forEach(countdown => {
+        const endDate = new Date(countdown.dataset.endDate);
+        const timeDiff = endDate.getTime() - today.getTime();
+        const daysUntilExpiry = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        
+        if (daysUntilExpiry <= 0) {
+          countdown.textContent = 'Expires today';
+        } else {
+          countdown.textContent = `${daysUntilExpiry} days remaining`;
+        }
+      });
+    }
+    
+    // Update countdowns initially and then every hour
+    updateCountdowns();
+    setInterval(updateCountdowns, 3600000); // 1 hour in milliseconds
+  });
+</script>
+{% endblock %} 

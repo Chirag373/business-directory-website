@@ -125,3 +125,14 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Custom user model
+AUTH_USER_MODEL = 'users.User'
+
+# Authentication settings
+LOGIN_URL = '/users/login/'
+LOGIN_REDIRECT_URL = '/users/dashboard/consumer/'
+LOGOUT_REDIRECT_URL = '/'
+
+# Email settings (will be configured for real email later)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

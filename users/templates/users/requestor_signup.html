@@ -4,18 +4,14 @@
 {% block title %}Requestor Signup - Business Directory 2.0{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/signup_shared.css' %}">
 <link rel="stylesheet" href="{% static 'css/requestor_signup.css' %}">
 {% endblock %}
 
 {% block content %}
-<!-- Profile Form Section -->
 <section class="profile-section">
-  <h2 class="profile-title">Requestor Registration</h2>
-  <p class="profile-subtitle">Create your account to find services and get promotional offers</p>
-
-  <div class="alert-box">
-    <p><strong>Note:</strong> As a requestor, you'll be able to find handyman services and view promotional offers from businesses.</p>
-  </div>
+  <h2 class="profile-title">Consumer Registration</h2>
+  <p class="profile-subtitle">Join the community to access exclusive offers and connect with service providers</p>
 
   <!-- Progress Indicator -->
   <ul class="progress-indicator">
@@ -33,7 +29,7 @@
     </li>
   </ul>
 
-  <form class="profile-form" method="post" action="">
+  <form class="profile-form" method="post" action="{% url 'requestor_signup' %}">
     {% csrf_token %}
 
     <div class="form-section">
@@ -202,9 +198,9 @@
       <p>Requestor accounts are free of charge. You'll be able to search for services and receive promotional offers based on your preferences.</p>
     </div>
 
-    <div class="form-actions">
-      <a href="{% url 'signup' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
-      <button type="submit" class="submit-btn active">Submit</button>
+    <div class="navigation-controls">
+      <a href="{% url 'register' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+      <button type="submit" class="submit-btn">Submit <i class="fas fa-check"></i></button>
     </div>
   </form>
 </section>
@@ -274,41 +270,28 @@
         const categoryCheckboxes = document.querySelectorAll('input[name="categories"]:checked');
         if (categoryCheckboxes.length === 0) {
           valid = false;
-          // Show error message for categories
-          showError('Please select at least one category of interest.');
+          // Show error message for categories using Toastify
+          showToast('Please select at least one category of interest.', 'error');
         }
       }
       
       if (!valid) {
         e.preventDefault();
-        if (!document.querySelector('.error-message')) {
-          showError('Please fill in all required fields.');
-        }
+        showToast('Please fill in all required fields.', 'error');
       }
     });
     
-    // Error display function
-    function showError(message) {
-      // Remove any existing error messages
-      const existingError = document.querySelector('.error-message');
-      if (existingError) {
-        existingError.remove();
-      }
-      
-      // Create and display new error message
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'error-message';
-      errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-      
-      const formActions = document.querySelector('.form-actions');
-      formActions.insertAdjacentElement('beforebegin', errorDiv);
-      
-      // Auto-dismiss after 5 seconds
-      setTimeout(() => {
-        errorDiv.classList.add('fade-out');
-        setTimeout(() => errorDiv.remove(), 300);
-      }, 5000);
-    }
+    // Highlight invalid fields
+    const highlightInvalidFields = () => {
+      const invalidFields = form.querySelectorAll('.error');
+      invalidFields.forEach(field => {
+        field.addEventListener('input', function() {
+          if (this.value) {
+            this.classList.remove('error');
+          }
+        });
+      });
+    };
   });
 </script>
 {% endblock %} 

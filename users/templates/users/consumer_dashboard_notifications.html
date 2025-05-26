@@ -1,0 +1,103 @@
+<!-- Notification Settings Section -->
+<h2>Notification Settings</h2>
+
+<form class="notification-form" action="{% url 'user_notifications' %}" method="post">
+  {% csrf_token %}
+  
+  <!-- Notification Preferences -->
+  <div class="notification-group">
+    <h3>Notification Preferences</h3>
+    <div class="radio-option">
+      <label class="radio-container">
+        <input type="radio" name="notification_preference" value="all" {% if notification_preference == 'all' %}checked{% endif %}>
+        <span class="radio-custom"></span>
+        <span class="radio-label">Send me all promotional offers</span>
+      </label>
+    </div>
+    
+    <div class="radio-option">
+      <label class="radio-container">
+        <input type="radio" name="notification_preference" value="discount" {% if notification_preference == 'discount' %}checked{% endif %}>
+        <span class="radio-custom"></span>
+        <span class="radio-label">
+          Only send offers with discounts above
+          <select name="min_discount" class="inline-select">
+            <option value="5" {% if min_discount == 5 %}selected{% endif %}>5%</option>
+            <option value="10" {% if min_discount == 10 %}selected{% endif %}>10%</option>
+            <option value="15" {% if min_discount == 15 %}selected{% endif %}>15%</option>
+            <option value="20" {% if min_discount == 20 %}selected{% endif %}>20%</option>
+            <option value="25" {% if min_discount == 25 %}selected{% endif %}>25%</option>
+            <option value="30" {% if min_discount == 30 %}selected{% endif %}>30%</option>
+            <option value="40" {% if min_discount == 40 %}selected{% endif %}>40%</option>
+            <option value="50" {% if min_discount == 50 %}selected{% endif %}>50%</option>
+          </select>
+        </span>
+      </label>
+    </div>
+    
+    <div class="radio-option">
+      <label class="radio-container">
+        <input type="radio" name="notification_preference" value="categories" {% if notification_preference == 'categories' %}checked{% endif %}>
+        <span class="radio-custom"></span>
+        <span class="radio-label">Only send offers for my preferred categories</span>
+      </label>
+    </div>
+  </div>
+  
+  <!-- Notification Frequency -->
+  <div class="notification-group">
+    <h3>Notification Frequency</h3>
+    <div class="form-group">
+      <label>
+        Send me notifications 
+        <select name="time_period" class="inline-select">
+          <option value="day" {% if time_period == 'day' %}selected{% endif %}>daily</option>
+          <option value="week" {% if time_period == 'week' %}selected{% endif %}>weekly</option>
+          <option value="month" {% if time_period == 'month' %}selected{% endif %}>monthly</option>
+        </select>
+        with a maximum of
+        <div class="notification-limit">
+          <div class="slider-container">
+            <input type="range" min="1" max="10" value="{{ notification_limit|default:3 }}" class="notification-slider" name="notification_limit" id="notification-limit">
+            <span class="slider-value" id="slider-value">{{ notification_limit|default:3 }}</span>
+          </div>
+          <span>offers per notification</span>
+        </div>
+      </label>
+    </div>
+  </div>
+  
+  <!-- Email Format -->
+  <div class="notification-group">
+    <h3>Email Format</h3>
+    <div class="radio-option">
+      <label class="radio-container">
+        <input type="radio" name="email_format" value="individual" {% if email_format == 'individual' %}checked{% endif %}>
+        <span class="radio-custom"></span>
+        <span class="radio-label">Individual emails for each offer</span>
+      </label>
+    </div>
+    
+    <div class="radio-option">
+      <label class="radio-container">
+        <input type="radio" name="email_format" value="daily" {% if email_format == 'daily' %}checked{% endif %}>
+        <span class="radio-custom"></span>
+        <span class="radio-label">Daily digest (one email with all offers)</span>
+      </label>
+    </div>
+    
+    <div class="radio-option">
+      <label class="radio-container">
+        <input type="radio" name="email_format" value="weekly" {% if email_format == 'weekly' %}checked{% endif %}>
+        <span class="radio-custom"></span>
+        <span class="radio-label">Weekly summary (one email per week)</span>
+      </label>
+    </div>
+  </div>
+  
+  <div class="form-actions">
+    <button type="submit" class="primary-button">
+      <i class="fas fa-save"></i> Save Settings
+    </button>
+  </div>
+</form> 

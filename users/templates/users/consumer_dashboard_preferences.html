@@ -1,0 +1,48 @@
+<!-- Service Preferences Section -->
+<h2>Service Preferences</h2>
+<h3 class="preferences-heading">What services are you interested in?</h3>
+
+<form class="preferences-form" action="{% url 'user_preferences' %}" method="post">
+  {% csrf_token %}
+  <div class="preferences-container">
+    {% if all_categories %}
+      {% for category in all_categories %}
+      <div class="service-category">
+        <label class="checkbox-container">
+          <input type="checkbox" name="service_category" value="{{ category.value }}" 
+            {% for selected in selected_categories %}
+              {% if selected.name|lower == category.name|lower or selected.name|lower == category.value|lower %}
+                checked
+              {% endif %}
+            {% endfor %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">{{ category.name }}</span>
+        </label>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="no-categories-message">
+        <p>No service categories are currently available.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="form-group specific-services">
+    <label for="specific-services">Describe specific services you're looking for</label>
+    <textarea id="specific-services" name="specific_services" placeholder="Example: Need help installing a ceiling fan in my living room">{{ specific_services|default:'' }}</textarea>
+  </div>
+
+  <div class="toggle-container">
+    <label class="toggle-label">Send me promotional offer notifications</label>
+    <label class="switch">
+      <input type="checkbox" id="promo-toggle" name="receive_promotions" {% if receive_notifications %}checked{% endif %}>
+      <span class="slider round"></span>
+    </label>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="primary-button">
+      <i class="fas fa-check"></i> Update Preferences
+    </button>
+  </div>
+</form> 

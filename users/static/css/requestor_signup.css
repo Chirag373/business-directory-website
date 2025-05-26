@@ -1,3 +1,99 @@
+.signup-container {
+  max-width: 80% !important;
+  margin: 60px auto 40px;
+  padding: 0;
+}
+
+@media (max-width: 1440px) {
+  .signup-container {
+    max-width: 95% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .signup-container {
+    margin: 40px auto 30px;
+    padding: 0;
+  }
+}
+
+.signup-content {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 30px;
+  animation: fadeIn 1s ease;
+}
+
+@media (max-width: 768px) {
+  .signup-content {
+    padding: 20px;
+  }
+}
+
+.signup-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.signup-header h2 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: var(--dark-gray);
+  position: relative;
+  font-weight: 600;
+}
+
+.signup-header p {
+  color: #666;
+  font-size: 1.1rem;
+  max-width: 80%;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .signup-header p {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .signup-header h2 {
+    font-size: 1.6rem;
+  }
+  
+  .signup-header p {
+    font-size: 1rem;
+  }
+}
+
+.navigation-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 15px;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  color: #666;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.back-btn:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.back-btn i {
+  margin-right: 8px;
+}
+
 .profile-section {
   max-width: 80%;
   margin: 60px auto 40px;
@@ -251,4 +347,44 @@ textarea.form-control {
   font-size: 1.4rem;
   color: var(--dark-gray);
   margin-bottom: 20px;
+}
+
+/* Subscription info styles */
+.subscription-info {
+  margin-top: 30px;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #edf7ff;
+  border: 1px solid #d0e8ff;
+}
+
+.subscription-info h4 {
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--dark-gray);
+}
+
+.subscription-info p {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Requestor Signup specific styles */
+
+/* Any page-specific styles would go here, but most are now in the shared CSS */
+.category-options {
+  margin-top: 20px;
 } 

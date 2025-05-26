@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Promoter Dashboard - Business Directory 2.0{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/consumer_dashboard.css' %}">
+<style>
+  .dashboard-content {
+    padding: 2rem;
+  }
+  
+  .coming-soon {
+    text-align: center;
+    padding: 3rem;
+  }
+  
+  .coming-soon h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+  }
+  
+  .coming-soon p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    color: var(--secondary-color);
+  }
+  
+  .coming-soon i {
+    font-size: 4rem;
+    color: var(--primary-color);
+    margin-bottom: 2rem;
+    display: block;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="consumer-dashboard">
+  <!-- Header Section -->
+  <header class="dashboard-header">
+    <h1>Welcome, <span id="user-first-name">{{ user.first_name }}</span></h1>
+    <div class="logout-container">
+      <a href="{% url 'logout' %}" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </header>
+
+  <section class="dashboard-content">
+    <div class="coming-soon">
+      <i class="fas fa-tools"></i>
+      <h2>Promoter Dashboard Coming Soon</h2>
+      <p>We're currently building this section to help you promote your business effectively.</p>
+      <p>Check back soon for exciting new features including:</p>
+      <ul style="text-align: left; max-width: 500px; margin: 0 auto;">
+        <li>Promotional offer management</li>
+        <li>Customer engagement analytics</li>
+        <li>Advertisement scheduling</li>
+        <li>Business performance tracking</li>
+      </ul>
+    </div>
+  </section>
+</main>
+{% endblock %} 

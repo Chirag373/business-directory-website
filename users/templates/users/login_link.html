@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Magic Link Sent - Business Directory 2.0{% endblock %}
+
+{% block extra_css %}
+<style>
+  .magic-link-container {
+    max-width: 550px;
+    margin: 100px auto 150px;
+    padding: 40px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  .magic-icon {
+    font-size: 70px;
+    color: #4CAF50;
+    margin-bottom: 30px;
+  }
+  
+  .magic-title {
+    font-size: 28px;
+    color: var(--dark-gray);
+    margin-bottom: 15px;
+  }
+  
+  .magic-subtitle {
+    font-size: 16px;
+    color: var(--medium-gray);
+    margin-bottom: 25px;
+  }
+  
+  .magic-instructions {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 25px 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--dark-gray);
+    text-align: left;
+  }
+  
+  .magic-instructions strong {
+    font-weight: 600;
+    color: #4CAF50;
+  }
+  
+  .back-button {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+    margin-top: 20px;
+  }
+  
+  .back-button:hover {
+    background-color: #2980b9;
+  }
+  
+  .magic-link {
+    color: #4CAF50;
+    font-weight: 500;
+    word-break: break-all;
+    background: #f0f8f0;
+    padding: 10px;
+    border-radius: 5px;
+    display: inline-block;
+    margin-top: 15px;
+    border: 1px dashed #4CAF50;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="magic-link-container">
+  <div class="magic-link-header">
+    <h2>Magic Link Login</h2>
+    <p>Enter your email to receive a secure login link</p>
+  </div>
+
+  <div class="magic-icon">
+    <i class="fas fa-magic"></i>
+  </div>
+  
+  <h2 class="magic-title">Check Your Email</h2>
+  
+  <p class="magic-subtitle">We've sent a magic login link to your email address</p>
+  
+  <div class="magic-instructions">
+    <p><strong>What happens next?</strong></p>
+    <p>1. Check your inbox for an email from Business Directory 2.0</p>
+    <p>2. Click the magic link in the email</p>
+    <p>3. You'll be automatically logged into your account</p>
+    <p class="note"><em>Note: The magic link expires in 24 hours for security reasons.</em></p>
+  </div>
+  
+  <!-- Dev environment only: display magic link -->
+  <div id="magic-link-container"></div>
+  
+  <a href="{% url 'login' %}" class="back-button">
+    <i class="fas fa-arrow-left"></i> Back to Login
+  </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- First, extract magic link from messages via Django template -->
+{% for message in messages %}
+  {% if "Login link generated:" in message.message %}
+    <script>
+      var magicLinkMessage = "{{ message.message }}";
+    </script>
+  {% endif %}
+{% endfor %}
+
+<!-- Then handle it with pure JavaScript -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Only run if magic link message exists (set by Django template above)
+    if (typeof magicLinkMessage !== 'undefined') {
+      var urlStart = magicLinkMessage.indexOf('http');
+      
+      if (urlStart !== -1) {
+        var loginUrl = magicLinkMessage.substring(urlStart);
+        var magicLinkContainer = document.getElementById('magic-link-container');
+        
+        // Create clickable link
+        var linkElement = document.createElement('a');
+        linkElement.href = loginUrl;
+        linkElement.className = 'magic-link';
+        linkElement.textContent = loginUrl;
+        linkElement.target = '_blank';
+        
+        // Add to container
+        magicLinkContainer.appendChild(linkElement);
+      }
+    }
+  });
+</script>
+{% endblock %} 

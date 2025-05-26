@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,4 +25,5 @@ urlpatterns = [
     path('businesses/', include('businesses.urls')),
     path('handyman/', include('handyman.urls')),
     path('promotor/', include('promotor.urls')),
+    path('login/', RedirectView.as_view(url='/users/login/'), name='root_login'),
 ]

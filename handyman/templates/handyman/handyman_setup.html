@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Complete Handyman Setup - Business Directory 2.0{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/signup_shared.css' %}">
+<style>
+  .setup-container {
+    max-width: 800px;
+    margin: 50px auto;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+  }
+  
+  .setup-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .setup-header h1 {
+    font-size: 32px;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+  }
+  
+  .setup-header p {
+    color: var(--text-color);
+    font-size: 16px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .form-section {
+    margin-bottom: 30px;
+  }
+  
+  .form-section h3 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: var(--dark-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--dark-color);
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+  }
+  
+  textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+  }
+  
+  .form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+  }
+  
+  .submit-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s;
+  }
+  
+  .submit-btn:hover {
+    background-color: var(--primary-hover);
+  }
+  
+  .alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    color: white;
+  }
+  
+  .alert-info {
+    background-color: var(--primary-color);
+  }
+  
+  .alert-error {
+    background-color: var(--danger-color);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="setup-container">
+  <div class="setup-header">
+    <h1>Complete Your Handyman Profile</h1>
+    <p>Please provide the following information to set up your handyman profile.</p>
+  </div>
+  
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+  
+  <form method="post">
+    {% csrf_token %}
+    
+    <div class="form-section">
+      <h3>Business Information</h3>
+      
+      <div class="form-group">
+        <label for="business-name" class="form-label">Business Name</label>
+        <input type="text" id="business-name" name="business_name" class="form-control" value="{{ business_name }}" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="bio" class="form-label">Short Bio/Introduction</label>
+        <textarea id="bio" name="bio" class="form-control" required>{{ bio }}</textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="service-description" class="form-label">Detailed Service Description</label>
+        <textarea id="service-description" name="service_description" class="form-control">{{ service_description }}</textarea>
+        <small>Describe the services you offer in detail. This will help customers find you.</small>
+      </div>
+    </div>
+    
+    <button type="submit" class="submit-btn">Create My Handyman Profile</button>
+  </form>
+  
+  <div class="additional-info">
+    <p>After creating your basic profile, you'll be able to add services, promotions, and manage job requests from your dashboard.</p>
+  </div>
+</div>
+{% endblock %} 

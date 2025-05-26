@@ -2,7 +2,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
 from core.models import TimeStampedModel, Address
+from django.utils import timezone
 import uuid
+import secrets
 
 
 class UserManager(BaseUserManager):
@@ -58,6 +60,10 @@ class User(AbstractUser, TimeStampedModel):
     has_blank_card_back = models.BooleanField(default=False)
     service_description = models.TextField(blank=True, null=True)
     
+    # Login token fields for magic link authentication
+    login_token = models.CharField(max_length=100, blank=True, null=True)
+    token_expiry = models.DateTimeField(blank=True, null=True)
+    
     # Add related_name attributes to fix reverse accessor clashes
     groups = models.ManyToManyField(
         'auth.Group',
@@ -87,6 +93,25 @@ class User(AbstractUser, TimeStampedModel):
     def __str__(self):
         return self.email
 
+    def generate_login_token(self):
+        """Generate a secure login token and set expiry time (24 hours)"""
+        self.login_token = secrets.token_urlsafe(32)
+        self.token_expiry = timezone.now() + timezone.timedelta(hours=24)
+        self.save(update_fields=['login_token', 'token_expiry'])
+        return self.login_token
+    
+    def is_token_valid(self):
+        """Check if the current token is valid"""
+        if not self.login_token or not self.token_expiry:
+            return False
+        return timezone.now() < self.token_expiry
+    
+    def clear_token(self):
+        """Clear the login token after use"""
+        self.login_token = None
+        self.token_expiry = None
+        self.save(update_fields=['login_token', 'token_expiry'])
+
 
 class UserProfile(TimeStampedModel):
     """Extended profile information for users"""
@@ -103,6 +128,44 @@ class ConsumerInterest(TimeStampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='interests')
     categories = models.ManyToManyField('core.Category', related_name='interested_users')
     receive_notifications = models.BooleanField(default=True)
+    
+    # Notification preferences
+    NOTIFICATION_PREFERENCES = [
+        ('all', 'All promotional offers'),
+        ('discount', 'Only offers above discount threshold'),
+        ('categories', 'Only offers for selected categories')
+    ]
+    notification_preference = models.CharField(
+        max_length=15, 
+        choices=NOTIFICATION_PREFERENCES, 
+        default='all'
+    )
+    min_discount_threshold = models.IntegerField(default=10)
+    
+    # Notification frequency
+    TIME_PERIOD_CHOICES = [
+        ('day', 'Daily'),
+        ('week', 'Weekly'),
+        ('month', 'Monthly')
+    ]
+    notification_time_period = models.CharField(
+        max_length=10,
+        choices=TIME_PERIOD_CHOICES,
+        default='week'
+    )
+    notification_limit = models.IntegerField(default=3)
+    
+    # Email format
+    EMAIL_FORMAT_CHOICES = [
+        ('individual', 'Individual emails'),
+        ('daily', 'Daily digest'),
+        ('weekly', 'Weekly summary')
+    ]
+    email_format = models.CharField(
+        max_length=15,
+        choices=EMAIL_FORMAT_CHOICES,
+        default='individual'
+    )
     
     def __str__(self):
         return f"Interests for {self.user.email}"

@@ -233,7 +233,6 @@
               <label for="discount-percentage">Discount Percentage</label>
               <select id="discount-percentage" name="discount_percentage">
                 <option value="">Select discount %</option>
-                <option value="3">3%</option>
                 <option value="5">5%</option>
                 <option value="10">10%</option>
                 <option value="15">15%</option>
@@ -246,7 +245,7 @@
             </div>
             <div class="form-group">
               <label for="promotion-code">Promotion Code</label>
-              <input type="text" id="promotion-code" name="promotion_code" placeholder="e.g., SUMMER20" maxlength="10">
+              <div class="code-display" id="promotion-code">AUTO-GENERATED</div>
             </div>
           </div>
           
@@ -261,154 +260,77 @@
             </div>
           </div>
           
-          <div class="categories-selection">
-            <label>Applicable Categories</label>
-            <div class="categories-options">
-              <label class="checkbox-container">
-                <input type="checkbox" name="category" value="paint">
-                <span class="checkbox-custom"></span>
-                <span class="checkbox-label">Paint</span>
-              </label>
-              <label class="checkbox-container">
-                <input type="checkbox" name="category" value="tools">
-                <span class="checkbox-custom"></span>
-                <span class="checkbox-label">Tools</span>
-              </label>
-              <label class="checkbox-container">
-                <input type="checkbox" name="category" value="supplies">
-                <span class="checkbox-custom"></span>
-                <span class="checkbox-label">Supplies</span>
-              </label>
-              <label class="checkbox-container">
-                <input type="checkbox" name="category" value="equipment">
-                <span class="checkbox-custom"></span>
-                <span class="checkbox-label">Equipment</span>
-              </label>
+          <div class="form-group">
+            <label>Product Categories</label>
+            <div class="categories-selection">
+              <div class="category-option">
+                <label class="checkbox-container">
+                  <input type="checkbox" name="categories" value="paint">
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-label">Paint</span>
+                </label>
+              </div>
+              <div class="category-option">
+                <label class="checkbox-container">
+                  <input type="checkbox" name="categories" value="tools">
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-label">Tools</span>
+                </label>
+              </div>
+              <div class="category-option">
+                <label class="checkbox-container">
+                  <input type="checkbox" name="categories" value="supplies">
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-label">Supplies</span>
+                </label>
+              </div>
+              <div class="category-option">
+                <label class="checkbox-container">
+                  <input type="checkbox" name="categories" value="eco-friendly">
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-label">Eco-Friendly</span>
+                </label>
+              </div>
             </div>
           </div>
           
           <div class="form-actions">
-            <button type="submit" class="primary-button"><i class="fas fa-check-circle"></i> Create Promotion</button>
+            <button type="submit" class="primary-button">
+              <i class="fas fa-save"></i> Create Promotion
+            </button>
           </div>
         </form>
       </div>
     </div>
   </section>
 
-  <!-- Products Section -->
+  <!-- Products Management Section -->
   <section class="dashboard-content" id="products-section">
     <h2>Manage Products</h2>
-    <div class="product-management">
-      <div class="product-editor">
-        <h3><i class="fas fa-plus-circle"></i> Add New Product</h3>
-        <form class="product-form">
-          <div class="form-group">
-            <label for="product-name">Product Name</label>
-            <input type="text" id="product-name" name="product_name" placeholder="Enter product name">
-          </div>
-          
-          <div class="form-group">
-            <label for="product-description">Product Description</label>
-            <textarea id="product-description" name="product_description" rows="3" placeholder="Describe your product..."></textarea>
-            <div class="character-count"><span id="product-chars">0</span>/200</div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="product-category">Category</label>
-              <select id="product-category" name="product_category">
-                <option value="">Select Category</option>
-                <option value="paint">Paint</option>
-                <option value="tools">Tools</option>
-                <option value="supplies">Supplies</option>
-                <option value="equipment">Equipment</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="product-price">Price ($)</label>
-              <input type="number" id="product-price" name="product_price" min="0" step="0.01" placeholder="0.00">
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group toggle-container">
-              <label>Featured Product</label>
-              <label class="switch">
-                <input type="checkbox" id="featured-toggle" name="is_featured">
-                <span class="slider round"></span>
-              </label>
-              <span class="toggle-label">No</span>
-            </div>
-            <div class="form-group toggle-container">
-              <label>Apply Promotion</label>
-              <label class="switch">
-                <input type="checkbox" id="promotion-toggle" name="apply_promotion">
-                <span class="slider round"></span>
-              </label>
-              <span class="toggle-label">No</span>
-            </div>
-          </div>
-          
-          <div class="form-actions">
-            <button type="submit" class="primary-button"><i class="fas fa-check-circle"></i> Add Product</button>
-          </div>
-        </form>
-      </div>
+    <div class="products-management">
+      <p>Products management coming soon.</p>
     </div>
   </section>
 
-  <!-- Performance Section -->
+  <!-- Performance Analytics Section -->
   <section class="dashboard-content" id="performance-section">
     <h2>Performance Analytics</h2>
-    <div class="performance-filters">
-      <div class="filter-group">
-        <label for="date-range">Date Range</label>
-        <select id="date-range">
-          <option value="7days">Last 7 Days</option>
-          <option value="30days" selected>Last 30 Days</option>
-          <option value="90days">Last 90 Days</option>
-          <option value="year">Last Year</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label for="metric-type">Metric</label>
-        <select id="metric-type">
-          <option value="views" selected>Profile Views</option>
-          <option value="impressions">Product Impressions</option>
-          <option value="promotions">Promotion Uses</option>
-          <option value="clicks">Website Clicks</option>
-        </select>
-      </div>
-    </div>
-    
-    <div class="performance-metrics">
-      <div class="metrics-charts">
-        <div class="chart-container large">
-          <h3>Visitor Analytics</h3>
-          <canvas id="visitors-chart"></canvas>
-        </div>
-        <div class="charts-row">
-          <div class="chart-container medium">
-            <h3>Traffic Sources</h3>
-            <canvas id="traffic-sources-chart"></canvas>
-          </div>
-          <div class="chart-container medium">
-            <h3>Device Usage</h3>
-            <canvas id="devices-chart"></canvas>
-          </div>
-        </div>
-      </div>
+    <div class="performance-analytics">
+      <p>Performance analytics coming soon.</p>
     </div>
   </section>
 
   <!-- Settings Section -->
   <section class="dashboard-content" id="settings-section">
     <h2>Account Settings</h2>
-    <!-- Settings content goes here -->
+    <div class="account-settings">
+      <p>Settings coming soon.</p>
+    </div>
   </section>
 </main>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{% static 'js/promotor_dashboard.js' %}"></script>
 {% endblock %} 
