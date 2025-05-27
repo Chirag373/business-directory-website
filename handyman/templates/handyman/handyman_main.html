@@ -6,11 +6,35 @@
 {% block extra_css %}
 <style>
   /* Handyman page specific styling */
+  :root {
+    --handyman-blue: #3498db;
+    --handyman-blue-dark: #2980b9;
+    --flash-interval: 2s;
+  }
+
   .handyman-banner {
     background: linear-gradient(135deg, #3498db, #2980b9);
     padding: 40px 0;
     text-align: center;
     margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .handyman-banner::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #fff, transparent);
+    animation: slideShine 3s infinite;
+  }
+  
+  @keyframes slideShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
   }
   
   .handyman-banner h1 {
@@ -32,20 +56,22 @@
     width: var(--container-width);
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px 0;
+    padding: 20px;
   }
   
+  /* Enhanced Search Section */
   .handyman-search-section {
     background-color: #f8f9fa;
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     margin-bottom: 40px;
+    position: relative;
   }
   
   .handyman-search-form {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 15px;
   }
   
@@ -58,6 +84,14 @@
     font-weight: 600;
     margin-bottom: 8px;
     color: #333;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .search-field label i {
+    color: var(--handyman-blue);
+    font-size: 0.9rem;
   }
   
   .search-field input,
@@ -66,241 +100,337 @@
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  
+  .search-field input:focus,
+  .search-field select:focus {
+    border-color: var(--handyman-blue);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    outline: none;
+  }
+  
+  /* Service Description Field - Full Width */
+  .service-search-field {
+    grid-column: 1 / -1;
   }
   
   .handyman-search-button {
-    background-color: #3498db;
+    background-color: var(--handyman-blue);
     color: white;
     border: none;
-    padding: 12px 20px;
+    padding: 14px 30px;
     border-radius: 6px;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 1.1rem;
     cursor: pointer;
-    transition: background-color 0.3s;
-    grid-column: span 4;
+    transition: all 0.3s;
+    grid-column: span 3;
     margin-top: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
   }
   
   .handyman-search-button:hover {
-    background-color: #2980b9;
+    background-color: var(--handyman-blue-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
   }
   
+  /* Enhanced Grid Layout */
   .handyman-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 25px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
     margin-top: 30px;
   }
   
+  /* Business Card Styling */
   .handyman-card {
     background: #fff;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    overflow: hidden;
+    overflow: visible;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+    height: 350px;
+    perspective: 1000px;
   }
   
   .handyman-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+  
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+  }
+  
+  .handyman-card.flipped .card-inner {
+    transform: rotateY(180deg);
   }
   
   .handyman-card-front,
   .handyman-card-back {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
+    position: absolute;
+    width: 100%;
     height: 100%;
     backface-visibility: hidden;
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
   
   .handyman-card-back {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
     transform: rotateY(180deg);
     background-color: #f9f9f9;
   }
   
-  .handyman-card.flipped .handyman-card-front {
-    transform: rotateY(180deg);
-  }
-  
-  .handyman-card.flipped .handyman-card-back {
-    transform: rotateY(0);
-  }
-  
-  .card-image-container {
-    margin: -20px -20px 15px;
-    overflow: hidden;
-    height: 180px;
-    position: relative;
-  }
-  
-  .card-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-  }
-  
-  .handyman-card:hover .card-image {
-    transform: scale(1.05);
-  }
-  
-  .handyman-card-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: #333;
-  }
-  
-  .handyman-card-description {
-    font-size: 0.95rem;
-    color: #555;
-    line-height: 1.5;
-    margin-bottom: 15px;
-    flex-grow: 1;
-  }
-  
-  .handyman-card-services {
-    margin-top: auto;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
-  }
-  
-  .handyman-card-services h4 {
-    font-size: 1rem;
-    margin-bottom: 8px;
-    color: #333;
-  }
-  
-  .service-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  
-  .service-tag {
-    background-color: #e1f5fe;
-    color: #0288d1;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 500;
-  }
-  
-  .handyman-card-contact {
-    margin-top: 15px;
-    font-size: 0.9rem;
-  }
-  
-  .handyman-card-contact div {
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-  }
-  
-  .handyman-card-contact i {
-    width: 16px;
-    margin-right: 8px;
-    color: #3498db;
-  }
-  
-  .flip-card-button {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    background-color: transparent;
-    border: none;
-    color: #3498db;
-    cursor: pointer;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    padding: 5px;
-    z-index: 5;
-  }
-  
-  .flip-card-button i {
-    margin-left: 5px;
-  }
-  
-  .promotion-indicator {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+  /* Business Card Image Container */
+  .business-card-display {
+    height: 200px;
+    background: #f0f0f0;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 5;
+    position: relative;
+    overflow: hidden;
   }
   
-  .promotion-indicator.active {
-    background-color: #4CAF50;
-    color: white;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  .business-card-display img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
   }
   
-  .promotion-indicator.inactive {
-    background-color: #e0e0e0;
-    color: #757575;
+  .card-content {
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
   }
   
-  .promotion-indicator i {
-    font-size: 1.2rem;
-  }
-  
-  .request-service-button {
-    display: inline-block;
-    margin-top: 15px;
-    padding: 8px 16px;
-    background-color: #3498db;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: background-color 0.3s;
+  .handyman-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
     text-align: center;
   }
   
-  .request-service-button:hover {
-    background-color: #2980b9;
+  .handyman-services {
+    font-size: 0.85rem;
+    color: #666;
+    text-align: center;
+    margin-bottom: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
   
+  .handyman-website {
+    font-size: 0.8rem;
+    color: var(--handyman-blue);
+    text-align: center;
+    text-decoration: none;
+    margin-top: auto;
+  }
+  
+  .handyman-website:hover {
+    text-decoration: underline;
+  }
+  
+  /* Promotional Light Bulb - Below Card */
+  .promo-indicator-container {
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10;
+  }
+  
+  .promo-light-bulb {
+    width: 40px;
+    height: 40px;
+    background: radial-gradient(circle at 30% 30%, #32CD32, #228B22);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    position: relative;
+    cursor: pointer;
+  }
+  
+  .promo-light-bulb::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 8px;
+    background: #666;
+    border-radius: 2px;
+  }
+  
+  .promo-light-bulb::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 15px;
+    height: 6px;
+    background: #333;
+    border-radius: 0 0 4px 4px;
+  }
+  
+  /* Inactive state */
+  .promo-light-bulb.inactive {
+    background: radial-gradient(circle at 30% 30%, #ccc, #999);
+    opacity: 0.5;
+  }
+  
+  /* Active flashing animation - 2 second intervals */
+  .promo-light-bulb.active {
+    animation: bulbFlash var(--flash-interval) infinite;
+  }
+  
+  @keyframes bulbFlash {
+    0%, 100% {
+      box-shadow: none;
+      background: radial-gradient(circle at 30% 30%, #32CD32, #228B22);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(50, 205, 50, 0.8), 0 0 50px rgba(50, 205, 50, 0.6);
+      background: radial-gradient(circle at 30% 30%, #7FFF00, #32CD32);
+    }
+  }
+  
+  .promo-code-display {
+    background: #fff;
+    border: 2px solid #32CD32;
+    padding: 3px 8px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #228B22;
+  }
+  
+  /* Back Side Label */
+  .flip-label {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--handyman-blue);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    z-index: 5;
+    transition: background-color 0.3s;
+  }
+  
+  .flip-label:hover {
+    background-color: var(--handyman-blue-dark);
+  }
+  
+  /* Back Card Content */
+  .back-card-content {
+    padding: 20px;
+    height: 100%;
+    overflow-y: auto;
+  }
+  
+  .back-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  
+  .service-details {
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 15px;
+  }
+  
+  .contact-info {
+    background: #e8f4f8;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+  }
+  
+  .contact-info div {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .contact-info i {
+    color: var(--handyman-blue);
+    width: 16px;
+  }
+  
+  /* No Results */
   .no-results {
     grid-column: 1 / -1;
     text-align: center;
-    padding: 30px;
+    padding: 60px 30px;
     background-color: #f8f9fa;
     border-radius: 10px;
     color: #555;
   }
   
+  .no-results i {
+    font-size: 4rem;
+    color: #ddd;
+    margin-bottom: 20px;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 1200px) {
+    .handyman-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
   @media (max-width: 992px) {
     .handyman-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
     }
     
     .handyman-search-form {
       grid-template-columns: repeat(2, 1fr);
     }
     
+    .service-search-field {
+      grid-column: 1 / -1;
+    }
+    
     .handyman-search-button {
       grid-column: span 2;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .handyman-grid {
+      grid-template-columns: repeat(2, 1fr);
     }
   }
   
@@ -315,6 +445,10 @@
     
     .handyman-search-button {
       grid-column: span 1;
+    }
+    
+    .handyman-card {
+      margin-bottom: 40px;
     }
   }
 </style>
@@ -332,117 +466,151 @@
   <!-- Handyman Search Section -->
   <div class="handyman-container">
     <div class="handyman-search-section">
-      <h2>Search for Handyman Services</h2>
+      <h2 style="margin-bottom: 20px; color: #333;">
+        <i class="fas fa-search" style="color: var(--handyman-blue);"></i> 
+        Search for Handyman Services
+      </h2>
       <form method="post" action="{% url 'handyman' %}" class="handyman-search-form">
         {% csrf_token %}
         <div class="search-field">
-          <label for="state">State</label>
-          <input type="text" id="state" name="state" placeholder="e.g. CA, NY, TX">
+          <label for="state">
+            <i class="fas fa-map"></i> State
+          </label>
+          <input type="text" id="state" name="state" placeholder="Enter state (e.g., CA, NY, TX)">
         </div>
         
         <div class="search-field">
-          <label for="county">County</label>
-          <input type="text" id="county" name="county" placeholder="e.g. Orange, Kings">
+          <label for="county">
+            <i class="fas fa-map-marked-alt"></i> County
+          </label>
+          <input type="text" id="county" name="county" placeholder="Enter county">
         </div>
         
         <div class="search-field">
-          <label for="city">City</label>
-          <input type="text" id="city" name="city" placeholder="e.g. Los Angeles, New York">
+          <label for="city">
+            <i class="fas fa-city"></i> City
+          </label>
+          <input type="text" id="city" name="city" placeholder="Enter city">
         </div>
         
-        <div class="search-field">
-          <label for="service_description">Service Description</label>
-          <input type="text" id="service_description" name="service_description" placeholder="e.g. plumbing, electrical, carpentry">
+        <div class="search-field service-search-field">
+          <label for="service_description">
+            <i class="fas fa-tools"></i> What service do you need?
+          </label>
+          <input type="text" 
+                 id="service_description" 
+                 name="service_description" 
+                 placeholder="e.g., I am looking for a plumber with discount offer, electrical work, painting, etc.">
         </div>
         
         <button type="submit" class="handyman-search-button">
-          <i class="fas fa-search"></i> Find Handyman Services
+          <i class="fas fa-search"></i> 
+          <span>Find Handyman Services</span>
         </button>
       </form>
     </div>
 
     <!-- Handyman Listings -->
-    <h2>Available Handymen</h2>
+    <div style="margin-bottom: 20px;">
+      <h2 style="color: #333;">
+        <i class="fas fa-hard-hat" style="color: var(--handyman-blue);"></i> 
+        Available Handymen
+      </h2>
+      <p style="color: #666;">Showing handymen with active promotional offers</p>
+    </div>
     
     <div class="handyman-grid">
       {% for handyman in handymen %}
         <div class="handyman-card" id="handyman-{{ handyman.id }}">
-          <!-- Front of card -->
-          <div class="handyman-card-front">
-            {% if handyman.user.business_card_front %}
-              <div class="card-image-container">
-                <img src="{{ handyman.user.business_card_front.url }}" alt="{{ handyman.business_name }} Business Card" class="card-image">
-              </div>
-            {% endif %}
-            
-            <h3 class="handyman-card-title">{{ handyman.business_name }}</h3>
-            <p class="handyman-card-description">{{ handyman.bio|truncatechars:150 }}</p>
-            
-            <div class="handyman-card-services">
-              <h4>Services Offered:</h4>
-              <div class="service-tags">
-                {% for service in handyman.services.all|slice:":5" %}
-                  <span class="service-tag">{{ service.name }}</span>
-                {% empty %}
-                  <span class="service-tag">General Handyman</span>
-                {% endfor %}
-                {% if handyman.services.count > 5 %}
-                  <span class="service-tag">+{{ handyman.services.count|add:"-5" }} more</span>
+          <div class="card-inner">
+            <!-- Front of card -->
+            <div class="handyman-card-front">
+              <div class="business-card-display">
+                {% if handyman.user.business_card_front %}
+                  <img src="{{ handyman.user.business_card_front.url }}" 
+                       alt="{{ handyman.business_name }} Business Card">
+                {% else %}
+                  <div style="text-align: center; color: #999;">
+                    <i class="fas fa-id-card" style="font-size: 3rem;"></i>
+                    <p>Business Card</p>
+                  </div>
                 {% endif %}
               </div>
-            </div>
-            
-            <div class="handyman-card-contact">
-              {% if handyman.user.address %}
-                <div><i class="fas fa-map-marker-alt"></i> {{ handyman.user.address.city }}, {{ handyman.user.address.state }}</div>
-              {% endif %}
-              {% if handyman.user.phone_number %}
-                <div><i class="fas fa-phone"></i> {{ handyman.user.phone_number }}</div>
-              {% endif %}
-            </div>
-            
-            <a href="#" class="request-service-button">Request Service</a>
-            
-            <button class="flip-card-button" onclick="flipCard('handyman-{{ handyman.id }}')">
-              See Details <i class="fas fa-redo"></i>
-            </button>
-          </div>
-          
-          <!-- Back of card -->
-          <div class="handyman-card-back">
-            <h3 class="handyman-card-title">{{ handyman.business_name }} - Details</h3>
-            
-            <div class="handyman-card-description">
-              <p><strong>Experience:</strong> {% if handyman.experience_years %}{{ handyman.experience_years }} years{% else %}Not specified{% endif %}</p>
-              <p><strong>Licensed:</strong> {% if handyman.is_licensed %}Yes{% else %}No{% endif %}</p>
-              <p><strong>Insured:</strong> {% if handyman.is_insured %}Yes{% else %}No{% endif %}</p>
               
-              <h4>Service Description:</h4>
-              <p>{{ handyman.detailed_services_description|default:handyman.bio }}</p>
+              <div class="card-content">
+                <h3 class="handyman-name">{{ handyman.business_name|default:"Handyman Service" }}</h3>
+                <p class="handyman-services">
+                  {{ handyman.detailed_services_description|default:handyman.bio|default:"General handyman services"|truncatechars:60 }}
+                </p>
+                {% if handyman.user.website %}
+                  <a href="{{ handyman.user.website }}" class="handyman-website" target="_blank">
+                    <i class="fas fa-globe"></i> Visit Website
+                  </a>
+                {% endif %}
+              </div>
+              
+              <span class="flip-label" onclick="flipHandymanCard('{{ handyman.id }}')">
+                Back Side
+              </span>
             </div>
             
-            <div class="handyman-card-contact">
-              <div><i class="fas fa-envelope"></i> {{ handyman.user.email }}</div>
-              {% if handyman.user.website %}
-                <div><i class="fas fa-globe"></i> {{ handyman.user.website }}</div>
-              {% endif %}
+            <!-- Back of card -->
+            <div class="handyman-card-back">
+              <div class="back-card-content">
+                <h3 class="back-card-title">{{ handyman.business_name }}</h3>
+                
+                <div class="service-details">
+                  <strong>Services Offered:</strong><br>
+                  {{ handyman.detailed_services_description|default:handyman.bio|default:"General handyman services" }}
+                </div>
+                
+                {% if handyman.offers_promotions and handyman.promotions.exists %}
+                  <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    <strong style="color: #856404;">Current Promotion:</strong><br>
+                    <p style="margin: 5px 0; color: #856404;">
+                      {{ handyman.promotions.first.description }}
+                      ({{ handyman.promotions.first.discount_percentage }}% OFF)
+                    </p>
+                  </div>
+                {% endif %}
+                
+                <div class="contact-info">
+                  <strong>Contact Information:</strong>
+                  {% if handyman.user.phone_number %}
+                    <div><i class="fas fa-phone"></i> {{ handyman.user.phone_number }}</div>
+                  {% endif %}
+                  <div><i class="fas fa-envelope"></i> {{ handyman.user.email }}</div>
+                  {% if handyman.user.address %}
+                    <div><i class="fas fa-map-marker-alt"></i> 
+                      {{ handyman.user.address.city }}, {{ handyman.user.address.state }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+              
+              <span class="flip-label" onclick="flipHandymanCard('{{ handyman.id }}')">
+                Front Side
+              </span>
             </div>
-            
-            <a href="#" class="request-service-button">Contact Now</a>
-            
-            <button class="flip-card-button" onclick="flipCard('handyman-{{ handyman.id }}')">
-              See Front <i class="fas fa-redo"></i>
-            </button>
           </div>
           
-          <!-- Promotion indicator -->
-          <div class="promotion-indicator {% if handyman.offers_promotions and handyman.promotions.exists %}active{% else %}inactive{% endif %}">
-            <i class="fas fa-lightbulb"></i>
+          <!-- Promotional Light Bulb Below Card -->
+          <div class="promo-indicator-container">
+            <div class="promo-light-bulb {% if handyman.offers_promotions and handyman.promotions.exists %}active{% else %}inactive{% endif %}" 
+                 title="{% if handyman.offers_promotions and handyman.promotions.exists %}Active Promotion!{% else %}No active promotions{% endif %}">
+            </div>
+            {% if handyman.offers_promotions and handyman.promotions.exists %}
+              <span class="promo-code-display">
+                {{ handyman.promotions.first.code|default:"SAVE15" }}
+              </span>
+            {% endif %}
           </div>
         </div>
       {% empty %}
         <div class="no-results">
-          <p>No handymen found matching your search criteria. Try adjusting your search parameters.</p>
+          <i class="fas fa-tools"></i>
+          <h3>No Handymen Found</h3>
+          <p>No handymen found matching your search criteria. Try adjusting your search parameters or check back later.</p>
         </div>
       {% endfor %}
     </div>
@@ -452,14 +620,51 @@
 {% block extra_js %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Initialize any needed functionality
+    // Auto-rotate cards on mouse hover
+    const cards = document.querySelectorAll('.handyman-card');
+    cards.forEach(card => {
+      let hoverTimeout;
+      
+      card.addEventListener('mouseenter', function() {
+        hoverTimeout = setTimeout(() => {
+          if (!this.classList.contains('flipped')) {
+            const cardId = this.id.replace('handyman-', '');
+            flipHandymanCard(cardId);
+          }
+        }, 1000); // Show back after 1 second hover
+      });
+      
+      card.addEventListener('mouseleave', function() {
+        clearTimeout(hoverTimeout);
+        if (this.classList.contains('flipped')) {
+          const cardId = this.id.replace('handyman-', '');
+          setTimeout(() => flipHandymanCard(cardId), 500);
+        }
+      });
+    });
+    
+    // Enhanced search field
+    const serviceInput = document.getElementById('service_description');
+    const suggestions = [
+      'plumbing repair',
+      'electrical work',
+      'carpentry',
+      'painting',
+      'drywall repair',
+      'flooring installation',
+      'bathroom renovation',
+      'kitchen remodeling',
+      'general maintenance'
+    ];
+    
+    // You can implement autocomplete here if needed
   });
   
-  function flipCard(cardId) {
-    const card = document.getElementById(cardId);
+  function flipHandymanCard(handymanId) {
+    const card = document.getElementById('handyman-' + handymanId);
     if (card) {
       card.classList.toggle('flipped');
     }
   }
 </script>
-{% endblock %} 
+{% endblock %}
