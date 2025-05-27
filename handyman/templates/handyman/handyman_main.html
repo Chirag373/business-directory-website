@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Handyman Services - Business Directory 2.0{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Handyman page specific styling */
+  .handyman-banner {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    padding: 40px 0;
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .handyman-banner h1 {
+    color: #fff;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  .handyman-banner p {
+    color: #fff;
+    font-size: 1.2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  
+  .handyman-container {
+    width: var(--container-width);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 0;
+  }
+  
+  .handyman-search-section {
+    background-color: #f8f9fa;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 40px;
+  }
+  
+  .handyman-search-form {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+  }
+  
+  .search-field {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .search-field label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+  }
+  
+  .search-field input,
+  .search-field select {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+  }
+  
+  .handyman-search-button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    grid-column: span 4;
+    margin-top: 15px;
+  }
+  
+  .handyman-search-button:hover {
+    background-color: #2980b9;
+  }
+  
+  .handyman-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    margin-top: 30px;
+  }
+  
+  .handyman-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .handyman-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  }
+  
+  .handyman-card-front,
+  .handyman-card-back {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    backface-visibility: hidden;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  
+  .handyman-card-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: rotateY(180deg);
+    background-color: #f9f9f9;
+  }
+  
+  .handyman-card.flipped .handyman-card-front {
+    transform: rotateY(180deg);
+  }
+  
+  .handyman-card.flipped .handyman-card-back {
+    transform: rotateY(0);
+  }
+  
+  .card-image-container {
+    margin: -20px -20px 15px;
+    overflow: hidden;
+    height: 180px;
+    position: relative;
+  }
+  
+  .card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  
+  .handyman-card:hover .card-image {
+    transform: scale(1.05);
+  }
+  
+  .handyman-card-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  .handyman-card-description {
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 15px;
+    flex-grow: 1;
+  }
+  
+  .handyman-card-services {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+  }
+  
+  .handyman-card-services h4 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+    color: #333;
+  }
+  
+  .service-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .service-tag {
+    background-color: #e1f5fe;
+    color: #0288d1;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  
+  .handyman-card-contact {
+    margin-top: 15px;
+    font-size: 0.9rem;
+  }
+  
+  .handyman-card-contact div {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .handyman-card-contact i {
+    width: 16px;
+    margin-right: 8px;
+    color: #3498db;
+  }
+  
+  .flip-card-button {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: transparent;
+    border: none;
+    color: #3498db;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    z-index: 5;
+  }
+  
+  .flip-card-button i {
+    margin-left: 5px;
+  }
+  
+  .promotion-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+  }
+  
+  .promotion-indicator.active {
+    background-color: #4CAF50;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  
+  .promotion-indicator.inactive {
+    background-color: #e0e0e0;
+    color: #757575;
+  }
+  
+  .promotion-indicator i {
+    font-size: 1.2rem;
+  }
+  
+  .request-service-button {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 8px 16px;
+    background-color: #3498db;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background-color 0.3s;
+    text-align: center;
+  }
+  
+  .request-service-button:hover {
+    background-color: #2980b9;
+  }
+  
+  .no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 30px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    color: #555;
+  }
+  
+  @media (max-width: 992px) {
+    .handyman-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .handyman-search-form {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .handyman-search-button {
+      grid-column: span 2;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .handyman-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .handyman-search-form {
+      grid-template-columns: 1fr;
+    }
+    
+    .handyman-search-button {
+      grid-column: span 1;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <!-- Handyman Banner -->
+  <div class="handyman-banner">
+    <div class="handyman-container">
+      <h1>Find Handyman Services</h1>
+      <p>Connect with skilled handymen in your area for home repairs, maintenance, and improvement projects.</p>
+    </div>
+  </div>
+
+  <!-- Handyman Search Section -->
+  <div class="handyman-container">
+    <div class="handyman-search-section">
+      <h2>Search for Handyman Services</h2>
+      <form method="post" action="{% url 'handyman' %}" class="handyman-search-form">
+        {% csrf_token %}
+        <div class="search-field">
+          <label for="state">State</label>
+          <input type="text" id="state" name="state" placeholder="e.g. CA, NY, TX">
+        </div>
+        
+        <div class="search-field">
+          <label for="county">County</label>
+          <input type="text" id="county" name="county" placeholder="e.g. Orange, Kings">
+        </div>
+        
+        <div class="search-field">
+          <label for="city">City</label>
+          <input type="text" id="city" name="city" placeholder="e.g. Los Angeles, New York">
+        </div>
+        
+        <div class="search-field">
+          <label for="service_description">Service Description</label>
+          <input type="text" id="service_description" name="service_description" placeholder="e.g. plumbing, electrical, carpentry">
+        </div>
+        
+        <button type="submit" class="handyman-search-button">
+          <i class="fas fa-search"></i> Find Handyman Services
+        </button>
+      </form>
+    </div>
+
+    <!-- Handyman Listings -->
+    <h2>Available Handymen</h2>
+    
+    <div class="handyman-grid">
+      {% for handyman in handymen %}
+        <div class="handyman-card" id="handyman-{{ handyman.id }}">
+          <!-- Front of card -->
+          <div class="handyman-card-front">
+            {% if handyman.user.business_card_front %}
+              <div class="card-image-container">
+                <img src="{{ handyman.user.business_card_front.url }}" alt="{{ handyman.business_name }} Business Card" class="card-image">
+              </div>
+            {% endif %}
+            
+            <h3 class="handyman-card-title">{{ handyman.business_name }}</h3>
+            <p class="handyman-card-description">{{ handyman.bio|truncatechars:150 }}</p>
+            
+            <div class="handyman-card-services">
+              <h4>Services Offered:</h4>
+              <div class="service-tags">
+                {% for service in handyman.services.all|slice:":5" %}
+                  <span class="service-tag">{{ service.name }}</span>
+                {% empty %}
+                  <span class="service-tag">General Handyman</span>
+                {% endfor %}
+                {% if handyman.services.count > 5 %}
+                  <span class="service-tag">+{{ handyman.services.count|add:"-5" }} more</span>
+                {% endif %}
+              </div>
+            </div>
+            
+            <div class="handyman-card-contact">
+              {% if handyman.user.address %}
+                <div><i class="fas fa-map-marker-alt"></i> {{ handyman.user.address.city }}, {{ handyman.user.address.state }}</div>
+              {% endif %}
+              {% if handyman.user.phone_number %}
+                <div><i class="fas fa-phone"></i> {{ handyman.user.phone_number }}</div>
+              {% endif %}
+            </div>
+            
+            <a href="#" class="request-service-button">Request Service</a>
+            
+            <button class="flip-card-button" onclick="flipCard('handyman-{{ handyman.id }}')">
+              See Details <i class="fas fa-redo"></i>
+            </button>
+          </div>
+          
+          <!-- Back of card -->
+          <div class="handyman-card-back">
+            <h3 class="handyman-card-title">{{ handyman.business_name }} - Details</h3>
+            
+            <div class="handyman-card-description">
+              <p><strong>Experience:</strong> {% if handyman.experience_years %}{{ handyman.experience_years }} years{% else %}Not specified{% endif %}</p>
+              <p><strong>Licensed:</strong> {% if handyman.is_licensed %}Yes{% else %}No{% endif %}</p>
+              <p><strong>Insured:</strong> {% if handyman.is_insured %}Yes{% else %}No{% endif %}</p>
+              
+              <h4>Service Description:</h4>
+              <p>{{ handyman.detailed_services_description|default:handyman.bio }}</p>
+            </div>
+            
+            <div class="handyman-card-contact">
+              <div><i class="fas fa-envelope"></i> {{ handyman.user.email }}</div>
+              {% if handyman.user.website %}
+                <div><i class="fas fa-globe"></i> {{ handyman.user.website }}</div>
+              {% endif %}
+            </div>
+            
+            <a href="#" class="request-service-button">Contact Now</a>
+            
+            <button class="flip-card-button" onclick="flipCard('handyman-{{ handyman.id }}')">
+              See Front <i class="fas fa-redo"></i>
+            </button>
+          </div>
+          
+          <!-- Promotion indicator -->
+          <div class="promotion-indicator {% if handyman.offers_promotions and handyman.promotions.exists %}active{% else %}inactive{% endif %}">
+            <i class="fas fa-lightbulb"></i>
+          </div>
+        </div>
+      {% empty %}
+        <div class="no-results">
+          <p>No handymen found matching your search criteria. Try adjusting your search parameters.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize any needed functionality
+  });
+  
+  function flipCard(cardId) {
+    const card = document.getElementById(cardId);
+    if (card) {
+      card.classList.toggle('flipped');
+    }
+  }
+</script>
+{% endblock %} 

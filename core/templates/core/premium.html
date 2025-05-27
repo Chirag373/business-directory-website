@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Premium Businesses - Business Directory 2.0{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Premium page specific styling */
+  .premium-banner {
+    background: linear-gradient(135deg, #f8c353, #f5a623);
+    padding: 40px 0;
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .premium-banner h1 {
+    color: #fff;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  .premium-banner p {
+    color: #fff;
+    font-size: 1.2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  
+  .premium-container {
+    width: var(--container-width);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 0;
+  }
+  
+  .premium-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    margin-top: 30px;
+  }
+  
+  .premium-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .premium-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+  }
+  
+  .premium-card-content {
+    padding: 25px;
+    flex-grow: 1;
+  }
+  
+  .premium-card-header {
+    margin-bottom: 20px;
+  }
+  
+  .premium-card-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .premium-card-description {
+    font-size: 1.1rem;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  
+  .premium-card-image {
+    width: 100%;
+    max-width: 350px;
+    height: auto;
+    margin: 15px auto;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+  }
+  
+  .premium-card-image:hover {
+    transform: scale(1.03);
+  }
+  
+  .premium-product-images {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+  }
+  
+  .premium-product-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+  }
+  
+  .premium-product-image:hover {
+    transform: scale(1.05);
+  }
+  
+  .premium-card-contact {
+    margin-top: 20px;
+    font-size: 1.1rem;
+    color: #444;
+  }
+  
+  .premium-card-contact div {
+    margin-bottom: 8px;
+  }
+  
+  .premium-card-contact i {
+    width: 20px;
+    margin-right: 8px;
+    color: #f5a623;
+  }
+  
+  .premium-website {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #f5a623;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  
+  .premium-website:hover {
+    background-color: #e09000;
+  }
+  
+  .discount-indicator {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: #f5a623;
+    color: #fff;
+    padding: 10px;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    z-index: 2;
+  }
+  
+  .discount-indicator i {
+    font-size: 1.8rem;
+    color: #fff;
+  }
+  
+  .premium-card-wrapper {
+    position: relative;
+  }
+  
+  .promotion-code {
+    position: absolute;
+    top: 85px;
+    right: 20px;
+    background-color: #fff;
+    color: #333;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: 700;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 2;
+  }
+  
+  @media (max-width: 768px) {
+    .premium-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .premium-product-images {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <!-- Premium Banner -->
+  <div class="premium-banner">
+    <div class="premium-container">
+      <h1>Premium Business Listings</h1>
+      <p>Discover our featured premium businesses with enhanced profiles and exclusive offers.</p>
+    </div>
+  </div>
+
+  <!-- Premium Business Listings -->
+  <div class="premium-container">
+    <div class="premium-grid">
+      {% for business in premium_businesses %}
+        <div class="premium-card-wrapper">
+          {% if business.promotions.exists %}
+          <div class="discount-indicator">
+            <i class="fas fa-lightbulb"></i>
+          </div>
+          <div class="promotion-code">
+            {{ business.promotions.first.code }}
+          </div>
+          {% endif %}
+          
+          <div class="premium-card">
+            <div class="premium-card-content">
+              <div class="premium-card-header">
+                <h2 class="premium-card-title">{{ business.name }}</h2>
+                <p class="premium-card-description">{{ business.description }}</p>
+              </div>
+              
+              {% if business.business_cards.exists and business.business_cards.first.front_image %}
+                <img src="{{ business.business_cards.first.front_image.url }}" alt="{{ business.name }} Business Card" class="premium-card-image">
+              {% endif %}
+              
+              <div class="premium-card-contact">
+                <div><i class="fas fa-map-marker-alt"></i> {{ business.address }}</div>
+                <div><i class="fas fa-phone"></i> {{ business.phone }}</div>
+                <div><i class="fas fa-envelope"></i> {{ business.email }}</div>
+              </div>
+              
+              {% if business.website %}
+                <a href="{{ business.website }}" class="premium-website" target="_blank">Visit Website</a>
+              {% endif %}
+              
+              {% if business.images.all|length > 0 %}
+                <div class="premium-product-images">
+                  {% for image in business.images.all|slice:":4" %}
+                    <img src="{{ image.image.url }}" alt="{{ business.name }} - {{ image.caption }}" class="premium-product-image">
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="no-results">
+          <p>No premium businesses found.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Any additional JavaScript for premium page functionality
+  });
+</script>
+{% endblock %} 

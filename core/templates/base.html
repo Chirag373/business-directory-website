@@ -114,6 +114,8 @@
       </a>
       <ul class="menu">
         <li><a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="{% url 'premium' %}" class="{% if request.path == '/premium/' %}active{% endif %}"><i class="fas fa-star"></i> Premium</a></li>
+        <li><a href="{% url 'handyman' %}" class="{% if request.path == '/handyman/' %}active{% endif %}"><i class="fas fa-tools"></i> Handyman</a></li>
         <li><a href="#" class="{% if request.path == '/mission/' %}active{% endif %}"><i class="fas fa-bullseye"></i> Our Mission</a></li>
         <li><a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}"><i class="fas fa-envelope"></i> Contact Us</a></li>
         <li><a href="{% url 'signup' %}" class="{% if request.path == '/register/' %}active{% endif %}"><i class="fas fa-user-plus"></i> Sign Up</a></li>
@@ -134,6 +136,8 @@
     </div>
     <ul class="sidebar-menu">
       <li><a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}"><i class="fas fa-home"></i> Home</a></li>
+      <li><a href="{% url 'premium' %}" class="{% if request.path == '/premium/' %}active{% endif %}"><i class="fas fa-star"></i> Premium</a></li>
+      <li><a href="{% url 'handyman' %}" class="{% if request.path == '/handyman/' %}active{% endif %}"><i class="fas fa-tools"></i> Handyman</a></li>
       <li><a href="#" class="{% if request.path == '/mission/' %}active{% endif %}"><i class="fas fa-bullseye"></i> Our Mission</a></li>
       <li><a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}"><i class="fas fa-envelope"></i> Contact Us</a></li>
       <li><a href="{% url 'register' %}" class="{% if request.path == '/register/' %}active{% endif %}"><i class="fas fa-user-plus"></i> Sign Up</a></li>

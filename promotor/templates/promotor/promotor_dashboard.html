@@ -286,7 +286,362 @@
   
   <section class="dashboard-content" id="settings-section" role="tabpanel" aria-labelledby="settings-tab">
     <h2><i class="fas fa-cog"></i> Account Settings</h2>
-    <!-- Settings content here -->
+    
+    <!-- Settings content organized in tabs -->
+    <div class="settings-tabs">
+      <button class="settings-tab active" data-settings-tab="profile">Personal Details</button>
+      <button class="settings-tab" data-settings-tab="business-card">Business Card</button>
+      <button class="settings-tab" data-settings-tab="products">Product Categories</button>
+      <button class="settings-tab" data-settings-tab="description">Product Description</button>
+      <button class="settings-tab" data-settings-tab="promotions">Promotional Offers</button>
+    </div>
+    
+    <div class="settings-content">
+      <!-- Profile Information Interface -->
+      <div class="settings-panel active" id="profile-panel">
+        <h3>Personal Details</h3>
+        <form id="profile-form" class="settings-form" method="POST" action="{% url 'promotor_dashboard' %}">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="profile">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="first_name">First Name</label>
+              <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+            </div>
+            <div class="form-group">
+              <label for="last_name">Last Name</label>
+              <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="address_number">Address Number</label>
+              <input type="text" id="address_number" name="address_number" value="{{ user.address.street|default:''}}" required>
+            </div>
+            <div class="form-group">
+              <label for="address">Address</label>
+              <input type="text" id="address" name="address" value="{{ user.address.street|default:''}}" required>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="city">City</label>
+              <input type="text" id="city" name="city" value="{{ user.address.city|default:''}}" required>
+            </div>
+            <div class="form-group">
+              <label for="state">State</label>
+              <input type="text" id="state" name="state" value="{{ user.address.state|default:''}}" required>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="county">County</label>
+              <input type="text" id="county" name="county" value="{{ user.address.county|default:''}}">
+            </div>
+            <div class="form-group">
+              <label for="zip">ZIP Code</label>
+              <input type="text" id="zip" name="zip" value="{{ user.address.postal_code|default:''}}" required>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" value="{{ user.email }}" required>
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone" value="{{ user.phone_number|default:''}}">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="business_name">Business Name</label>
+              <input type="text" id="business_name" name="business_name" value="{{ user.business_name|default:''}}">
+            </div>
+            <div class="form-group">
+              <label for="website">Website Link</label>
+              <input type="url" id="website" name="website" value="{{ user.website|default:''}}">
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="primary-button">Save Changes</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Business Card Upload Section -->
+      <div class="settings-panel" id="business-card-panel">
+        <h3>Business Card Upload</h3>
+        <form id="business-card-form" class="settings-form" method="POST" action="{% url 'promotor_dashboard' %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="business_card">
+          <div class="business-card-upload">
+            <div class="card-upload-section">
+              <h4>Front Side (Required)</h4>
+              <div class="card-preview" id="front-card-preview">
+                {% if user.business_card_front %}
+                  <img src="{{ user.business_card_front.url }}" alt="Business Card Front">
+                {% else %}
+                  <div class="empty-preview">
+                    <i class="fas fa-id-card"></i>
+                    <p>No image uploaded</p>
+                  </div>
+                {% endif %}
+              </div>
+              <div class="upload-controls">
+                <label for="card_front" class="upload-button">
+                  <i class="fas fa-upload"></i> Upload Front Side
+                </label>
+                <input type="file" id="card_front" name="card_front" accept="image/*" class="file-input" required>
+              </div>
+            </div>
+            
+            <div class="card-upload-section">
+              <h4>Back Side (Optional)</h4>
+              <div class="card-preview" id="back-card-preview">
+                {% if user.business_card_back and not user.has_blank_card_back %}
+                  <img src="{{ user.business_card_back.url }}" alt="Business Card Back">
+                {% else %}
+                  <div class="empty-preview">
+                    <i class="fas fa-id-card"></i>
+                    <p>No image uploaded</p>
+                  </div>
+                {% endif %}
+              </div>
+              <div class="upload-controls">
+                <label for="card_back" class="upload-button">
+                  <i class="fas fa-upload"></i> Upload Back Side
+                </label>
+                <input type="file" id="card_back" name="card_back" accept="image/*" class="file-input">
+                
+                <div class="checkbox-group">
+                  <input type="checkbox" id="blank_back" name="blank_back" {% if user.has_blank_card_back %}checked{% endif %}>
+                  <label for="blank_back">Please check this checkbox, if your business card backside is blank</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="primary-button">Save Business Card</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Product Category Selection -->
+      <div class="settings-panel" id="products-panel">
+        <h3>Product Categories</h3>
+        <form id="categories-form" class="settings-form" method="POST" action="{% url 'promotor_dashboard' %}">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="categories">
+          <div class="categories-selection">
+            <p class="form-guidance">Select all product categories that apply to your business:</p>
+            
+            <div class="categories-grid">
+              <!-- Home & Garden -->
+              <div class="category-group">
+                <h4>Home & Garden</h4>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="cat_furniture" name="product_categories[]" value="furniture">
+                  <label for="cat_furniture">Furniture</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="cat_garden" name="product_categories[]" value="garden_supplies">
+                  <label for="cat_garden">Garden Supplies</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="cat_home_decor" name="product_categories[]" value="home_decor">
+                  <label for="cat_home_decor">Home Décor</label>
+                </div>
+              </div>
+              
+              <!-- Electronics -->
+              <div class="category-group">
+                <h4>Electronics</h4>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="cat_computers" name="product_categories[]" value="computers">
+                  <label for="cat_computers">Computers & Accessories</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="cat_phones" name="product_categories[]" value="phones">
+                  <label for="cat_phones">Phones & Accessories</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="cat_tv" name="product_categories[]" value="tv_audio">
+                  <label for="cat_tv">TV & Audio</label>
+                </div>
+              </div>
+              
+              <!-- Clothing & Accessories -->
+              <div class="category-group">
+                <h4>Clothing & Accessories</h4>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="cat_mens" name="product_categories[]" value="mens_clothing">
+                  <label for="cat_mens">Men's Clothing</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="cat_womens" name="product_categories[]" value="womens_clothing">
+                  <label for="cat_womens">Women's Clothing</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="cat_jewelry" name="product_categories[]" value="jewelry">
+                  <label for="cat_jewelry">Jewelry & Watches</label>
+                </div>
+              </div>
+              
+              <!-- Beauty & Health -->
+              <div class="category-group">
+                <h4>Beauty & Health</h4>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="cat_skincare" name="product_categories[]" value="skincare">
+                  <label for="cat_skincare">Skincare</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="cat_makeup" name="product_categories[]" value="makeup">
+                  <label for="cat_makeup">Makeup</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="cat_supplements" name="product_categories[]" value="supplements">
+                  <label for="cat_supplements">Supplements</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="primary-button">Save Categories</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Product Description Interface -->
+      <div class="settings-panel" id="description-panel">
+        <h3>Product Description</h3>
+        <form id="description-form" class="settings-form" method="POST" action="{% url 'promotor_dashboard' %}">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="description">
+          <div class="description-editor">
+            <p class="form-guidance">Please use precise keywords for your products, for instance: Electronics, please indicate, Smartphones, or, Laptops, TVs, Gaming Consoles, etc.</p>
+            
+            <div class="form-group">
+              <label for="product_description">Product Description</label>
+              <textarea id="product_description" name="product_description" rows="6" placeholder="Describe your products and services with relevant keywords...">{{ user.service_description|default:"" }}</textarea>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="primary-button">Save Description</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Promotional Offer Setup Section -->
+      <div class="settings-panel" id="promotions-panel">
+        <h3>Promotional Offers</h3>
+        <form id="promotion-form" class="settings-form" method="POST" action="{% url 'promotor_dashboard' %}">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="promotion">
+          <div class="promotion-setup">
+            <div class="campaign-question">
+              <p>Do you want to run a promotional offer campaign?</p>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" id="promo_yes" name="run_promotion" value="yes">
+                  <label for="promo_yes">Yes</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" id="promo_no" name="run_promotion" value="no" checked>
+                  <label for="promo_no">No</label>
+                </div>
+              </div>
+            </div>
+            
+            <div class="promotion-details" id="promotion-details" style="display: none;">
+              <div class="form-group">
+                <label for="promotion_description">Discount Description</label>
+                <textarea id="promotion_description" name="promotion_description" rows="3" placeholder="Describe your promotional offer..."></textarea>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="discount_percentage">Discount Percentage</label>
+                  <select id="discount_percentage" name="discount_percentage">
+                    <option value="3">3%</option>
+                    <option value="5">5%</option>
+                    <option value="10">10%</option>
+                    <option value="15">15%</option>
+                    <option value="20">20%</option>
+                    <option value="25">25%</option>
+                    <option value="30">30%</option>
+                    <option value="35">35%</option>
+                    <option value="40">40%</option>
+                    <option value="45">45%</option>
+                    <option value="50">50%</option>
+                    <option value="55">55%</option>
+                    <option value="60">60%</option>
+                    <option value="65">65%</option>
+                    <option value="70">70%</option>
+                    <option value="75">75%</option>
+                    <option value="80">80%</option>
+                    <option value="85">85%</option>
+                    <option value="90">90%</option>
+                    <option value="100">100%</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="promo-code-section">
+                <h4>Promotional Code</h4>
+                <p>Please use this Promotional code generator to generate a code that represents your promotional offer for your tracking purpose</p>
+                
+                <div class="form-row">
+                  <div class="form-group promo-code-field">
+                    <input type="text" id="promo_code" name="promo_code" readonly>
+                    <button type="button" id="generate-code-btn" class="secondary-button">Generate Code</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="time-period-section">
+                <h4>Time Period Settings</h4>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="start_date">Start Date</label>
+                    <input type="date" id="start_date" name="start_date" placeholder="MM/DD/YYYY">
+                  </div>
+                  <div class="form-group">
+                    <label for="end_date">End Date</label>
+                    <input type="date" id="end_date" name="end_date" placeholder="MM/DD/YYYY">
+                  </div>
+                </div>
+              </div>
+              
+              <div class="promotion-notice">
+                <div class="notice-box">
+                  <h4><i class="fas fa-info-circle"></i> Important Information</h4>
+                  <ul>
+                    <li>Your promotional offers will be displayed on the "Product Promotion page"</li>
+                    <li>The system will NOT automatically send promotional offers to customers</li>
+                    <li>These promotional offers are for display purposes only</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="primary-button">Save Promotional Offer</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </section>
 </main>
 
@@ -321,9 +676,315 @@
   background: linear-gradient(90deg, var(--info-color), #20c997);
 }
 
+/* Settings Panel Styles */
+.settings-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.settings-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.settings-tab {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  background: none;
+  font-weight: 500;
+  color: var(--text-color);
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+}
+
+.settings-tab:after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  transition: background 0.3s ease;
+}
+
+.settings-tab.active {
+  color: var(--primary-color);
+}
+
+.settings-tab.active:after {
+  background: var(--primary-color);
+}
+
+.settings-panel {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.settings-panel.active {
+  display: block;
+}
+
+.settings-form {
+  max-width: 100%;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: -0.5rem;
+}
+
+.form-group {
+  flex: 1 1 calc(50% - 1rem);
+  margin: 0.5rem;
+  min-width: 200px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+  outline: none;
+}
+
+.form-guidance {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  font-style: italic;
+}
+
+.form-actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Business Card Upload */
+.business-card-upload {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.card-upload-section {
+  flex: 1 1 calc(50% - 1rem);
+  min-width: 250px;
+}
+
+.card-preview {
+  aspect-ratio: 16/9;
+  background-color: #f8f9fa;
+  border: 1px dashed var(--border-color);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.card-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.empty-preview {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty-preview i {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.upload-button {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.upload-button:hover {
+  background-color: var(--border-color);
+}
+
+.upload-button i {
+  margin-right: 0.5rem;
+}
+
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+  margin-right: 0.5rem;
+}
+
+/* Product Categories */
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.category-group h4 {
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.category-group .checkbox-group {
+  margin-top: 0.5rem;
+}
+
+/* Promotion Setup */
+.campaign-question {
+  margin-bottom: 2rem;
+}
+
+.radio-group {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+}
+
+.radio-option input[type="radio"] {
+  width: auto;
+  margin-right: 0.5rem;
+}
+
+.promotion-details {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.promo-code-section,
+.time-period-section {
+  margin-top: 2rem;
+}
+
+.promo-code-field {
+  display: flex;
+  gap: 1rem;
+}
+
+.promo-code-field input {
+  flex: 1;
+}
+
+.promotion-notice {
+  margin-top: 2rem;
+}
+
+.notice-box {
+  background-color: rgba(var(--info-rgb), 0.1);
+  border-left: 4px solid var(--info-color);
+  padding: 1rem;
+  border-radius: 0.25rem;
+}
+
+.notice-box h4 {
+  display: flex;
+  align-items: center;
+  color: var(--info-color);
+  margin-bottom: 0.75rem;
+}
+
+.notice-box h4 i {
+  margin-right: 0.5rem;
+}
+
+.notice-box ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.notice-box li {
+  margin-bottom: 0.5rem;
+}
+
+.notice-box li:last-child {
+  margin-bottom: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @media (max-width: 768px) {
   .dashboard-stats {
     grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .settings-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .settings-tab {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .business-card-upload {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .promo-code-field {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 }
 </style>
@@ -515,6 +1176,135 @@ class DashboardManager {
 // Initialize dashboard when DOM content is loaded
 document.addEventListener('DOMContentLoaded', () => {
   const dashboard = new DashboardManager();
+  
+  // Initialize settings tabs
+  initSettingsTabs();
+  
+  // Initialize promotional offer form visibility
+  initPromotionForm();
+  
+  // Initialize promo code generator
+  initPromoCodeGenerator();
+  
+  // Initialize business card preview
+  initBusinessCardPreviews();
 });
+
+// Settings tabs functionality
+function initSettingsTabs() {
+  const settingsTabs = document.querySelectorAll('.settings-tab');
+  const settingsPanels = document.querySelectorAll('.settings-panel');
+  
+  settingsTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetPanel = tab.getAttribute('data-settings-tab');
+      
+      // Update active tab
+      settingsTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      
+      // Update active panel
+      settingsPanels.forEach(panel => {
+        panel.classList.remove('active');
+        if (panel.id === `${targetPanel}-panel`) {
+          panel.classList.add('active');
+        }
+      });
+    });
+  });
+}
+
+// Promotion form visibility toggle
+function initPromotionForm() {
+  const promoYes = document.getElementById('promo_yes');
+  const promoNo = document.getElementById('promo_no');
+  const promoDetails = document.getElementById('promotion-details');
+  
+  if (promoYes && promoNo && promoDetails) {
+    promoYes.addEventListener('change', () => {
+      promoDetails.style.display = promoYes.checked ? 'block' : 'none';
+    });
+    
+    promoNo.addEventListener('change', () => {
+      promoDetails.style.display = promoNo.checked ? 'none' : 'block';
+    });
+  }
+}
+
+// Promo code generator
+function initPromoCodeGenerator() {
+  const generateBtn = document.getElementById('generate-code-btn');
+  const promoCodeField = document.getElementById('promo_code');
+  
+  if (generateBtn && promoCodeField) {
+    generateBtn.addEventListener('click', () => {
+      // Generate code format: BBC-5letters-5numbers
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const numbers = '0123456789';
+      
+      let code = 'BBC-';
+      
+      // Add 5 random letters
+      for (let i = 0; i < 5; i++) {
+        code += letters.charAt(Math.floor(Math.random() * letters.length));
+      }
+      
+      code += '-';
+      
+      // Add 5 random numbers
+      for (let i = 0; i < 5; i++) {
+        code += numbers.charAt(Math.floor(Math.random() * numbers.length));
+      }
+      
+      promoCodeField.value = code;
+    });
+  }
+}
+
+// Business card previews
+function initBusinessCardPreviews() {
+  const frontInput = document.getElementById('card_front');
+  const backInput = document.getElementById('card_back');
+  const frontPreview = document.getElementById('front-card-preview');
+  const backPreview = document.getElementById('back-card-preview');
+  const blankBackCheck = document.getElementById('blank_back');
+  
+  if (frontInput && frontPreview) {
+    frontInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          frontPreview.innerHTML = `<img src="${event.target.result}" alt="Business Card Front">`;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      }
+    });
+  }
+  
+  if (backInput && backPreview && blankBackCheck) {
+    backInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          backPreview.innerHTML = `<img src="${event.target.result}" alt="Business Card Back">`;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+        blankBackCheck.checked = false;
+      }
+    });
+    
+    blankBackCheck.addEventListener('change', () => {
+      if (blankBackCheck.checked) {
+        backPreview.innerHTML = `
+          <div class="empty-preview">
+            <i class="fas fa-id-card"></i>
+            <p>Blank Back Side</p>
+          </div>
+        `;
+        backInput.value = '';
+      }
+    });
+  }
+}
 </script>
 {% endblock %} 

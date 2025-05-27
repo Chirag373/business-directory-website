@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib import messages
 from django.utils.text import slugify
@@ -12,13 +12,47 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import JsonResponse
 from datetime import timedelta
+from django.db.models import Q
 
 from users.models import User, UserType, UserProfile
 from core.models import Address, Category
 from users.utils import send_login_email
 from .models import Handyman, Service, HandymanService, HandymanPromotion, HandymanJob
+import json
 
 # Create your views here.
+def handyman_main(request):
+    """Main handyman page with search functionality"""
+    handymen = Handyman.objects.filter(is_active=True)
+    services = Service.objects.all()
+    
+    # Process search filters if submitted
+    if request.method == 'POST':
+        state = request.POST.get('state', '')
+        county = request.POST.get('county', '')
+        city = request.POST.get('city', '')
+        service_description = request.POST.get('service_description', '')
+        
+        # Filter handymen based on location if provided
+        if state:
+            handymen = handymen.filter(service_areas__state__iexact=state)
+        if county:
+            handymen = handymen.filter(service_areas__city__icontains=county)
+        if city:
+            handymen = handymen.filter(service_areas__city__iexact=city)
+            
+        # Filter by service description if provided
+        if service_description:
+            handymen = handymen.filter(
+                Q(detailed_services_description__icontains=service_description) |
+                Q(services__name__icontains=service_description)
+            ).distinct()
+    
+    return render(request, 'handyman/handyman_main.html', {
+        'handymen': handymen,
+        'services': services,
+    })
+
 def signup_handyman(request):
     if request.method == 'POST':
         # Personal Information
