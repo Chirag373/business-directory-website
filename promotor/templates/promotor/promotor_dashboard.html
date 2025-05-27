@@ -5,57 +5,53 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/promotor_dashboard.css' %}">
+<!-- Include Toastify CSS if not already in base -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 {% endblock %}
 
 {% block content %}
 <main class="promotor-dashboard">
   <!-- Header Section -->
   <header class="dashboard-header">
-    <div class="header-left">
-      <h1>Welcome, <span id="business-name">{{ user.business.name }}</span></h1>
-      <div class="profile-completion">
-        <div class="completion-label">Profile Completion:</div>
-        <div class="progress-container">
-          <div class="progress-bar" id="profile-progress" style="width: 75%;"></div>
-        </div>
-        <div class="completion-percentage">75%</div>
-      </div>
-    </div>
-    <div class="header-right">
-      <div class="notification-bell">
-        <i class="fas fa-bell"></i>
-        <span class="notification-count">5</span>
-      </div>
-      <div class="logout-container">
-        <a href="" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a>
-        <button class="dashboard-hamburger" aria-label="Toggle dashboard menu">
-          <i class="fas fa-bars"></i>
-        </button>
-      </div>
+    <h1>Welcome, <span id="business-name">{{ user.business.name|default:"there" }}</span>!</h1>
+    <div class="logout-container">
+      <a href="{% url 'logout' %}" class="logout-button">
+        <i class="fas fa-sign-out-alt"></i> 
+        <span class="logout-text">Logout</span>
+      </a>
+      <button class="dashboard-hamburger" aria-label="Toggle dashboard menu">
+        <i class="fas fa-bars"></i>
+      </button>
     </div>
   </header>
 
-  <!-- Dashboard Tabs -->
-  <div class="dashboard-tabs">
-    <button class="tab-button active" data-tab="overview">
-      <i class="fas fa-home"></i> Overview
+  <!-- Desktop Dashboard Tabs -->
+  <nav class="dashboard-tabs" role="tablist">
+    <button class="tab-button active" data-tab="overview" role="tab" aria-selected="true" aria-controls="overview-section">
+      <i class="fas fa-home"></i> 
+      <span>Overview</span>
     </button>
-    <button class="tab-button" data-tab="promotion">
-      <i class="fas fa-tags"></i> Promotions
+    <button class="tab-button" data-tab="promotion" role="tab" aria-selected="false" aria-controls="promotion-section">
+      <i class="fas fa-tags"></i> 
+      <span>Promotions</span>
     </button>
-    <button class="tab-button" data-tab="products">
-      <i class="fas fa-box"></i> Products
+    <button class="tab-button" data-tab="products" role="tab" aria-selected="false" aria-controls="products-section">
+      <i class="fas fa-box"></i> 
+      <span>Products</span>
     </button>
-    <button class="tab-button" data-tab="performance">
-      <i class="fas fa-chart-line"></i> Performance
+    <button class="tab-button" data-tab="performance" role="tab" aria-selected="false" aria-controls="performance-section">
+      <i class="fas fa-chart-line"></i> 
+      <span>Performance</span>
     </button>
-    <button class="tab-button" data-tab="settings">
-      <i class="fas fa-cog"></i> Settings
+    <button class="tab-button" data-tab="settings" role="tab" aria-selected="false" aria-controls="settings-section">
+      <i class="fas fa-cog"></i> 
+      <span>Settings</span>
+      <span class="inbox-badge" id="unread-count">3</span>
     </button>
-  </div>
+  </nav>
 
   <!-- Mobile Dashboard Sidebar -->
-  <div class="dashboard-sidebar">
+  <aside class="dashboard-sidebar" role="navigation" aria-label="Mobile dashboard menu">
     <div class="sidebar-header">
       <h3>Dashboard Menu</h3>
       <button class="close-sidebar" aria-label="Close menu">
@@ -86,251 +82,439 @@
       <li>
         <button class="sidebar-tab-button" data-tab="settings">
           <i class="fas fa-cog"></i> Settings
+          <span class="inbox-badge">3</span>
         </button>
       </li>
     </ul>
-  </div>
+  </aside>
 
   <!-- Dashboard Sidebar Overlay -->
-  <div class="dashboard-overlay"></div>
+  <div class="dashboard-overlay" aria-hidden="true"></div>
 
-  <!-- Overview Section -->
-  <section class="dashboard-content active" id="overview-section">
-    <div class="dashboard-stats">
-      <div class="stat-card">
-        <div class="stat-icon"><i class="fas fa-eye"></i></div>
-        <div class="stat-number" id="total-views">347</div>
-        <div class="stat-label">Profile Views</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon"><i class="fas fa-handshake"></i></div>
-        <div class="stat-number" id="promotional-matches">28</div>
-        <div class="stat-label">Promotional Matches</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon"><i class="fas fa-tag"></i></div>
-        <div class="stat-number" id="promotion-uses">38</div>
-        <div class="stat-label">Promotion Uses</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon"><i class="fas fa-mouse-pointer"></i></div>
-        <div class="stat-number" id="website-clicks">42</div>
-        <div class="stat-label">Website Clicks</div>
-      </div>
+  <!-- Dashboard Stats -->
+  <section class="dashboard-stats" aria-label="Dashboard statistics">
+    <div class="stat-card">
+      <div class="stat-number" id="total-views">347</div>
+      <div class="stat-label">Profile Views</div>
     </div>
-
-    <div class="dashboard-grid">
-      <!-- Business Card Showcase -->
-      <div class="card-showcase">
-        <h2>Your Business Card</h2>
-        <div class="card-wrapper" id="business-card-wrapper">
-          <div class="card-inner">
-            <div class="card-front business-card-bg">
-              <!-- Front card content populated by JS -->
-            </div>
-            <div class="card-back business-card-bg">
-              <!-- Back card content populated by JS -->
-            </div>
-          </div>
-        </div>
-        <div class="card-controls">
-          <button class="card-flip-btn" id="flip-card-btn">
-            <span class="flip-text front-text">Flip Card</span>
-            <span class="flip-text back-text">Front Side</span>
-            <i class="fas fa-sync-alt flip-icon"></i>
-          </button>
-        </div>
-        <div class="promo-status" id="promo-status">
-          <div class="status-indicator active"></div>
-          <span class="status-text">Promotion Active</span>
-          <div class="promo-code">SUMMER15</div>
-        </div>
-      </div>
-
-      <!-- Current Promotion Summary -->
-      <div class="promotion-summary">
-        <h2>Current Promotion</h2>
-        <div class="active-promotion" id="active-promotion">
-          <div class="promotion-header">
-            <div class="discount-badge">15% OFF</div>
-            <div class="promotion-timer">
-              <i class="fas fa-clock"></i>
-              <span id="promotion-countdown">7 days, 6 hours remaining</span>
-            </div>
-          </div>
-          <div class="promotion-body">
-            <p class="promotion-description">Summer special! 15% off all paint supplies and tools through the end of August.</p>
-            <div class="promotion-categories">
-              <span class="category-tag">Paint Supplies</span>
-              <span class="category-tag">Tools</span>
-            </div>
-          </div>
-          <div class="promotion-footer">
-            <span class="promotion-dates">Valid until: August 31, 2025</span>
-            <button class="edit-promotion-btn"><i class="fas fa-edit"></i> Edit</button>
-          </div>
-        </div>
-        <div class="no-promotion hidden" id="no-promotion">
-          <div class="empty-state">
-            <i class="fas fa-tag empty-icon"></i>
-            <p>No active promotions</p>
-            <button class="create-promotion-btn">Create Promotion</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Performance Chart -->
-      <div class="quick-chart">
-        <h2>Performance Overview</h2>
-        <div class="chart-container">
-          <canvas id="performance-chart"></canvas>
-        </div>
-        <div class="chart-legend">
-          <div class="legend-item">
-            <span class="legend-color" style="background-color: rgba(74, 108, 247, 0.7);"></span>
-            <span class="legend-label">Profile Views</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-color" style="background-color: rgba(40, 167, 69, 0.7);"></span>
-            <span class="legend-label">Product Impressions</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Product Description -->
-      <div class="product-preview">
-        <h2>Product Description</h2>
-        <div class="product-description-display">
-          <p id="current-product-description">We offer high-quality paint supplies and professional tools for both residential and commercial projects. Specializing in eco-friendly and long-lasting products.</p>
-          <div class="keywords-preview">
-            <span class="keyword">paint</span>
-            <span class="keyword">tools</span>
-            <span class="keyword">supplies</span>
-            <span class="keyword">eco-friendly</span>
-            <span class="keyword">professional</span>
-          </div>
-        </div>
-        <button class="edit-product-btn"><i class="fas fa-edit"></i> Edit Description</button>
-      </div>
+    <div class="stat-card">
+      <div class="stat-number" id="promotional-matches">28</div>
+      <div class="stat-label">Promotional Matches</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="promotion-uses">38</div>
+      <div class="stat-label">Promotion Uses</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="website-clicks">42</div>
+      <div class="stat-label">Website Clicks</div>
     </div>
   </section>
 
-  <!-- Promotion Management Section -->
-  <section class="dashboard-content" id="promotion-section">
-    <h2>Manage Promotions</h2>
-    <div class="promotion-management">
-      <div class="promotion-form-container">
-        <h3><i class="fas fa-plus-circle"></i> Create Promotion</h3>
-        <form class="promotion-form" id="promotion-form">
-          <div class="form-group">
-            <label for="promotion-description">Promotion Description</label>
-            <textarea id="promotion-description" name="promotion_description" rows="3" placeholder="Describe your promotion..."></textarea>
-            <div class="character-count"><span id="description-chars">0</span>/150</div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="discount-percentage">Discount Percentage</label>
-              <select id="discount-percentage" name="discount_percentage">
-                <option value="">Select discount %</option>
-                <option value="5">5%</option>
-                <option value="10">10%</option>
-                <option value="15">15%</option>
-                <option value="20">20%</option>
-                <option value="25">25%</option>
-                <option value="30">30%</option>
-                <option value="40">40%</option>
-                <option value="50">50%</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="promotion-code">Promotion Code</label>
-              <div class="code-display" id="promotion-code">AUTO-GENERATED</div>
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="start-date">Start Date</label>
-              <input type="date" id="start-date" name="start_date">
-            </div>
-            <div class="form-group">
-              <label for="end-date">End Date</label>
-              <input type="date" id="end-date" name="end_date">
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>Product Categories</label>
-            <div class="categories-selection">
-              <div class="category-option">
-                <label class="checkbox-container">
-                  <input type="checkbox" name="categories" value="paint">
-                  <span class="checkbox-custom"></span>
-                  <span class="checkbox-label">Paint</span>
-                </label>
+  <!-- Tab Content -->
+  <section class="dashboard-content active" id="overview-section" role="tabpanel" aria-labelledby="overview-tab">
+    <div class="dashboard-grid">
+      <!-- First Row: Business Card and Current Promotion -->
+      <div class="first-row">
+        <!-- Business Card Showcase -->
+        <div class="card-showcase">
+          <h2><i class="fas fa-id-card"></i> Your Business Card</h2>
+          <div class="card-wrapper" id="business-card-wrapper">
+            <div class="card-inner">
+              <div class="card-front business-card-bg">
+                <!-- Front card content populated by JS -->
               </div>
-              <div class="category-option">
-                <label class="checkbox-container">
-                  <input type="checkbox" name="categories" value="tools">
-                  <span class="checkbox-custom"></span>
-                  <span class="checkbox-label">Tools</span>
-                </label>
-              </div>
-              <div class="category-option">
-                <label class="checkbox-container">
-                  <input type="checkbox" name="categories" value="supplies">
-                  <span class="checkbox-custom"></span>
-                  <span class="checkbox-label">Supplies</span>
-                </label>
-              </div>
-              <div class="category-option">
-                <label class="checkbox-container">
-                  <input type="checkbox" name="categories" value="eco-friendly">
-                  <span class="checkbox-custom"></span>
-                  <span class="checkbox-label">Eco-Friendly</span>
-                </label>
+              <div class="card-back business-card-bg">
+                <!-- Back card content populated by JS -->
               </div>
             </div>
           </div>
-          
-          <div class="form-actions">
-            <button type="submit" class="primary-button">
-              <i class="fas fa-save"></i> Create Promotion
+          <div class="card-controls">
+            <button class="card-flip-btn" id="flip-card-btn">
+              <span class="flip-text front-text">Flip Card</span>
+              <span class="flip-text back-text">Front Side</span>
+              <i class="fas fa-sync-alt flip-icon"></i>
             </button>
           </div>
-        </form>
+          <div class="promo-status" id="promo-status">
+            <div class="status-indicator active"></div>
+            <span class="status-text">Promotion Active</span>
+            <div class="promo-code">SUMMER15</div>
+          </div>
+        </div>
+
+        <!-- Current Promotion Summary -->
+        <div class="promotion-summary">
+          <h2><i class="fas fa-tags"></i> Current Promotion</h2>
+          <div class="active-promotion" id="active-promotion">
+            <div class="promotion-header">
+              <div class="discount-badge">15% OFF</div>
+              <div class="promotion-timer">
+                <i class="fas fa-clock"></i>
+                <span id="promotion-countdown">7 days, 6 hours remaining</span>
+              </div>
+            </div>
+            <div class="promotion-body">
+              <p class="promotion-description">Summer special! 15% off all paint supplies and tools through the end of August.</p>
+              <div class="promotion-categories">
+                <span class="category-tag">Paint Supplies</span>
+                <span class="category-tag">Tools</span>
+              </div>
+            </div>
+            <div class="promotion-footer">
+              <span class="promotion-dates">Valid until: August 31, 2025</span>
+              <button class="edit-promotion-btn"><i class="fas fa-edit"></i> Edit</button>
+            </div>
+          </div>
+          <div class="no-promotion hidden" id="no-promotion">
+            <div class="empty-state">
+              <i class="fas fa-tag empty-icon"></i>
+              <p>No active promotions</p>
+              <button class="create-promotion-btn">Create Promotion</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Second Row: Performance Chart -->
+      <div class="second-row">
+        <div class="quick-chart">
+          <h2><i class="fas fa-chart-line"></i> Performance Overview</h2>
+          <div class="chart-container">
+            <canvas id="performance-chart"></canvas>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: rgba(74, 108, 247, 0.7);"></span>
+              <span class="legend-label">Profile Views</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: rgba(40, 167, 69, 0.7);"></span>
+              <span class="legend-label">Product Impressions</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Third Row: Product Description -->
+      <div class="third-row">
+        <div class="product-preview">
+          <h2><i class="fas fa-box"></i> Product Description</h2>
+          <div class="product-description-display">
+            <p id="current-product-description">We offer high-quality paint supplies and professional tools for both residential and commercial projects. Specializing in eco-friendly and long-lasting products.</p>
+            <div class="keywords-preview">
+              <span class="keyword">paint</span>
+              <span class="keyword">tools</span>
+              <span class="keyword">supplies</span>
+              <span class="keyword">eco-friendly</span>
+              <span class="keyword">professional</span>
+            </div>
+          </div>
+          <button class="edit-product-btn"><i class="fas fa-edit"></i> Edit Description</button>
+        </div>
       </div>
     </div>
   </section>
+  
+  <section class="dashboard-content" id="promotion-section" role="tabpanel" aria-labelledby="promotion-tab">
+    <h2><i class="fas fa-tags"></i> Promotional Offers Management</h2>
 
-  <!-- Products Management Section -->
-  <section class="dashboard-content" id="products-section">
-    <h2>Manage Products</h2>
-    <div class="products-management">
-      <p>Products management coming soon.</p>
+    <!-- Overview & Stats -->
+    <div class="offers-header">
+      <p class="offers-description">Create, manage, and track promotional offers for customers in your area.</p>
+    </div>
+
+    <div class="offers-stats-bar">
+      <div class="stat-item">
+        <i class="fas fa-bullhorn"></i>
+        <span><strong id="active-offers-count">2</strong> active offers</span>
+      </div>
+      <div class="stat-item">
+        <i class="fas fa-users"></i>
+        <span><strong id="total-redemptions">156</strong> total redemptions</span>
+      </div>
+      <div class="stat-item">
+        <i class="fas fa-clock"></i>
+        <span><strong id="avg-lifetime">21</strong> days avg. campaign duration</span>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="action-buttons">
+      <button class="primary-button" id="create-offer-btn">
+        <i class="fas fa-plus"></i> Create New Offer
+      </button>
+      <button class="secondary-button" id="view-insights-btn">
+        <i class="fas fa-chart-bar"></i> View Insights
+      </button>
+    </div>
+
+    <!-- Active Offers Section -->
+    <div class="offers-section">
+      <h3><i class="fas fa-star"></i> Active Offers</h3>
+      <div class="offers-container" id="active-offers-container">
+        <!-- Active offers will be loaded here -->
+      </div>
+    </div>
+
+    <!-- Scheduled Offers Section -->
+    <div class="offers-section">
+      <h3><i class="fas fa-calendar-alt"></i> Scheduled Offers</h3>
+      <div class="offers-container" id="scheduled-offers-container">
+        <!-- Scheduled offers will be loaded here -->
+      </div>
+    </div>
+
+    <!-- Past Offers Section -->
+    <div class="offers-section">
+      <h3><i class="fas fa-history"></i> Past Offers</h3>
+      <div class="offers-container" id="past-offers-container">
+        <!-- Past offers will be loaded here -->
+      </div>
     </div>
   </section>
-
-  <!-- Performance Analytics Section -->
-  <section class="dashboard-content" id="performance-section">
-    <h2>Performance Analytics</h2>
-    <div class="performance-analytics">
-      <p>Performance analytics coming soon.</p>
-    </div>
+  
+  <section class="dashboard-content" id="products-section" role="tabpanel" aria-labelledby="products-tab">
+    <h2><i class="fas fa-box"></i> Products & Services</h2>
+    <!-- Products content here -->
   </section>
-
-  <!-- Settings Section -->
-  <section class="dashboard-content" id="settings-section">
-    <h2>Account Settings</h2>
-    <div class="account-settings">
-      <p>Settings coming soon.</p>
-    </div>
+  
+  <section class="dashboard-content" id="performance-section" role="tabpanel" aria-labelledby="performance-tab">
+    <h2><i class="fas fa-chart-line"></i> Performance Analytics</h2>
+    <!-- Performance content here -->
+  </section>
+  
+  <section class="dashboard-content" id="settings-section" role="tabpanel" aria-labelledby="settings-tab">
+    <h2><i class="fas fa-cog"></i> Account Settings</h2>
+    <!-- Settings content here -->
   </section>
 </main>
+
+<style>
+/* Inbox Badge Styles */
+.inbox-badge {
+  background: linear-gradient(135deg, var(--danger-color) 0%, #e83e8c 100%);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.5rem;
+  animation: pulse 2s infinite;
+}
+
+.sidebar-tab-button .inbox-badge {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* Additional stat card */
+.dashboard-stats {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.stat-card:nth-child(4)::before {
+  background: linear-gradient(90deg, var(--info-color), #20c997);
+}
+
+@media (max-width: 768px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{% static 'js/promotor_dashboard.js' %}"></script>
+<!-- Include Toastify JS -->
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+// Dashboard Manager Class
+class DashboardManager {
+  constructor() {
+    this.currentTab = 'overview';
+    this.initializeElements();
+    this.bindEvents();
+    this.initialize();
+  }
+
+  initializeElements() {
+    // Tab elements
+    this.tabButtons = document.querySelectorAll('.tab-button, .sidebar-tab-button');
+    this.tabSections = document.querySelectorAll('.dashboard-content');
+    
+    // Mobile menu elements
+    this.hamburger = document.querySelector('.dashboard-hamburger');
+    this.sidebar = document.querySelector('.dashboard-sidebar');
+    this.overlay = document.querySelector('.dashboard-overlay');
+    this.closeSidebar = document.querySelector('.close-sidebar');
+    
+    // Business card elements
+    this.cardWrapper = document.getElementById('business-card-wrapper');
+    this.flipButton = document.getElementById('flip-card-btn');
+  }
+
+  bindEvents() {
+    // Tab switching
+    this.tabButtons.forEach(button => {
+      button.addEventListener('click', (e) => this.switchTab(e.currentTarget.dataset.tab));
+    });
+
+    // Mobile menu
+    if (this.hamburger) {
+      this.hamburger.addEventListener('click', () => this.openSidebar());
+    }
+    if (this.closeSidebar) {
+      this.closeSidebar.addEventListener('click', () => this.closeSidebar());
+    }
+    if (this.overlay) {
+      this.overlay.addEventListener('click', () => this.closeSidebar());
+    }
+
+    // Card flip
+    if (this.flipButton) {
+      this.flipButton.addEventListener('click', () => this.flipCard());
+    }
+  }
+
+  initialize() {
+    // Check URL hash for initial tab
+    const hash = window.location.hash.replace('#', '');
+    if (hash && ['overview', 'promotion', 'products', 'performance', 'settings'].includes(hash)) {
+      this.switchTab(hash);
+    }
+
+    // Initialize chart
+    this.initializePerformanceChart();
+  }
+
+  // Tab Management
+  switchTab(tabName) {
+    // Update active states
+    this.tabButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tabName);
+      btn.setAttribute('aria-selected', btn.dataset.tab === tabName);
+    });
+
+    this.tabSections.forEach(section => {
+      section.classList.toggle('active', section.id === `${tabName}-section`);
+    });
+
+    this.currentTab = tabName;
+    window.location.hash = tabName;
+
+    // Close mobile sidebar
+    this.closeSidebar();
+
+    // Load tab-specific data
+    switch(tabName) {
+      case 'promotion':
+        this.loadPromotions();
+        break;
+      case 'performance':
+        this.loadPerformanceData();
+        break;
+    }
+  }
+
+  // Mobile Menu
+  openSidebar() {
+    this.sidebar.classList.add('active');
+    this.overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeSidebar() {
+    if (this.sidebar) {
+      this.sidebar.classList.remove('active');
+      this.overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+
+  // Business Card
+  flipCard() {
+    if (this.cardWrapper) {
+      this.cardWrapper.classList.toggle('flipped');
+    }
+  }
+
+  // Performance Chart
+  initializePerformanceChart() {
+    const chartElement = document.getElementById('performance-chart');
+    if (!chartElement || !window.Chart) return;
+
+    // Sample chart data
+    const data = {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      datasets: [
+        {
+          label: 'Profile Views',
+          data: [65, 59, 80, 81, 56, 55],
+          backgroundColor: 'rgba(74, 108, 247, 0.2)',
+          borderColor: 'rgba(74, 108, 247, 1)',
+          borderWidth: 2,
+          tension: 0.4
+        },
+        {
+          label: 'Product Impressions',
+          data: [28, 48, 40, 19, 86, 27],
+          backgroundColor: 'rgba(40, 167, 69, 0.2)',
+          borderColor: 'rgba(40, 167, 69, 1)',
+          borderWidth: 2,
+          tension: 0.4
+        }
+      ]
+    };
+
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    };
+
+    // Create chart
+    // In a real implementation, you would actually create the chart here
+    // new Chart(chartElement, config);
+    
+    console.log('Chart would be initialized here if Chart.js was loaded');
+  }
+
+  // Promotions
+  loadPromotions() {
+    // In a real implementation, load promotions from API
+    console.log('Loading promotions data...');
+  }
+
+  // Performance
+  loadPerformanceData() {
+    // In a real implementation, load performance data from API
+    console.log('Loading performance data...');
+  }
+}
+
+// Initialize dashboard when DOM content is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  const dashboard = new DashboardManager();
+});
+</script>
 {% endblock %} 

@@ -890,3 +890,204 @@ def handyman_setup(request):
     }
     
     return render(request, 'handyman/handyman_setup.html', context)
+
+@login_required
+def update_business_card(request):
+    """Update the handyman's business card (front and back)."""
+    user = request.user
+    
+    # Verify this user is supposed to be a handyman
+    if user.user_type != UserType.HANDYMAN:
+        messages.error(request, "Your account is not registered as a handyman. Please contact support.")
+        return redirect('login')
+    
+    if request.method == 'POST':
+        # Handle front side of business card
+        if 'card_front' in request.FILES:
+            card_front = request.FILES.get('card_front')
+            if card_front:
+                user.business_card_front = card_front
+                user.save()
+                messages.success(request, "Business card front side has been updated successfully.")
+        
+        # Handle back side of business card
+        if 'card_back' in request.FILES:
+            card_back = request.FILES.get('card_back')
+            if card_back:
+                user.business_card_back = card_back
+                user.save()
+                messages.success(request, "Business card back side has been updated successfully.")
+        
+        # Handle blank back checkbox
+        blank_back = request.POST.get('blank_back') == 'on'
+        user.has_blank_card_back = blank_back
+        user.save()
+        
+        # If no specific success message was added, add a general one
+        if not any(m.level == messages.SUCCESS for m in messages.get_messages(request)):
+            messages.success(request, "Business card information has been updated successfully.")
+        
+        # Redirect back to the dashboard business card section
+        return redirect('handyman_dashboard_profile')
+    
+    # For GET requests, this should not be called directly
+    return redirect('handyman_dashboard_profile')
+
+@login_required
+def update_services(request):
+    """Update the handyman's offered services."""
+    user = request.user
+    
+    # Verify this user is supposed to be a handyman
+    if user.user_type != UserType.HANDYMAN:
+        messages.error(request, "Your account is not registered as a handyman. Please contact support.")
+        return redirect('login')
+    
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Get the handyman profile
+        try:
+            handyman = Handyman.objects.get(user=user)
+        except Handyman.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Handyman profile not found'})
+        
+        # Get service description and selected categories
+        service_description = request.POST.get('service_description')
+        service_categories = request.POST.getlist('service_categories')
+        
+        # Update service description
+        if service_description:
+            handyman.detailed_services_description = service_description
+            handyman.save()
+            
+            # Also update in user model if it exists there
+            user.service_description = service_description
+            user.save()
+        
+        # Handle service categories
+        if service_categories:
+            # First, remove all existing services
+            HandymanService.objects.filter(handyman=handyman).delete()
+            
+            # Add new services
+            added_services = 0
+            for category_name in service_categories:
+                if not category_name:
+                    continue
+                
+                try:
+                    service, created = Service.objects.get_or_create(
+                        name=category_name,
+                        defaults={'description': f'Services related to {category_name}', 'slug': slugify(category_name)}
+                    )
+                    
+                    HandymanService.objects.create(
+                        handyman=handyman,
+                        service=service
+                    )
+                    added_services += 1
+                except Exception as e:
+                    # Continue with other services
+                    pass
+            
+            return JsonResponse({
+                'status': 'success', 
+                'message': f'Services updated successfully. Added {added_services} service categories.'
+            })
+        
+        return JsonResponse({'status': 'success', 'message': 'Service information updated successfully'})
+    
+    # Handle non-AJAX POST requests (fallback)
+    elif request.method == 'POST':
+        # Process the form data
+        service_description = request.POST.get('service_description')
+        service_categories = request.POST.getlist('service_categories')
+        
+        try:
+            handyman = Handyman.objects.get(user=user)
+            
+            # Update service description
+            if service_description:
+                handyman.detailed_services_description = service_description
+                handyman.save()
+                
+                # Also update in user model if it exists there
+                user.service_description = service_description
+                user.save()
+            
+            # Handle service categories
+            if service_categories:
+                # First, remove all existing services
+                HandymanService.objects.filter(handyman=handyman).delete()
+                
+                # Add new services
+                for category_name in service_categories:
+                    if not category_name:
+                        continue
+                    
+                    try:
+                        service, created = Service.objects.get_or_create(
+                            name=category_name,
+                            defaults={'description': f'Services related to {category_name}', 'slug': slugify(category_name)}
+                        )
+                        
+                        HandymanService.objects.create(
+                            handyman=handyman,
+                            service=service
+                        )
+                    except Exception as e:
+                        # Continue with other services
+                        pass
+            
+            messages.success(request, "Services updated successfully")
+        except Handyman.DoesNotExist:
+            messages.error(request, "Handyman profile not found")
+        
+        return redirect('handyman_dashboard_services')
+    
+    # For GET requests, redirect to the services tab
+    return redirect('handyman_dashboard_services')
+
+@login_required
+def job_requests(request):
+    """API endpoint to get handyman job requests for the dashboard."""
+    if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        return redirect('handyman_dashboard')
+    
+    user = request.user
+    
+    # Verify this user is supposed to be a handyman
+    if user.user_type != UserType.HANDYMAN:
+        return JsonResponse({'status': 'error', 'message': 'Access denied'})
+        
+    # Get the handyman profile
+    try:
+        handyman = Handyman.objects.get(user=user)
+    except Handyman.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Handyman profile not found'})
+    
+    # Get all jobs for this handyman
+    all_jobs = HandymanJob.objects.filter(handyman=handyman).order_by('-created_at')
+    
+    # Format jobs data
+    jobs_data = []
+    for job in all_jobs:
+        jobs_data.append({
+            'id': job.id,
+            'client_name': job.client.get_full_name() or job.client.email,
+            'service_name': job.service.name,
+            'description': job.description,
+            'scheduled_date': job.scheduled_date.strftime('%Y-%m-%d'),
+            'scheduled_time': job.scheduled_time.strftime('%H:%M'),
+            'status': job.status,
+            'address': str(job.address),
+            'estimated_hours': job.estimated_hours,
+            'completed_at': job.completed_at.strftime('%Y-%m-%d %H:%M') if job.completed_at else None
+        })
+    
+    return JsonResponse({
+        'status': 'success',
+        'jobs': jobs_data,
+        'pending_count': all_jobs.filter(status='pending').count(),
+        'active_count': all_jobs.filter(status='in_progress').count(),
+        'completed_count': all_jobs.filter(status='completed').count()
+    })

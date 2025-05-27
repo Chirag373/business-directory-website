@@ -1,0 +1,613 @@
+<!-- Services Section -->
+<h2><i class="fas fa-tools"></i> Services</h2>
+
+<form class="services-form" action="{% url 'handyman_update_services' %}" method="post">
+  {% csrf_token %}
+  
+  <div class="services-intro">
+    <p class="lead-text">Select the service categories you offer and provide a detailed description to help customers understand your expertise.</p>
+  </div>
+
+  <!-- Service Category Selection -->
+  <div class="services-category-section">
+    <h3 class="section-title">
+      <i class="fas fa-check-circle"></i> Service Category Selection
+    </h3>
+
+    <div class="services-container">
+      <div class="service-category">
+        <label class="checkbox-container">
+          <input type="checkbox" 
+                 name="service_categories" 
+                 value="plumbing" 
+                 id="cat-plumbing"
+                 {% if selected_categories and 'plumbing' in selected_categories %}checked{% endif %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">Plumbing</span>
+        </label>
+      </div>
+      
+      <div class="service-category">
+        <label class="checkbox-container">
+          <input type="checkbox" 
+                 name="service_categories" 
+                 value="electrical" 
+                 id="cat-electrical"
+                 {% if selected_categories and 'electrical' in selected_categories %}checked{% endif %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">Electrical</span>
+        </label>
+      </div>
+      
+      <div class="service-category">
+        <label class="checkbox-container">
+          <input type="checkbox" 
+                 name="service_categories" 
+                 value="concrete" 
+                 id="cat-concrete"
+                 {% if selected_categories and 'concrete' in selected_categories %}checked{% endif %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">Concrete</span>
+        </label>
+      </div>
+      
+      <div class="service-category">
+        <label class="checkbox-container">
+          <input type="checkbox" 
+                 name="service_categories" 
+                 value="general" 
+                 id="cat-general"
+                 {% if selected_categories and 'general' in selected_categories %}checked{% endif %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">General Services</span>
+        </label>
+      </div>
+      
+      <div class="service-category">
+        <label class="checkbox-container">
+          <input type="checkbox" 
+                 name="service_categories" 
+                 value="carpentry" 
+                 id="cat-carpentry"
+                 {% if selected_categories and 'carpentry' in selected_categories %}checked{% endif %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">Carpentry</span>
+        </label>
+      </div>
+      
+      <div class="service-category">
+        <label class="checkbox-container">
+          <input type="checkbox" 
+                 name="service_categories" 
+                 value="painting" 
+                 id="cat-painting"
+                 {% if selected_categories and 'painting' in selected_categories %}checked{% endif %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">Painting</span>
+        </label>
+      </div>
+      
+      <div class="service-category">
+        <label class="checkbox-container">
+          <input type="checkbox" 
+                 name="service_categories" 
+                 value="flooring" 
+                 id="cat-flooring"
+                 {% if selected_categories and 'flooring' in selected_categories %}checked{% endif %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">Flooring</span>
+        </label>
+      </div>
+      
+      <div class="service-category">
+        <label class="checkbox-container">
+          <input type="checkbox" 
+                 name="service_categories" 
+                 value="roofing" 
+                 id="cat-roofing"
+                 {% if selected_categories and 'roofing' in selected_categories %}checked{% endif %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">Roofing</span>
+        </label>
+      </div>
+      
+      <div class="service-category">
+        <label class="checkbox-container">
+          <input type="checkbox" 
+                 name="service_categories" 
+                 value="landscaping" 
+                 id="cat-landscaping"
+                 {% if selected_categories and 'landscaping' in selected_categories %}checked{% endif %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">Landscaping</span>
+        </label>
+      </div>
+      
+      <div class="service-category">
+        <label class="checkbox-container">
+          <input type="checkbox" 
+                 name="service_categories" 
+                 value="hvac" 
+                 id="cat-hvac"
+                 {% if selected_categories and 'hvac' in selected_categories %}checked{% endif %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">HVAC</span>
+        </label>
+      </div>
+      
+      <div class="service-category">
+        <label class="checkbox-container">
+          <input type="checkbox" 
+                 name="service_categories" 
+                 value="appliance" 
+                 id="cat-appliance"
+                 {% if selected_categories and 'appliance' in selected_categories %}checked{% endif %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">Appliance Repair</span>
+        </label>
+      </div>
+      
+      <div class="service-category">
+        <label class="checkbox-container">
+          <input type="checkbox" 
+                 name="service_categories" 
+                 value="drywall" 
+                 id="cat-drywall"
+                 {% if selected_categories and 'drywall' in selected_categories %}checked{% endif %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">Drywall</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="select-all-container">
+      <button type="button" class="select-all-btn" id="select-all-services">
+        <i class="fas fa-check-square"></i> Select All
+      </button>
+      <button type="button" class="select-all-btn" id="deselect-all-services">
+        <i class="fas fa-square"></i> Deselect All
+      </button>
+    </div>
+  </div>
+
+  <!-- Service Description Interface -->
+  <div class="service-description-section">
+    <h3 class="section-title">
+      <i class="fas fa-comment-dots"></i> Service Description Interface
+    </h3>
+    
+    <div class="form-group service-description">
+      <label for="service-description">
+        Service Description <span class="required">*</span>
+      </label>
+      <div class="description-hint">
+        <i class="fas fa-lightbulb"></i>
+        <strong>Please use precise keywords for your services.</strong> For instance: For Gardening, please indicate Sprinkler, Lawn Mowing, Landscape Design, etc.
+      </div>
+      <textarea id="service-description" 
+                name="service_description" 
+                placeholder="Example: Professional plumbing services including pipe repair, faucet installation, drain cleaning, water heater maintenance, and emergency leak repairs. Specializing in kitchen and bathroom renovations with 10+ years experience..."
+                rows="6" 
+                maxlength="1000" 
+                required>{{ service_description|default:'' }}</textarea>
+      <div class="character-count">
+        <span id="description-chars">{{ service_description|length|default:0 }}</span>/1000 characters
+      </div>
+    </div>
+
+    <!-- Keywords Suggestions -->
+    <div class="keywords-suggestions">
+      <h4><i class="fas fa-tags"></i> Keyword Suggestions by Category</h4>
+      <div class="suggestions-grid">
+        <div class="suggestion-item" data-category="plumbing">
+          <strong>Plumbing:</strong> pipe repair, faucet installation, drain cleaning, water heater, leak repair, toilet repair, sink installation
+        </div>
+        <div class="suggestion-item" data-category="electrical">
+          <strong>Electrical:</strong> wiring, outlet installation, circuit breaker, light fixture, electrical panel, ceiling fan, switch repair
+        </div>
+        <div class="suggestion-item" data-category="carpentry">
+          <strong>Carpentry:</strong> cabinet installation, door repair, trim work, deck building, furniture repair, shelving, crown molding
+        </div>
+        <div class="suggestion-item" data-category="painting">
+          <strong>Painting:</strong> interior painting, exterior painting, wall preparation, primer, touch-up, color consultation, texture painting
+        </div>
+        <div class="suggestion-item" data-category="landscaping">
+          <strong>Landscaping:</strong> lawn mowing, sprinkler installation, landscape design, tree trimming, garden maintenance, irrigation
+        </div>
+        <div class="suggestion-item" data-category="general">
+          <strong>General:</strong> home repair, maintenance, assembly, installation, troubleshooting, inspection, renovation consultation
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Services Summary -->
+  <div class="services-summary" id="services-summary" style="display: none;">
+    <h4><i class="fas fa-chart-pie"></i> Your Services Summary</h4>
+    <p>You have selected <span id="selected-services-count">0</span> service categories.</p>
+    <div id="selected-services-list"></div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="primary-button">
+      <i class="fas fa-check"></i> Update Services
+    </button>
+  </div>
+</form>
+
+<style>
+.services-intro {
+  background-color: var(--light-color);
+  padding: 1.25rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 2rem;
+}
+
+.lead-text {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.services-category-section,
+.service-description-section {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.services-category-section:last-of-type,
+.service-description-section:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  color: var(--dark-color);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title i {
+  color: var(--primary-color);
+}
+
+.services-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.service-category {
+  animation: fadeIn 0.3s ease;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 0.75rem;
+  position: relative;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+  border: 2px solid transparent;
+}
+
+.checkbox-container:hover {
+  background-color: var(--light-color);
+  border-color: var(--border-color);
+}
+
+.checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.checkbox-custom {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.checkbox-container input:checked ~ .checkbox-custom {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.checkbox-container input:checked ~ .checkbox-custom::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.checkbox-label {
+  font-size: 0.95rem;
+  color: var(--dark-color);
+  user-select: none;
+}
+
+.select-all-container {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.select-all-btn {
+  background-color: white;
+  border: 2px solid var(--border-color);
+  color: var(--dark-color);
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.select-all-btn:hover {
+  background-color: var(--light-color);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.service-description {
+  margin-bottom: 2rem;
+}
+
+.service-description label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--dark-color);
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.required {
+  color: var(--danger-color);
+  font-weight: normal;
+}
+
+.description-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background-color: rgba(40, 167, 69, 0.1);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: var(--dark-color);
+  line-height: 1.5;
+}
+
+.description-hint i {
+  color: var(--primary-color);
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.service-description textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.service-description textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+.character-count {
+  text-align: right;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.keywords-suggestions {
+  background-color: var(--light-color);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.keywords-suggestions h4 {
+  font-size: 1.1rem;
+  color: var(--dark-color);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.keywords-suggestions h4 i {
+  color: var(--primary-color);
+}
+
+.suggestions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.suggestion-item {
+  background-color: white;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.suggestion-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.1);
+}
+
+.suggestion-item strong {
+  color: var(--primary-color);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.services-summary {
+  background-color: rgba(40, 167, 69, 0.05);
+  border: 2px solid rgba(40, 167, 69, 0.2);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.services-summary h4 {
+  font-size: 1.1rem;
+  color: var(--dark-color);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.services-summary h4 i {
+  color: var(--primary-color);
+}
+
+#selected-services-count {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+#selected-services-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.service-tag {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  display: inline-block;
+}
+
+@media (max-width: 768px) {
+  .services-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .select-all-container {
+    flex-direction: column;
+  }
+  
+  .select-all-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .suggestions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+
+<script>
+// Service description character counter
+document.addEventListener('DOMContentLoaded', function() {
+  const descriptionTextarea = document.getElementById('service-description');
+  const charCount = document.getElementById('description-chars');
+  
+  if (descriptionTextarea && charCount) {
+    // Initial count
+    charCount.textContent = descriptionTextarea.value.length;
+    
+    // Update on input
+    descriptionTextarea.addEventListener('input', function() {
+      charCount.textContent = this.value.length;
+      
+      // Change color when approaching limit
+      if (this.value.length > 900) {
+        charCount.style.color = 'var(--danger-color)';
+      } else if (this.value.length > 750) {
+        charCount.style.color = 'var(--warning-color)';
+      } else {
+        charCount.style.color = 'var(--text-muted)';
+      }
+    });
+  }
+
+  // Keywords suggestion click to insert
+  const suggestionItems = document.querySelectorAll('.suggestion-item');
+  suggestionItems.forEach(item => {
+    item.addEventListener('click', function() {
+      const category = this.dataset.category;
+      const keywords = this.textContent.split(':')[1].trim();
+      
+      if (descriptionTextarea) {
+        const currentText = descriptionTextarea.value;
+        const newText = currentText ? `${currentText}\n\n${keywords}` : keywords;
+        descriptionTextarea.value = newText;
+        
+        // Update character count
+        if (charCount) {
+          charCount.textContent = newText.length;
+        }
+        
+        // Focus textarea
+        descriptionTextarea.focus();
+        
+        // Show toast
+        if (window.handymanDashboard) {
+          window.handymanDashboard.showToast(`Keywords for ${category} added to description`, 'success');
+        }
+      }
+    });
+  });
+});
+</script>

@@ -39,6 +39,11 @@
       <i class="fas fa-tags"></i> 
       <span>Promotional Offers</span>
     </button>
+    <button class="tab-button" data-tab="inbox" role="tab" aria-selected="false" aria-controls="inbox-section">
+      <i class="fas fa-envelope"></i> 
+      <span>Notifications</span>
+      <span class="inbox-badge" id="unread-count">3</span>
+    </button>
     <button class="tab-button" data-tab="notifications" role="tab" aria-selected="false" aria-controls="notifications-section">
       <i class="fas fa-bell"></i> 
       <span>Notification Settings</span>
@@ -70,6 +75,12 @@
         </button>
       </li>
       <li>
+        <button class="sidebar-tab-button" data-tab="inbox">
+          <i class="fas fa-envelope"></i> Email Inbox
+          <span class="inbox-badge">3</span>
+        </button>
+      </li>
+      <li>
         <button class="sidebar-tab-button" data-tab="notifications">
           <i class="fas fa-bell"></i> Notification Settings
         </button>
@@ -94,6 +105,10 @@
       <div class="stat-number" id="expiring-soon">{{ expiring_soon|default:"0" }}</div>
       <div class="stat-label">Expiring Soon</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-number" id="unread-emails">3</div>
+      <div class="stat-label">Unread Emails</div>
+    </div>
   </section>
 
   <!-- Tab Content -->
@@ -109,10 +124,53 @@
     {% include "users/consumer_dashboard_offers.html" %}
   </section>
   
+  <section class="dashboard-content" id="inbox-section" role="tabpanel" aria-labelledby="inbox-tab">
+    {% include "users/consumer_dashboard_inbox.html" %}
+  </section>
+  
   <section class="dashboard-content" id="notifications-section" role="tabpanel" aria-labelledby="notifications-tab">
     {% include "users/consumer_dashboard_notifications.html" %}
   </section>
 </main>
+
+<style>
+/* Inbox Badge Styles */
+.inbox-badge {
+  background: linear-gradient(135deg, var(--danger-color) 0%, #e83e8c 100%);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.5rem;
+  animation: pulse 2s infinite;
+}
+
+.sidebar-tab-button .inbox-badge {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* Additional stat card */
+.dashboard-stats {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.stat-card:nth-child(4)::before {
+  background: linear-gradient(90deg, var(--info-color), #20c997);
+}
+
+@media (max-width: 768px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -202,7 +260,7 @@ class DashboardManager {
 
     // Check URL hash for initial tab
     const hash = window.location.hash.replace('#', '');
-    if (hash && ['profile', 'preferences', 'offers', 'notifications'].includes(hash)) {
+    if (hash && ['profile', 'preferences', 'offers', 'inbox', 'notifications'].includes(hash)) {
       this.switchTab(hash);
     }
 
@@ -211,6 +269,12 @@ class DashboardManager {
 
     // Initialize notification settings
     this.initializeNotificationSettings();
+
+    // Initialize inbox
+    this.initializeInbox();
+
+    // Initialize project timeline
+    this.initializeProjectTimeline();
   }
 
   // Tab Management
@@ -235,6 +299,9 @@ class DashboardManager {
     switch(tabName) {
       case 'offers':
         this.loadOffers();
+        break;
+      case 'inbox':
+        this.loadInboxEmails();
         break;
       case 'notifications':
         this.loadNotificationSettings();
@@ -355,7 +422,7 @@ class DashboardManager {
     const dummyCities = ['City 1', 'City 2', 'City 3'];
     dummyCities.forEach(city => {
       const option = new Option(city, city);
-      this.citySelect.add(option);
+      this.citySelect.add(city);
     });
   }
 
@@ -421,6 +488,8 @@ class DashboardManager {
       
       if (data.status === 'success') {
         this.showToast(data.message, 'success');
+        // Generate timeline-based notification schedule
+        this.generateTimelineSchedule(formData);
       } else {
         this.showToast(data.message || 'An error occurred', 'error');
       }
@@ -468,7 +537,478 @@ class DashboardManager {
     }
   }
 
-  // Offers Management
+  // Project Timeline Management
+  initializeProjectTimeline() {
+    const timelineRadios = document.querySelectorAll('input[name="project_timeline"]');
+    const timelineInputs = document.querySelectorAll('input[name="specific_timeline"]');
+    
+    timelineRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        this.updateTimelineNotificationPreview();
+      });
+    });
+
+    timelineInputs.forEach(input => {
+      input.addEventListener('input', () => {
+        this.updateTimelineNotificationPreview();
+      });
+    });
+
+    // Initialize preview
+    this.updateTimelineNotificationPreview();
+  }
+
+  updateTimelineNotificationPreview() {
+    const selectedTimeline = document.querySelector('input[name="project_timeline"]:checked');
+    const preview = document.getElementById('timeline-notification-preview');
+    
+    if (!selectedTimeline || !preview) return;
+
+    const timelineValue = selectedTimeline.value;
+    const timelineText = selectedTimeline.nextElementSibling.textContent;
+    
+    let scheduleText = '';
+    switch(timelineValue) {
+      case '1':
+        scheduleText = 'You will receive weekly notifications with relevant offers starting immediately.';
+        break;
+      case '2':
+        scheduleText = 'You will receive bi-weekly notifications with offers for the next 2 months.';
+        break;
+      case '3':
+        scheduleText = 'You will receive monthly notifications with offers for the next 3 months.';
+        break;
+      case 'specific':
+        const specificDate = document.querySelector('input[name="specific_timeline"]').value;
+        if (specificDate) {
+          scheduleText = `You will receive targeted notifications leading up to your planned start date: ${new Date(specificDate).toLocaleDateString()}.`;
+        } else {
+          scheduleText = 'Please select a specific date to see notification schedule.';
+        }
+        break;
+      default:
+        scheduleText = 'No timeline selected.';
+    }
+
+    preview.innerHTML = `
+      <div class="timeline-preview-content">
+        <h4><i class="fas fa-calendar-check"></i> Notification Schedule Preview</h4>
+        <p><strong>Selected Timeline:</strong> ${timelineText}</p>
+        <p><strong>Schedule:</strong> ${scheduleText}</p>
+      </div>
+    `;
+  }
+
+  generateTimelineSchedule(formData) {
+    const timeline = formData.get('project_timeline');
+    if (!timeline) return;
+
+    // Simulate generating notification schedule
+    this.showToast(`Timeline-based notifications scheduled for ${timeline} month(s)`, 'success');
+    
+    // You could also trigger automatic email generation here
+    setTimeout(() => {
+      this.generateTimelineEmails(timeline);
+    }, 2000);
+  }
+
+  generateTimelineEmails(timeline) {
+    // Simulate generating timeline-based emails
+    const timelineEmails = {
+      '1': 'Welcome! Your 1-month project timeline notifications are now active.',
+      '2': 'Great choice! We\'ll send you offers over the next 2 months.',
+      '3': 'Perfect planning! You\'ll receive quarterly updates for your 3-month timeline.'
+    };
+
+    const message = timelineEmails[timeline] || 'Timeline notifications configured.';
+    
+    // Add to mock inbox
+    this.addMockEmail({
+      subject: 'Project Timeline Notifications Activated',
+      sender: 'system@businessdirectory.com',
+      preview: message,
+      type: 'timeline',
+      timestamp: new Date()
+    });
+
+    this.showToast('Timeline notification email generated!', 'info');
+  }
+
+  // Inbox Management
+  initializeInbox() {
+    // Load initial mock emails
+    this.loadInboxEmails();
+    
+    // Setup inbox filters
+    const filterButtons = document.querySelectorAll('.inbox-filter-btn');
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.filterInboxEmails(btn.dataset.filter);
+      });
+    });
+
+    // Setup email actions
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.email-item')) {
+        this.handleEmailClick(e);
+      }
+    });
+  }
+
+  loadInboxEmails() {
+    const emailContainer = document.querySelector('.email-list');
+    if (!emailContainer) return;
+
+    // Mock email data
+    const mockEmails = [
+      {
+        id: 1,
+        subject: '🔥 25% OFF Plumbing Services - Limited Time!',
+        sender: 'QuickFix Plumbing',
+        senderEmail: 'offers@quickfixplumbing.com',
+        preview: 'Special discount on all residential plumbing services. Use code SAVE25. Valid until month end.',
+        content: this.generateEmailContent('plumbing', '25% OFF', 'SAVE25'),
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        type: 'promotional',
+        isRead: false,
+        category: 'plumbing'
+      },
+      {
+        id: 2,
+        subject: '⚡ Electrical Services - 30% Discount This Week',
+        sender: 'PowerPro Electric',
+        senderEmail: 'deals@powerproelectric.com',
+        preview: 'Professional electrical work with 30% off. Licensed electricians, free estimates.',
+        content: this.generateEmailContent('electrical', '30% OFF', 'ELECTRIC30'),
+        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+        type: 'promotional',
+        isRead: false,
+        category: 'electrical'
+      },
+      {
+        id: 3,
+        subject: 'Your Project Timeline Notifications Are Active',
+        sender: 'Business Directory System',
+        senderEmail: 'system@businessdirectory.com',
+        preview: 'Timeline-based notifications have been set up for your 2-month project planning.',
+        content: this.generateSystemEmailContent(),
+        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+        type: 'system',
+        isRead: true,
+        category: 'system'
+      }
+    ];
+
+    this.renderEmails(mockEmails);
+    this.updateInboxStats(mockEmails);
+  }
+
+  renderEmails(emails) {
+    const emailContainer = document.querySelector('.email-list');
+    if (!emailContainer) return;
+
+    emailContainer.innerHTML = emails.map(email => this.createEmailItem(email)).join('');
+  }
+
+  createEmailItem(email) {
+    const timeAgo = this.getTimeAgo(email.timestamp);
+    const isUnread = !email.isRead;
+    
+    return `
+      <div class="email-item ${isUnread ? 'unread' : ''}" data-email-id="${email.id}">
+        <div class="email-avatar">
+          <i class="fas ${this.getEmailIcon(email.type)}"></i>
+        </div>
+        <div class="email-content">
+          <div class="email-header">
+            <div class="email-sender">${email.sender}</div>
+            <div class="email-timestamp">${timeAgo}</div>
+          </div>
+          <div class="email-subject">${email.subject}</div>
+          <div class="email-preview">${email.preview}</div>
+          <div class="email-actions">
+            <button class="email-action-btn read-btn" data-action="read">
+              <i class="fas fa-envelope-open"></i> Mark Read
+            </button>
+            <button class="email-action-btn delete-btn" data-action="delete">
+              <i class="fas fa-trash"></i> Delete
+            </button>
+            <button class="email-action-btn view-btn" data-action="view">
+              <i class="fas fa-eye"></i> View Full Email
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  generateEmailContent(category, discount, code) {
+    return `
+      <div class="email-full-content">
+        <h2>Special ${discount} ${category.charAt(0).toUpperCase() + category.slice(1)} Offer!</h2>
+        <p>Dear Valued Customer,</p>
+        <p>We're excited to offer you an exclusive <strong>${discount}</strong> discount on all ${category} services!</p>
+        
+        <div class="offer-highlight">
+          <h3>🎯 What's Included:</h3>
+          <ul>
+            <li>Professional ${category} services</li>
+            <li>Licensed and insured technicians</li>
+            <li>Free estimates and consultations</li>
+            <li>Satisfaction guarantee</li>
+          </ul>
+        </div>
+
+        <div class="promo-code-section">
+          <h3>💰 Your Promo Code:</h3>
+          <div class="promo-code-display">${code}</div>
+          <p>Use this code when booking to receive your discount!</p>
+        </div>
+
+        <div class="contact-info">
+          <h3>📞 Contact Us:</h3>
+          <p>Phone: (555) 123-4567</p>
+          <p>Email: contact@${category}services.com</p>
+          <p>Address: 123 Service St, Your City, ST 12345</p>
+        </div>
+
+        <p>This offer is valid until the end of this month. Don't miss out!</p>
+        
+        <div class="email-footer">
+          <p>Best regards,<br>The ${category.charAt(0).toUpperCase() + category.slice(1)} Services Team</p>
+        </div>
+      </div>
+    `;
+  }
+
+  generateSystemEmailContent() {
+    return `
+      <div class="email-full-content system-email">
+        <h2>🎯 Project Timeline Notifications Activated</h2>
+        <p>Hello,</p>
+        <p>Your project timeline notifications have been successfully configured!</p>
+        
+        <div class="timeline-summary">
+          <h3>📅 Your Timeline Settings:</h3>
+          <ul>
+            <li><strong>Project Duration:</strong> 2 months</li>
+            <li><strong>Notification Frequency:</strong> Bi-weekly</li>
+            <li><strong>Selected Categories:</strong> Plumbing, Electrical, General Contractor</li>
+          </ul>
+        </div>
+
+        <div class="next-steps">
+          <h3>🚀 What's Next:</h3>
+          <p>You'll receive targeted promotional offers based on your timeline:</p>
+          <ul>
+            <li>Week 1-2: Planning phase offers (consultations, estimates)</li>
+            <li>Week 3-6: Active project offers (materials, services)</li>
+            <li>Week 7-8: Completion phase offers (finishing touches, warranties)</li>
+          </ul>
+        </div>
+
+        <p>You can update your timeline preferences anytime in your dashboard.</p>
+        
+        <div class="email-footer">
+          <p>Best regards,<br>Business Directory Team</p>
+        </div>
+      </div>
+    `;
+  }
+
+  getEmailIcon(type) {
+    const icons = {
+      promotional: 'fa-tags',
+      system: 'fa-cog',
+      timeline: 'fa-calendar-alt'
+    };
+    return icons[type] || 'fa-envelope';
+  }
+
+  getTimeAgo(timestamp) {
+    const now = new Date();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    return 'Just now';
+  }
+
+  handleEmailClick(e) {
+    const emailItem = e.target.closest('.email-item');
+    const action = e.target.closest('[data-action]')?.dataset.action;
+    
+    if (!emailItem) return;
+
+    const emailId = emailItem.dataset.emailId;
+
+    switch(action) {
+      case 'read':
+        this.markEmailAsRead(emailId, emailItem);
+        break;
+      case 'delete':
+        this.deleteEmail(emailId, emailItem);
+        break;
+      case 'view':
+        this.viewFullEmail(emailId);
+        break;
+      default:
+        // Click on email item itself - mark as read and preview
+        this.markEmailAsRead(emailId, emailItem);
+        break;
+    }
+  }
+
+  markEmailAsRead(emailId, emailItem) {
+    emailItem.classList.remove('unread');
+    const readBtn = emailItem.querySelector('.read-btn');
+    if (readBtn) {
+      readBtn.innerHTML = '<i class="fas fa-check"></i> Read';
+      readBtn.disabled = true;
+    }
+    
+    // Update unread count
+    this.updateUnreadCount();
+    
+    this.showToast('Email marked as read', 'success');
+  }
+
+  deleteEmail(emailId, emailItem) {
+    emailItem.style.animation = 'fadeOut 0.3s ease';
+    setTimeout(() => {
+      emailItem.remove();
+      this.updateUnreadCount();
+      this.showToast('Email deleted', 'info');
+    }, 300);
+  }
+
+  viewFullEmail(emailId) {
+    // Create modal for full email view
+    const modal = this.createEmailModal(emailId);
+    document.body.appendChild(modal);
+    modal.classList.add('active');
+  }
+
+  createEmailModal(emailId) {
+    // This would typically fetch the full email content
+    const modal = document.createElement('div');
+    modal.className = 'email-modal';
+    modal.innerHTML = `
+      <div class="email-modal-content">
+        <div class="email-modal-header">
+          <h3>Email Details</h3>
+          <button class="close-modal-btn" onclick="this.closest('.email-modal').remove()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="email-modal-body">
+          <div class="email-full-display">
+            <!-- Full email content would be loaded here -->
+            <p>Loading full email content...</p>
+          </div>
+        </div>
+        <div class="email-modal-footer">
+          <button class="primary-button" onclick="this.closest('.email-modal').remove()">
+            Close
+          </button>
+        </div>
+      </div>
+    `;
+    return modal;
+  }
+
+  updateInboxStats(emails) {
+    const unreadCount = emails.filter(email => !email.isRead).length;
+    const totalCount = emails.length;
+    
+    // Update unread badges
+    document.querySelectorAll('.inbox-badge, #unread-count').forEach(badge => {
+      badge.textContent = unreadCount;
+      badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    });
+
+    // Update unread emails stat
+    const unreadStat = document.getElementById('unread-emails');
+    if (unreadStat) {
+      unreadStat.textContent = unreadCount;
+    }
+
+    // Update inbox summary
+    const inboxSummary = document.querySelector('.inbox-summary');
+    if (inboxSummary) {
+      inboxSummary.innerHTML = `
+        <div class="inbox-stat">
+          <i class="fas fa-envelope"></i>
+          <span>Total: <strong>${totalCount}</strong></span>
+        </div>
+        <div class="inbox-stat">
+          <i class="fas fa-envelope-open"></i>
+          <span>Unread: <strong>${unreadCount}</strong></span>
+        </div>
+        <div class="inbox-stat">
+          <i class="fas fa-tags"></i>
+          <span>Promotional: <strong>${emails.filter(e => e.type === 'promotional').length}</strong></span>
+        </div>
+      `;
+    }
+  }
+
+  updateUnreadCount() {
+    const unreadEmails = document.querySelectorAll('.email-item.unread').length;
+    
+    document.querySelectorAll('.inbox-badge, #unread-count').forEach(badge => {
+      badge.textContent = unreadEmails;
+      badge.style.display = unreadEmails > 0 ? 'flex' : 'none';
+    });
+
+    const unreadStat = document.getElementById('unread-emails');
+    if (unreadStat) {
+      unreadStat.textContent = unreadEmails;
+    }
+  }
+
+  filterInboxEmails(filter) {
+    const emails = document.querySelectorAll('.email-item');
+    const filterButtons = document.querySelectorAll('.inbox-filter-btn');
+    
+    // Update active filter button
+    filterButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.filter === filter);
+    });
+
+    // Filter emails
+    emails.forEach(email => {
+      const emailType = email.querySelector('.email-content').dataset.type || 'promotional';
+      
+      if (filter === 'all' || emailType === filter) {
+        email.style.display = 'flex';
+      } else {
+        email.style.display = 'none';
+      }
+    });
+  }
+
+  addMockEmail(emailData) {
+    const emailContainer = document.querySelector('.email-list');
+    if (!emailContainer) return;
+
+    const newEmail = {
+      id: Date.now(),
+      isRead: false,
+      ...emailData
+    };
+
+    const emailHTML = this.createEmailItem(newEmail);
+    emailContainer.insertAdjacentHTML('afterbegin', emailHTML);
+    
+    this.updateUnreadCount();
+  }
+
+  // Offers Management (existing code)
   initializeOfferFilters() {
     // Setup search
     const filtersContainer = document.querySelector('.filters-container');

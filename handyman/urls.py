@@ -16,4 +16,7 @@ urlpatterns = [
         path('deactivate-promotion/<int:promotion_id>/', views.deactivate_promotion, name='handyman_deactivate_promotion'),
         path('update-job-status/<int:job_id>/', views.update_job_status, name='handyman_update_job_status'),
         path('setup/', views.handyman_setup, name='handyman_setup'),
+        path('update-business-card/', views.update_business_card, name='handyman_update_business_card'),
+        path('update-services/', views.update_services, name='handyman_update_services'),
+        path('job-requests/', views.job_requests, name='handyman_job_requests'),
 ]

@@ -5,356 +5,53 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/handyman_dashboard.css' %}">
-<style>
-  /* Inline styles to ensure consistency with consumer dashboard */
-  .handyman-dashboard {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-  
-  .dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #e0e0e0;
-  }
-  
-  .header-left {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .dashboard-header h1 {
-    font-size: 2rem;
-    margin: 0;
-    color: #333;
-  }
-  
-  .profile-completion {
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
-    font-size: 0.9rem;
-  }
-  
-  .completion-label {
-    margin-right: 10px;
-    color: #666;
-  }
-  
-  .progress-container {
-    width: 150px;
-    height: 8px;
-    background-color: #e0e0e0;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-right: 10px;
-  }
-  
-  .progress-bar {
-    height: 100%;
-    background-color: #4CAF50;
-    border-radius: 4px;
-  }
-  
-  .completion-percentage {
-    color: #4CAF50;
-    font-weight: bold;
-  }
-  
-  .dashboard-tabs {
-    display: flex;
-    margin-bottom: 30px;
-    overflow-x: auto;
-    background-color: #f5f5f5;
-    border-radius: 8px;
-  }
-  
-  .tab-button {
-    padding: 15px 20px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #666;
-    font-weight: 500;
-    white-space: nowrap;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-  }
-  
-  .tab-button i {
-    margin-right: 8px;
-  }
-  
-  .tab-button.active {
-    color: #4CAF50;
-    background-color: rgba(76, 175, 80, 0.1);
-    border-bottom: 2px solid #4CAF50;
-  }
-  
-  .dashboard-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-  }
-  
-  .stat-card {
-    background-color: #fff;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    text-align: center;
-    transition: transform 0.3s ease;
-  }
-  
-  .stat-card:hover {
-    transform: translateY(-5px);
-  }
-  
-  .stat-icon {
-    font-size: 1.8rem;
-    color: #4CAF50;
-    margin-bottom: 10px;
-  }
-  
-  .stat-number {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 5px;
-  }
-  
-  .stat-label {
-    color: #666;
-    font-size: 0.9rem;
-  }
-  
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-  }
-  
-  .card-showcase, .promotion-summary, .quick-jobs, .service-preview {
-    background-color: #fff;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-  }
-  
-  .card-showcase h2, .promotion-summary h2, .quick-jobs h2, .service-preview h2 {
-    margin-top: 0;
-    margin-bottom: 20px;
-    color: #333;
-    font-size: 1.5rem;
-    border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 10px;
-  }
-  
-  .empty-state {
-    text-align: center;
-    padding: 30px;
-    color: #666;
-  }
-  
-  .empty-icon {
-    font-size: 3rem;
-    color: #e0e0e0;
-    margin-bottom: 15px;
-  }
-  
-  .create-promotion-btn, .view-all-link, .edit-button {
-    display: inline-block;
-    background-color: #4CAF50;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 4px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: background-color 0.3s ease;
-    border: none;
-    cursor: pointer;
-    text-align: center;
-    margin-top: 10px;
-  }
-  
-  .create-promotion-btn:hover, .view-all-link:hover, .edit-button:hover {
-    background-color: #388E3C;
-  }
-  
-  /* Mobile styles */
-  @media (max-width: 768px) {
-    .dashboard-tabs {
-      flex-wrap: nowrap;
-      overflow-x: auto;
-    }
-    
-    .dashboard-grid {
-      grid-template-columns: 1fr;
-    }
-    
-    .dashboard-stats {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  /* Dashboard sidebar for mobile */
-  .dashboard-sidebar {
-    position: fixed;
-    top: 0;
-    left: -280px;
-    width: 280px;
-    height: 100%;
-    background-color: #fff;
-    z-index: 1000;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-    transition: left 0.3s ease;
-    overflow-y: auto;
-  }
-  
-  .dashboard-sidebar.open {
-    left: 0;
-  }
-  
-  .sidebar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #e0e0e0;
-  }
-  
-  .sidebar-menu {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .sidebar-menu li {
-    border-bottom: 1px solid #f0f0f0;
-  }
-  
-  .sidebar-tab-button {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 15px 20px;
-    background: none;
-    border: none;
-    text-align: left;
-    cursor: pointer;
-    font-weight: 500;
-    color: #666;
-    transition: background-color 0.3s ease;
-    text-decoration: none;
-  }
-  
-  .sidebar-tab-button i {
-    margin-right: 10px;
-  }
-  
-  .sidebar-tab-button.active {
-    color: #4CAF50;
-    background-color: rgba(76, 175, 80, 0.1);
-    border-left: 3px solid #4CAF50;
-  }
-  
-  .dashboard-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    z-index: 999;
-    display: none;
-  }
-  
-  .dashboard-overlay.active {
-    display: block;
-  }
-  
-  .close-sidebar {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: #666;
-  }
-  
-  .dashboard-hamburger {
-    display: none;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #666;
-  }
-  
-  @media (max-width: 768px) {
-    .dashboard-tabs {
-      display: none;
-    }
-    
-    .dashboard-hamburger {
-      display: block;
-    }
-  }
-</style>
+<!-- Include Toastify CSS if not already in base -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 {% endblock %}
 
 {% block content %}
 <main class="handyman-dashboard">
   <!-- Header Section -->
   <header class="dashboard-header">
-    <div class="header-left">
-      <h1>Welcome, <span id="business-name">{{ user.business_name }}</span></h1>
-      <div class="profile-completion">
-        <div class="completion-label">Profile Completion:</div>
-        <div class="progress-container">
-          <div class="progress-bar" id="profile-progress" style="width: 75%;"></div>
-        </div>
-        <div class="completion-percentage">75%</div>
-      </div>
-    </div>
-    <div class="header-right">
-      <div class="logout-container">
-        <a href="{% url 'logout' %}" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a>
-        <button class="dashboard-hamburger" aria-label="Toggle dashboard menu">
-          <i class="fas fa-bars"></i>
-        </button>
-      </div>
+    <h1>Welcome, <span id="business-name">{{ user.business_name|default:user.first_name }}</span>!</h1>
+    <div class="logout-container">
+      <a href="{% url 'logout' %}" class="logout-button">
+        <i class="fas fa-sign-out-alt"></i> 
+        <span class="logout-text">Logout</span>
+      </a>
+      <button class="dashboard-hamburger" aria-label="Toggle dashboard menu">
+        <i class="fas fa-bars"></i>
+      </button>
     </div>
   </header>
 
-  <!-- Dashboard Tabs -->
-  <div class="dashboard-tabs">
-    <a href="{% url 'handyman_dashboard' %}" class="tab-button {% if request.resolver_match.url_name == 'handyman_dashboard' %}active{% endif %}">
-      <i class="fas fa-home"></i> Overview
-    </a>
-    <a href="{% url 'handyman_dashboard_promotions' %}" class="tab-button {% if request.resolver_match.url_name == 'handyman_dashboard_promotions' %}active{% endif %}">
-      <i class="fas fa-tags"></i> Promotions
-    </a>
-    <a href="{% url 'handyman_dashboard_services' %}" class="tab-button {% if request.resolver_match.url_name == 'handyman_dashboard_services' %}active{% endif %}">
-      <i class="fas fa-tools"></i> Services
-    </a>
-    <a href="{% url 'handyman_dashboard_jobs' %}" class="tab-button {% if request.resolver_match.url_name == 'handyman_dashboard_jobs' %}active{% endif %}">
-      <i class="fas fa-hammer"></i> Jobs
-    </a>
-    <a href="{% url 'handyman_dashboard_profile' %}" class="tab-button {% if request.resolver_match.url_name == 'handyman_dashboard_profile' %}active{% endif %}">
-      <i class="fas fa-user-circle"></i> Profile
-    </a>
-  </div>
+  <!-- Desktop Dashboard Tabs -->
+  <nav class="dashboard-tabs" role="tablist">
+    <button class="tab-button active" data-tab="personal" role="tab" aria-selected="true" aria-controls="personal-section">
+      <i class="fas fa-user"></i> 
+      <span>Personal Details</span>
+    </button>
+    <button class="tab-button" data-tab="business-card" role="tab" aria-selected="false" aria-controls="business-card-section">
+      <i class="fas fa-id-card"></i> 
+      <span>Business Card</span>
+    </button>
+    <button class="tab-button" data-tab="services" role="tab" aria-selected="false" aria-controls="services-section">
+      <i class="fas fa-tools"></i> 
+      <span>Services</span>
+    </button>
+    <button class="tab-button" data-tab="promotions" role="tab" aria-selected="false" aria-controls="promotions-section">
+      <i class="fas fa-tags"></i> 
+      <span>Promotions</span>
+    </button>
+    <button class="tab-button" data-tab="jobs" role="tab" aria-selected="false" aria-controls="jobs-section">
+      <i class="fas fa-briefcase"></i> 
+      <span>Job Requests</span>
+      <span class="jobs-badge" id="pending-jobs-count">3</span>
+    </button>
+  </nav>
 
   <!-- Mobile Dashboard Sidebar -->
-  <div class="dashboard-sidebar">
+  <aside class="dashboard-sidebar" role="navigation" aria-label="Mobile dashboard menu">
     <div class="sidebar-header">
       <h3>Dashboard Menu</h3>
       <button class="close-sidebar" aria-label="Close menu">
@@ -363,294 +60,746 @@
     </div>
     <ul class="sidebar-menu">
       <li>
-        <a href="{% url 'handyman_dashboard' %}" class="sidebar-tab-button {% if request.resolver_match.url_name == 'handyman_dashboard' %}active{% endif %}">
-          <i class="fas fa-home"></i> Overview
-        </a>
+        <button class="sidebar-tab-button active" data-tab="personal">
+          <i class="fas fa-user"></i> Personal Details
+        </button>
       </li>
       <li>
-        <a href="{% url 'handyman_dashboard_promotions' %}" class="sidebar-tab-button {% if request.resolver_match.url_name == 'handyman_dashboard_promotions' %}active{% endif %}">
-          <i class="fas fa-tags"></i> Promotions
-        </a>
+        <button class="sidebar-tab-button" data-tab="business-card">
+          <i class="fas fa-id-card"></i> Business Card
+        </button>
       </li>
       <li>
-        <a href="{% url 'handyman_dashboard_services' %}" class="sidebar-tab-button {% if request.resolver_match.url_name == 'handyman_dashboard_services' %}active{% endif %}">
+        <button class="sidebar-tab-button" data-tab="services">
           <i class="fas fa-tools"></i> Services
-        </a>
+        </button>
       </li>
       <li>
-        <a href="{% url 'handyman_dashboard_jobs' %}" class="sidebar-tab-button {% if request.resolver_match.url_name == 'handyman_dashboard_jobs' %}active{% endif %}">
-          <i class="fas fa-hammer"></i> Jobs
-        </a>
+        <button class="sidebar-tab-button" data-tab="promotions">
+          <i class="fas fa-tags"></i> Promotions
+        </button>
       </li>
       <li>
-        <a href="{% url 'handyman_dashboard_profile' %}" class="sidebar-tab-button {% if request.resolver_match.url_name == 'handyman_dashboard_profile' %}active{% endif %}">
-          <i class="fas fa-user-circle"></i> Profile
-        </a>
+        <button class="sidebar-tab-button" data-tab="jobs">
+          <i class="fas fa-briefcase"></i> Job Requests
+          <span class="jobs-badge">3</span>
+        </button>
       </li>
     </ul>
-  </div>
+  </aside>
 
   <!-- Dashboard Sidebar Overlay -->
-  <div class="dashboard-overlay"></div>
+  <div class="dashboard-overlay" aria-hidden="true"></div>
 
   <!-- Dashboard Stats -->
-  <div class="dashboard-stats">
+  <section class="dashboard-stats" aria-label="Dashboard statistics">
     <div class="stat-card">
-      <div class="stat-icon"><i class="fas fa-eye"></i></div>
-      <div class="stat-number">{{ profile_views|default:"0" }}</div>
-      <div class="stat-label">Profile Views</div>
+      <div class="stat-number" id="profile-completion">{{ profile_completion|default:"75" }}%</div>
+      <div class="stat-label">Profile Complete</div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><i class="fas fa-tags"></i></div>
-      <div class="stat-number">{{ active_promotions|default:"0" }}</div>
+      <div class="stat-number" id="active-promotions">{{ active_promotions|default:"2" }}</div>
       <div class="stat-label">Active Promotions</div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><i class="fas fa-tools"></i></div>
-      <div class="stat-number">{{ services_count|default:"0" }}</div>
+      <div class="stat-number" id="total-services">{{ total_services|default:"5" }}</div>
       <div class="stat-label">Services Offered</div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><i class="fas fa-hammer"></i></div>
-      <div class="stat-number">{{ pending_jobs|default:"0" }}</div>
-      <div class="stat-label">Pending Jobs</div>
+      <div class="stat-number" id="pending-requests">3</div>
+      <div class="stat-label">Pending Requests</div>
     </div>
-  </div>
+  </section>
 
-  <!-- Dashboard Content Grid -->
-  <div class="dashboard-grid">
-    <!-- Business Card Showcase -->
-    <div class="card-showcase">
-      <h2>Your Business Card</h2>
-      {% if business_card %}
-      <div class="card-wrapper" id="card-wrapper">
-        <div class="card-inner">
-          <div class="card-front">
-            <div class="business-card-bg" style="background-color: {{ business_card.background_color|default:'#4a6cf7' }};">
-              {% if business_card.logo %}
-              <div class="card-image"><img src="{{ business_card.logo.url }}" alt="{{ business_name }} Logo"></div>
-              {% else %}
-              <div class="card-placeholder"><i class="fas fa-tools"></i></div>
-              {% endif %}
-              <h3>{{ business_name }}</h3>
-              <p>{{ business_card.tagline|default:"Professional Handyman Services" }}</p>
-              <div class="card-contact">
-                <div><i class="fas fa-phone"></i> {{ business_card.phone_number|default:user.phone_number }}</div>
-                <div><i class="fas fa-envelope"></i> {{ business_card.email|default:user.email }}</div>
-              </div>
-            </div>
-          </div>
-          <div class="card-back">
-            <div class="business-card-bg" style="background-color: {{ business_card.background_color|default:'#4a6cf7' }};">
-              <h3>Services</h3>
-              <ul class="card-services">
-                {% for service in services|slice:":5" %}
-                <li>{{ service.service_name }}</li>
-                {% empty %}
-                <li>No services added yet</li>
-                {% endfor %}
-              </ul>
-              <div class="card-contact">
-                <div><i class="fas fa-map-marker-alt"></i> {{ user.address.city }}, {{ user.address.state }}</div>
-                <div><i class="fas fa-globe"></i> {{ business_card.website|default:"" }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
+  <!-- Tab Content -->
+  <section class="dashboard-content active" id="personal-section" role="tabpanel" aria-labelledby="personal-tab">
+    {% include "handyman/handyman_dashboard_personal.html" %}
+  </section>
+  
+  <section class="dashboard-content" id="business-card-section" role="tabpanel" aria-labelledby="business-card-tab">
+    {% include "handyman/handyman_dashboard_business_card.html" %}
+  </section>
+  
+  <section class="dashboard-content" id="services-section" role="tabpanel" aria-labelledby="services-tab">
+    {% include "handyman/handyman_dashboard_service.html" %}
+  </section>
+  
+  <section class="dashboard-content" id="promotions-section" role="tabpanel" aria-labelledby="promotions-tab">
+    {% include "handyman/handyman_dashboard_promotions.html" %}
+  </section>
+  
+  <section class="dashboard-content" id="jobs-section" role="tabpanel" aria-labelledby="jobs-tab">
+    <!-- Job section content will be loaded dynamically via AJAX -->
+    <div class="jobs-container">
+      <div class="loading">
+        <i class="fas fa-spinner fa-spin"></i> Loading job requests...
       </div>
-      <div class="card-controls">
-        <button class="card-flip-btn" id="card-flip-btn">
-          <span class="flip-text front-text">See Back</span>
-          <span class="flip-text back-text">See Front</span>
-        </button>
-        <a href="{% url 'handyman_dashboard_profile' %}" class="edit-button"><i class="fas fa-edit"></i> Edit Card</a>
-      </div>
-      {% else %}
-      <div class="empty-state">
-        <div class="empty-icon"><i class="fas fa-id-card"></i></div>
-        <p>You haven't set up your business card yet. Complete your profile to create your card.</p>
-        <a href="{% url 'handyman_dashboard_profile' %}" class="edit-button"><i class="fas fa-user-edit"></i> Complete Profile</a>
-      </div>
-      {% endif %}
     </div>
-
-    <!-- Promotion Summary -->
-    <div class="promotion-summary">
-      <h2>Promotion Summary</h2>
-      {% if promotions %}
-      <div class="promo-status">
-        <div class="status-row">
-          <div class="status-indicator active"></div>
-          <span class="status-text">Active ({{ active_promotions|default:"0" }})</span>
-        </div>
-        <div class="status-row">
-          <div class="status-indicator inactive"></div>
-          <span class="status-text">Inactive ({{ inactive_promotions|default:"0" }})</span>
-        </div>
-      </div>
-      
-      {% if latest_promotion %}
-      <div class="latest-promotion">
-        <div class="promotion-header">
-          <span class="discount-badge">{{ latest_promotion.discount_percentage }}% OFF</span>
-          <div class="promotion-timer">
-            <i class="far fa-clock"></i> 
-            {% if latest_promotion.is_expired %}
-            Expired
-            {% else %}
-            Expires in {{ latest_promotion.days_remaining }} days
-            {% endif %}
-          </div>
-        </div>
-        <div class="promotion-body">
-          <div class="promotion-description">{{ latest_promotion.description|truncatewords:20 }}</div>
-          <div class="promotion-categories">
-            {% for category in latest_promotion.service_categories.all|slice:":3" %}
-            <span class="category-tag">{{ category.name }}</span>
-            {% endfor %}
-          </div>
-        </div>
-        <div class="promotion-footer">
-          <div class="promo-code">
-            <span>Promo Code:</span> 
-            <strong>{{ latest_promotion.promo_code }}</strong>
-          </div>
-          <a href="{% url 'handyman_dashboard_promotions' %}" class="edit-promotion-btn">
-            <i class="fas fa-edit"></i> Edit
-          </a>
-        </div>
-      </div>
-      {% endif %}
-      
-      <a href="{% url 'handyman_dashboard_promotions' %}" class="view-all-link">View All Promotions</a>
-      {% else %}
-      <div class="empty-state">
-        <div class="empty-icon"><i class="fas fa-tag"></i></div>
-        <p>You don't have any promotions yet. Create one to attract more customers!</p>
-        <a href="{% url 'handyman_dashboard_promotions' %}" class="create-promotion-btn">Create Promotion</a>
-      </div>
-      {% endif %}
-    </div>
-
-    <!-- Quick Jobs -->
-    <div class="quick-jobs">
-      <h2>Recent Jobs</h2>
-      {% if recent_jobs %}
-      <ul class="jobs-list">
-        {% for job in recent_jobs %}
-        <li class="job-item {{ job.status }}">
-          <div class="job-header">
-            <div class="job-service">{{ job.service.service_name }}</div>
-            <div class="job-status-badge">{{ job.get_status_display }}</div>
-          </div>
-          <div class="job-client">
-            <i class="fas fa-user"></i> {{ job.client.first_name }} {{ job.client.last_name }}
-          </div>
-          <div class="job-date">
-            <i class="fas fa-calendar-alt"></i> {{ job.created_at|date:"M d, Y" }}
-          </div>
-        </li>
-        {% endfor %}
-      </ul>
-      <a href="{% url 'handyman_dashboard_jobs' %}" class="view-all-link">View All Jobs</a>
-      {% else %}
-      <div class="empty-state">
-        <div class="empty-icon"><i class="fas fa-clipboard-list"></i></div>
-        <p>You don't have any recent jobs. They'll appear here when customers book your services.</p>
-      </div>
-      {% endif %}
-    </div>
-
-    <!-- Service Preview -->
-    <div class="service-preview">
-      <h2>Your Services</h2>
-      {% if services %}
-      <div class="services-preview">
-        <h3>Services you offer:</h3>
-        <ul class="services-list">
-          {% for service in services|slice:":5" %}
-          <li>
-            <strong>{{ service.service_name }}</strong>
-            <div class="service-price">${{ service.price }}</div>
-          </li>
-          {% endfor %}
-          {% if services.count > 5 %}
-          <li class="more-services">+{{ services.count|add:"-5" }} more services</li>
-          {% endif %}
-        </ul>
-        <a href="{% url 'handyman_dashboard_services' %}" class="view-all-link">Manage Services</a>
-      </div>
-      {% else %}
-      <div class="empty-state">
-        <div class="empty-icon"><i class="fas fa-tools"></i></div>
-        <p>You haven't added any services yet. Add the services you provide to attract customers.</p>
-        <a href="{% url 'handyman_dashboard_services' %}" class="add-service-btn"><i class="fas fa-plus"></i> Add Services</a>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- Tab Content Area -->
-  {% block dashboard_content %}{% endblock %}
+  </section>
 </main>
+
+<style>
+/* Jobs Badge Styles */
+.jobs-badge {
+  background: linear-gradient(135deg, var(--danger-color) 0%, #e83e8c 100%);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.5rem;
+  animation: pulse 2s infinite;
+  min-width: 20px;
+}
+
+.sidebar-tab-button .jobs-badge {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* Additional stat card */
+.dashboard-stats {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.stat-card:nth-child(4)::before {
+  background: linear-gradient(90deg, var(--info-color), #20c997);
+}
+
+@media (max-width: 768px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
+<!-- Include Toastify JS -->
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Mobile sidebar toggle
-    const hamburgerBtn = document.querySelector('.dashboard-hamburger');
-    const closeSidebarBtn = document.querySelector('.close-sidebar');
-    const sidebar = document.querySelector('.dashboard-sidebar');
-    const overlay = document.querySelector('.dashboard-overlay');
+// Handyman Dashboard Manager Class
+class HandymanDashboardManager {
+  constructor() {
+    this.currentTab = 'personal';
+    this.initializeElements();
+    this.bindEvents();
+    this.initialize();
+  }
+
+  initializeElements() {
+    // Tab elements
+    this.tabButtons = document.querySelectorAll('.tab-button, .sidebar-tab-button');
+    this.tabSections = document.querySelectorAll('.dashboard-content');
     
-    if (hamburgerBtn) {
-      hamburgerBtn.addEventListener('click', function() {
-        sidebar.classList.add('open');
-        overlay.classList.add('active');
-      });
+    // Mobile menu elements
+    this.hamburger = document.querySelector('.dashboard-hamburger');
+    this.sidebar = document.querySelector('.dashboard-sidebar');
+    this.overlay = document.querySelector('.dashboard-overlay');
+    this.closeSidebar = document.querySelector('.close-sidebar');
+    
+    // Form elements
+    this.personalForm = document.querySelector('.personal-form');
+    this.businessCardForm = document.querySelector('.business-card-form');
+    this.servicesForm = document.querySelector('.services-form');
+    this.promotionsForm = document.querySelector('.promotions-form');
+  }
+
+  bindEvents() {
+    // Tab switching
+    this.tabButtons.forEach(button => {
+      button.addEventListener('click', (e) => this.switchTab(e.currentTarget.dataset.tab));
+    });
+
+    // Mobile menu
+    if (this.hamburger) {
+      this.hamburger.addEventListener('click', () => this.openSidebar());
     }
-    
-    if (closeSidebarBtn) {
-      closeSidebarBtn.addEventListener('click', function() {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('active');
-      });
+    if (this.closeSidebar) {
+      this.closeSidebar.addEventListener('click', () => this.closeSidebar());
     }
-    
-    if (overlay) {
-      overlay.addEventListener('click', function() {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('active');
-      });
+    if (this.overlay) {
+      this.overlay.addEventListener('click', () => this.closeSidebar());
     }
-    
-    // Business card flip functionality
-    const cardWrapper = document.getElementById('card-wrapper');
-    const cardFlipBtn = document.getElementById('card-flip-btn');
-    
-    if (cardWrapper && cardFlipBtn) {
-      cardFlipBtn.addEventListener('click', function() {
-        cardWrapper.classList.toggle('flipped');
-        cardFlipBtn.classList.toggle('flipped');
-      });
+
+    // Form submissions
+    if (this.personalForm) {
+      this.personalForm.addEventListener('submit', (e) => this.handlePersonalSubmit(e));
     }
-    
-    // Calculate profile completion
-    const calculateProfileCompletion = () => {
-      // This would typically be calculated based on completed profile fields
-      // For now we'll use the static value from the HTML (75%)
-      const progressBar = document.getElementById('profile-progress');
-      const percentageDisplay = document.querySelector('.completion-percentage');
-      
-      if (progressBar && percentageDisplay) {
-        const percent = {{ profile_completion|default:75 }};
-        progressBar.style.width = percent + '%';
-        percentageDisplay.textContent = percent + '%';
-      }
+    if (this.businessCardForm) {
+      this.businessCardForm.addEventListener('submit', (e) => this.handleBusinessCardSubmit(e));
+    }
+    if (this.servicesForm) {
+      this.servicesForm.addEventListener('submit', (e) => this.handleServicesSubmit(e));
+    }
+    if (this.promotionsForm) {
+      this.promotionsForm.addEventListener('submit', (e) => this.handlePromotionsSubmit(e));
+    }
+  }
+
+  initialize() {
+    // Check URL hash for initial tab
+    const hash = window.location.hash.replace('#', '');
+    if (hash && ['personal', 'business-card', 'services', 'promotions', 'jobs'].includes(hash)) {
+      this.switchTab(hash);
+    }
+
+    // Initialize specific sections
+    this.initializePersonalDetails();
+    this.initializeBusinessCard();
+    this.initializeServices();
+    this.initializePromotions();
+    this.initializeJobs();
+  }
+
+  // Tab Management
+  switchTab(tabName) {
+    // Update active states
+    this.tabButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tabName);
+      btn.setAttribute('aria-selected', btn.dataset.tab === tabName);
+    });
+
+    this.tabSections.forEach(section => {
+      section.classList.toggle('active', section.id === `${tabName}-section`);
+    });
+
+    this.currentTab = tabName;
+    window.location.hash = tabName;
+
+    // Close mobile sidebar
+    this.closeSidebar();
+
+    // Load tab-specific data
+    switch(tabName) {
+      case 'jobs':
+        this.loadJobRequests();
+        break;
+      case 'promotions':
+        this.loadActivePromotions();
+        break;
+    }
+  }
+
+  // Mobile Menu
+  openSidebar() {
+    this.sidebar.classList.add('active');
+    this.overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeSidebar() {
+    this.sidebar.classList.remove('active');
+    this.overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  // Personal Details Management
+  initializePersonalDetails() {
+    this.populateStates();
+  }
+
+  populateStates() {
+    const stateSelect = document.getElementById('state');
+    if (!stateSelect || stateSelect.options.length > 1) return;
+
+    const states = {
+      'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas',
+      'CA': 'California', 'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware',
+      'FL': 'Florida', 'GA': 'Georgia', 'HI': 'Hawaii', 'ID': 'Idaho',
+      'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa', 'KS': 'Kansas',
+      'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
+      'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi',
+      'MO': 'Missouri', 'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada',
+      'NH': 'New Hampshire', 'NJ': 'New Jersey', 'NM': 'New Mexico', 'NY': 'New York',
+      'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio', 'OK': 'Oklahoma',
+      'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+      'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah',
+      'VT': 'Vermont', 'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia',
+      'WI': 'Wisconsin', 'WY': 'Wyoming'
     };
+
+    Object.entries(states).forEach(([code, name]) => {
+      const option = new Option(name, code);
+      stateSelect.add(option);
+    });
+  }
+
+  async handlePersonalSubmit(e) {
+    e.preventDefault();
     
-    calculateProfileCompletion();
-  });
+    const formData = new FormData(this.personalForm);
+    const submitBtn = this.personalForm.querySelector('[type="submit"]');
+    
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+    try {
+      const response = await fetch('{% url "handyman_update_profile" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        this.showToast(data.message, 'success');
+        this.updateWelcomeName(formData.get('business_name') || formData.get('first_name'));
+      } else {
+        this.showToast(data.message || 'An error occurred', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      this.showToast('An error occurred while updating profile', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+    }
+  }
+
+  // Business Card Management
+  initializeBusinessCard() {
+    // Setup file preview functionality
+    this.setupFilePreview('card-front', 'front-preview');
+    this.setupFilePreview('card-back', 'back-preview');
+    
+    // Setup blank back checkbox functionality
+    const blankBackCheckbox = document.getElementById('blank-back');
+    const backCardInput = document.getElementById('card-back');
+    
+    if (blankBackCheckbox && backCardInput) {
+      blankBackCheckbox.addEventListener('change', function() {
+        backCardInput.disabled = this.checked;
+        if (this.checked) {
+          backCardInput.value = '';
+          document.getElementById('back-preview').style.backgroundImage = 'none';
+        }
+      });
+    }
+  }
+
+  setupFilePreview(inputId, previewId) {
+    const fileInput = document.getElementById(inputId);
+    const previewElement = document.getElementById(previewId);
+    
+    if (fileInput && previewElement) {
+      fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            previewElement.style.backgroundImage = `url(${e.target.result})`;
+            previewElement.classList.add('has-image');
+            const textElement = previewElement.querySelector('.preview-text');
+            if (textElement) textElement.style.display = 'none';
+          }
+          reader.readAsDataURL(file);
+        } else {
+          previewElement.style.backgroundImage = 'none';
+          previewElement.classList.remove('has-image');
+          const textElement = previewElement.querySelector('.preview-text');
+          if (textElement) textElement.style.display = 'block';
+        }
+      });
+    }
+  }
+
+  async handleBusinessCardSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this.businessCardForm);
+    const submitBtn = this.businessCardForm.querySelector('[type="submit"]');
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+    try {
+      const response = await fetch('{% url "handyman_update_business_card" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        this.showToast(data.message, 'success');
+      } else {
+        this.showToast(data.message || 'An error occurred', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      this.showToast('An error occurred while updating business card', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-upload"></i> Update Business Card';
+    }
+  }
+
+  // Services Management
+  initializeServices() {
+    // Setup category selection
+    const checkboxes = document.querySelectorAll('input[name="service_categories"]');
+    const selectAllBtn = document.getElementById('select-all-services');
+    const deselectAllBtn = document.getElementById('deselect-all-services');
+    
+    if (selectAllBtn) {
+      selectAllBtn.addEventListener('click', () => {
+        checkboxes.forEach(cb => cb.checked = true);
+        this.updateServicesSummary();
+      });
+    }
+    
+    if (deselectAllBtn) {
+      deselectAllBtn.addEventListener('click', () => {
+        checkboxes.forEach(cb => cb.checked = false);
+        this.updateServicesSummary();
+      });
+    }
+
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', () => this.updateServicesSummary());
+    });
+
+    this.updateServicesSummary();
+  }
+
+  updateServicesSummary() {
+    const checked = document.querySelectorAll('input[name="service_categories"]:checked');
+    const summaryElement = document.getElementById('services-summary');
+    const countElement = document.getElementById('selected-services-count');
+    
+    if (countElement) {
+      countElement.textContent = checked.length;
+    }
+    
+    if (summaryElement) {
+      if (checked.length > 0) {
+        summaryElement.style.display = 'block';
+        const servicesList = document.getElementById('selected-services-list');
+        if (servicesList) {
+          servicesList.innerHTML = Array.from(checked).map(cb => {
+            const label = cb.parentElement.querySelector('.checkbox-label').textContent;
+            return `<span class="service-tag">${label}</span>`;
+          }).join('');
+        }
+      } else {
+        summaryElement.style.display = 'none';
+      }
+    }
+    
+    // Update stat
+    const totalServicesElement = document.getElementById('total-services');
+    if (totalServicesElement) {
+      totalServicesElement.textContent = checked.length;
+    }
+  }
+
+  async handleServicesSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this.servicesForm);
+    const submitBtn = this.servicesForm.querySelector('[type="submit"]');
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+
+    try {
+      const response = await fetch('{% url "handyman_update_services" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        this.showToast(data.message, 'success');
+        this.updateServicesSummary();
+      } else {
+        this.showToast(data.message || 'An error occurred', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      this.showToast('An error occurred while updating services', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-check"></i> Update Services';
+    }
+  }
+
+  // Promotions Management
+  initializePromotions() {
+    // Setup promotional campaign toggle
+    const campaignRadios = document.querySelectorAll('input[name="run_campaign"]');
+    const promotionDetails = document.getElementById('promotion-details');
+    
+    campaignRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        if (promotionDetails) {
+          promotionDetails.style.display = this.value === 'yes' ? 'block' : 'none';
+        }
+      });
+    });
+
+    // Setup promo code generator
+    const generateCodeBtn = document.getElementById('generate-promo-code');
+    if (generateCodeBtn) {
+      generateCodeBtn.addEventListener('click', () => this.generatePromoCode());
+    }
+
+    // Initialize date inputs
+    this.initializeDateInputs();
+  }
+
+  generatePromoCode() {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers = '0123456789';
+    
+    let code = 'BBC-';
+    
+    // Generate 5 letters
+    for (let i = 0; i < 5; i++) {
+      code += letters.charAt(Math.floor(Math.random() * letters.length));
+    }
+    
+    code += '-';
+    
+    // Generate 5 numbers
+    for (let i = 0; i < 5; i++) {
+      code += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    }
+    
+    const codeInput = document.getElementById('promo-code');
+    if (codeInput) {
+      codeInput.value = code;
+    }
+    
+    this.showToast('Promotional code generated!', 'success');
+  }
+
+  initializeDateInputs() {
+    const startDateInput = document.getElementById('start-date');
+    const stopDateInput = document.getElementById('stop-date');
+    
+    if (startDateInput && stopDateInput) {
+      const today = new Date();
+      const thirtyDaysLater = new Date();
+      thirtyDaysLater.setDate(today.getDate() + 30);
+      
+      startDateInput.value = today.toISOString().split('T')[0];
+      stopDateInput.value = thirtyDaysLater.toISOString().split('T')[0];
+      
+      startDateInput.addEventListener('change', function() {
+        const startDate = new Date(this.value);
+        const stopDate = new Date(stopDateInput.value);
+        
+        if (stopDate <= startDate) {
+          const newStopDate = new Date(startDate);
+          newStopDate.setDate(startDate.getDate() + 30);
+          stopDateInput.value = newStopDate.toISOString().split('T')[0];
+        }
+        
+        stopDateInput.min = this.value;
+      });
+    }
+  }
+
+  async handlePromotionsSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this.promotionsForm);
+    const submitBtn = this.promotionsForm.querySelector('[type="submit"]');
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+    try {
+      const response = await fetch('{% url "handyman_create_promotion" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        this.showToast(data.message, 'success');
+        // Update active promotions count
+        const activePromotionsElement = document.getElementById('active-promotions');
+        if (activePromotionsElement) {
+          activePromotionsElement.textContent = parseInt(activePromotionsElement.textContent) + 1;
+        }
+      } else {
+        this.showToast(data.message || 'An error occurred', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      this.showToast('An error occurred while creating promotion', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-plus"></i> Create Promotion';
+    }
+  }
+
+  // Jobs Management
+  initializeJobs() {
+    this.loadJobRequests();
+  }
+
+  async loadJobRequests() {
+    const jobsContainer = document.querySelector('.jobs-container');
+    if (!jobsContainer) return;
+
+    // Show loading state
+    jobsContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading job requests...</div>';
+
+    try {
+      const response = await fetch('{% url "handyman_job_requests" %}', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+
+      const data = await response.json();
+      
+      // Render jobs
+      this.renderJobs(data.jobs);
+    } catch (error) {
+      console.error('Error loading jobs:', error);
+      jobsContainer.innerHTML = '<div class="error"><i class="fas fa-exclamation-circle"></i> Failed to load job requests. Please try again.</div>';
+    }
+  }
+
+  renderJobs(jobs) {
+    const jobsContainer = document.querySelector('.jobs-container');
+    if (!jobsContainer) return;
+
+    if (!jobs || jobs.length === 0) {
+      jobsContainer.innerHTML = `
+        <div class="empty-jobs">
+          <div class="empty-state-illustration">
+            <i class="fas fa-briefcase"></i>
+          </div>
+          <h3>No job requests found</h3>
+          <p>New job requests will appear here when customers contact you!</p>
+        </div>
+      `;
+      return;
+    }
+
+    jobsContainer.innerHTML = jobs.map(job => this.createJobCard(job)).join('');
+  }
+
+  createJobCard(job) {
+    const statusClass = job.status.toLowerCase();
+    const statusText = job.status.charAt(0).toUpperCase() + job.status.slice(1);
+    
+    return `
+      <div class="job-card ${statusClass}">
+        <div class="job-header">
+          <div class="job-info">
+            <h4>${job.service_name}</h4>
+            <p class="client-name"><i class="fas fa-user"></i> ${job.client_name}</p>
+          </div>
+          <div class="job-status">
+            <span class="status-badge ${statusClass}">${statusText}</span>
+          </div>
+        </div>
+        <div class="job-details">
+          <div class="job-detail-item">
+            <i class="fas fa-calendar"></i>
+            <span>${job.scheduled_date} at ${job.scheduled_time}</span>
+          </div>
+          <div class="job-detail-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>${job.address}</span>
+          </div>
+          <div class="job-description">
+            <p>${job.description}</p>
+          </div>
+        </div>
+        <div class="job-actions">
+          ${job.status === 'pending' ? `
+            <button class="job-action-btn accept" data-job-id="${job.id}" data-action="accept">
+              <i class="fas fa-check"></i> Accept
+            </button>
+            <button class="job-action-btn decline" data-job-id="${job.id}" data-action="decline">
+              <i class="fas fa-times"></i> Decline
+            </button>
+          ` : ''}
+          <button class="job-action-btn details" data-job-id="${job.id}">
+            <i class="fas fa-info-circle"></i> Details
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Utility Methods
+  showToast(message, type = 'info') {
+    if (typeof Toastify !== 'undefined') {
+      Toastify({
+        text: message,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: {
+          success: "#28a745",
+          error: "#dc3545",
+          warning: "#ffc107",
+          info: "#17a2b8"
+        }[type] || "#17a2b8",
+        className: "toast-" + type,
+        stopOnFocus: true
+      }).showToast();
+    } else {
+      console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+  }
+
+  updateWelcomeName(name) {
+    const nameElement = document.getElementById('business-name');
+    if (nameElement && name) {
+      nameElement.textContent = name;
+    }
+  }
+
+  loadActivePromotions() {
+    // Load active promotions for the promotions tab
+    // This would typically fetch from the server
+  }
+}
+
+// Initialize dashboard when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  window.handymanDashboard = new HandymanDashboardManager();
+});
+
+// Handle browser back/forward for tabs
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash.replace('#', '');
+  if (hash && window.handymanDashboard) {
+    window.handymanDashboard.switchTab(hash);
+  }
+});
 </script>
-{% endblock %} 
+{% endblock %}
