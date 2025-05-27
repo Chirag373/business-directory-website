@@ -1,20 +1,29 @@
 <!-- Service Preferences Section -->
-<h2>Service Preferences</h2>
-<h3 class="preferences-heading">What services are you interested in?</h3>
+<h2><i class="fas fa-sliders-h"></i> Service Preferences</h2>
 
 <form class="preferences-form" action="{% url 'user_preferences' %}" method="post">
   {% csrf_token %}
+  
+  <div class="preferences-intro">
+    <p class="lead-text">Select the types of services you're interested in to receive targeted promotional offers from local businesses.</p>
+  </div>
+
+  <h3 class="preferences-heading">
+    <i class="fas fa-check-circle"></i> What services are you looking for?
+  </h3>
+
   <div class="preferences-container">
     {% if all_categories %}
       {% for category in all_categories %}
       <div class="service-category">
         <label class="checkbox-container">
-          <input type="checkbox" name="service_category" value="{{ category.value }}" 
-            {% for selected in selected_categories %}
-              {% if selected.name|lower == category.name|lower or selected.name|lower == category.value|lower %}
-                checked
-              {% endif %}
-            {% endfor %}>
+          <input type="checkbox" 
+                 name="service_category" 
+                 value="{{ category.value }}" 
+                 id="cat-{{ category.value }}"
+                 {% for selected in selected_categories %}
+                   {% if selected.slug == category.value %}checked{% endif %}
+                 {% endfor %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">{{ category.name }}</span>
         </label>
@@ -22,22 +31,49 @@
       {% endfor %}
     {% else %}
       <div class="no-categories-message">
-        <p>No service categories are currently available.</p>
+        <i class="fas fa-info-circle"></i>
+        <p>No service categories are currently available. Please check back later.</p>
       </div>
     {% endif %}
   </div>
 
+  <div class="select-all-container">
+    <button type="button" class="select-all-btn" id="select-all">
+      <i class="fas fa-check-square"></i> Select All
+    </button>
+    <button type="button" class="select-all-btn" id="deselect-all">
+      <i class="fas fa-square"></i> Deselect All
+    </button>
+  </div>
+
   <div class="form-group specific-services">
-    <label for="specific-services">Describe specific services you're looking for</label>
-    <textarea id="specific-services" name="specific_services" placeholder="Example: Need help installing a ceiling fan in my living room">{{ specific_services|default:'' }}</textarea>
+    <label for="specific-services">
+      <i class="fas fa-comment-dots"></i> Describe specific services you're looking for
+    </label>
+    <textarea id="specific-services" 
+              name="specific_services" 
+              placeholder="Example: I need help installing a ceiling fan in my living room, looking for bathroom renovation quotes, need regular lawn maintenance..."
+              rows="4">{{ specific_services|default:'' }}</textarea>
+    <span class="form-hint">Be as specific as possible to help us match you with the right service providers.</span>
   </div>
 
   <div class="toggle-container">
-    <label class="toggle-label">Send me promotional offer notifications</label>
+    <div class="toggle-content">
+      <label class="toggle-label" for="promo-toggle">
+        <i class="fas fa-bell"></i> Send me promotional offer notifications
+      </label>
+      <p class="toggle-description">Get notified about special deals and discounts from businesses in your selected categories.</p>
+    </div>
     <label class="switch">
       <input type="checkbox" id="promo-toggle" name="receive_promotions" {% if receive_notifications %}checked{% endif %}>
       <span class="slider round"></span>
     </label>
+  </div>
+
+  <div class="preferences-summary" id="preferences-summary" style="display: none;">
+    <h4><i class="fas fa-chart-pie"></i> Your Preferences Summary</h4>
+    <p>You have selected <span id="selected-count">0</span> service categories.</p>
+    <div id="selected-categories-list"></div>
   </div>
 
   <div class="form-actions">
@@ -45,4 +81,260 @@
       <i class="fas fa-check"></i> Update Preferences
     </button>
   </div>
-</form> 
+</form>
+
+<style>
+.preferences-intro {
+  background-color: var(--light-color);
+  padding: 1.25rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 2rem;
+}
+
+.lead-text {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.preferences-heading {
+  font-size: 1.25rem;
+  color: var(--dark-color);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.preferences-heading i {
+  color: var(--primary-color);
+}
+
+.service-category {
+  animation: fadeIn 0.3s ease;
+}
+
+.no-categories-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 2rem;
+  background-color: var(--light-color);
+  border-radius: var(--border-radius);
+  color: var(--text-muted);
+}
+
+.no-categories-message i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.select-all-container {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.select-all-btn {
+  background-color: white;
+  border: 2px solid var(--border-color);
+  color: var(--dark-color);
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.select-all-btn:hover {
+  background-color: var(--light-color);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.specific-services label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--dark-color);
+  margin-bottom: 0.75rem;
+}
+
+.specific-services label i {
+  color: var(--primary-color);
+}
+
+.specific-services textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.toggle-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background-color: var(--light-color);
+  border-radius: var(--border-radius);
+  margin-bottom: 2rem;
+  gap: 2rem;
+}
+
+.toggle-content {
+  flex: 1;
+}
+
+.toggle-label {
+  font-weight: 600;
+  color: var(--dark-color);
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.toggle-label i {
+  color: var(--primary-color);
+}
+
+.toggle-description {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.preferences-summary {
+  background-color: rgba(74, 108, 247, 0.05);
+  border: 2px solid var(--primary-color-light);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.preferences-summary h4 {
+  font-size: 1.1rem;
+  color: var(--dark-color);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.preferences-summary h4 i {
+  color: var(--primary-color);
+}
+
+#selected-count {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+#selected-categories-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.selected-category-tag {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  display: inline-block;
+}
+
+@media (max-width: 768px) {
+  .toggle-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .toggle-content {
+    width: 100%;
+  }
+  
+  .switch {
+    align-self: flex-end;
+  }
+  
+  .select-all-container {
+    flex-direction: column;
+  }
+  
+  .select-all-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
+
+<script>
+// Preferences specific JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+  const checkboxes = document.querySelectorAll('input[name="service_category"]');
+  const selectAllBtn = document.getElementById('select-all');
+  const deselectAllBtn = document.getElementById('deselect-all');
+  const summaryDiv = document.getElementById('preferences-summary');
+  const selectedCount = document.getElementById('selected-count');
+  const selectedList = document.getElementById('selected-categories-list');
+  
+  function updateSummary() {
+    const checked = document.querySelectorAll('input[name="service_category"]:checked');
+    const count = checked.length;
+    
+    selectedCount.textContent = count;
+    
+    if (count > 0) {
+      summaryDiv.style.display = 'block';
+      selectedList.innerHTML = Array.from(checked).map(cb => {
+        const label = cb.parentElement.querySelector('.checkbox-label').textContent;
+        return `<span class="selected-category-tag">${label}</span>`;
+      }).join('');
+    } else {
+      summaryDiv.style.display = 'none';
+    }
+  }
+  
+  checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', updateSummary);
+  });
+  
+  if (selectAllBtn) {
+    selectAllBtn.addEventListener('click', function() {
+      checkboxes.forEach(cb => cb.checked = true);
+      updateSummary();
+    });
+  }
+  
+  if (deselectAllBtn) {
+    deselectAllBtn.addEventListener('click', function() {
+      checkboxes.forEach(cb => cb.checked = false);
+      updateSummary();
+    });
+  }
+  
+  // Initial summary update
+  updateSummary();
+});
+</script>

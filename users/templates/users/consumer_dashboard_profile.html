@@ -1,88 +1,105 @@
 <!-- Profile Management Section -->
-<h2>Profile Management</h2>
+<h2><i class="fas fa-user-circle"></i> Profile Management</h2>
+
 <div class="profile-completion">
   <div class="completion-label">Profile Completion:</div>
   <div class="progress-container">
-    <div class="progress-bar" id="profile-progress"></div>
+    <div class="progress-bar" id="profile-progress" style="width: 0%"></div>
   </div>
   <div class="completion-percentage">0%</div>
 </div>
 
 <form class="profile-form" action="{% url 'user_profile' %}" method="post">
   {% csrf_token %}
-  <div class="form-row">
-    <div class="form-group">
-      <label for="first-name">First Name</label>
-      <input type="text" id="first-name" name="first_name" value="{{ user.first_name|default:'' }}">
-    </div>
-    <div class="form-group">
-      <label for="last-name">Last Name</label>
-      <input type="text" id="last-name" name="last_name" value="{{ user.last_name|default:'' }}">
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group">
-      <label for="address-number">Address Number</label>
-      <input type="text" id="address-number" name="address_number" value="{{ address_number|default:'' }}">
-    </div>
-    <div class="form-group">
-      <label for="address-street">Address Street</label>
-      <input type="text" id="address-street" name="address_street" value="{{ address_street|default:'' }}">
+  
+  <!-- Personal Information -->
+  <div class="form-section">
+    <h3 class="section-title"><i class="fas fa-info-circle"></i> Personal Information</h3>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label for="first-name">First Name <span class="required">*</span></label>
+        <input type="text" id="first-name" name="first_name" value="{{ user.first_name|default:'' }}" required>
+      </div>
+      <div class="form-group">
+        <label for="last-name">Last Name <span class="required">*</span></label>
+        <input type="text" id="last-name" name="last_name" value="{{ user.last_name|default:'' }}" required>
+      </div>
     </div>
   </div>
 
-  <div class="form-row">
-    <div class="form-group">
-      <label for="state">State</label>
-      <select id="state" name="state">
-        <option value="">Select a State</option>
-        {% if states %}
-          {% for state_code, state_name in states %}
-            <option value="{{ state_code }}" {% if user.address.state == state_code %}selected{% endif %}>{{ state_name }}</option>
-          {% endfor %}
-        {% endif %}
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="county">County</label>
-      <select id="county" name="county" {% if not user.address.state %}disabled{% endif %}>
-        <option value="">Select a County</option>
-        {% if counties %}
-          {% for county in counties %}
-            <option value="{{ county }}" {% if user.address.county == county %}selected{% endif %}>{{ county }}</option>
-          {% endfor %}
-        {% endif %}
-      </select>
+  <!-- Contact Information -->
+  <div class="form-section">
+    <h3 class="section-title"><i class="fas fa-phone"></i> Contact Information</h3>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label for="email">Email Address <span class="required">*</span></label>
+        <input type="email" id="email" name="email" value="{{ user.email|default:'' }}" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone Number <span class="required">*</span></label>
+        <input type="tel" id="phone" name="phone" value="{{ user.phone_number|default:'' }}" placeholder="(123) 456-7890" required>
+      </div>
     </div>
   </div>
 
-  <div class="form-row">
-    <div class="form-group">
-      <label for="city">City</label>
-      <select id="city" name="city" {% if not user.address.county %}disabled{% endif %}>
-        <option value="">Select a City</option>
-        {% if cities %}
-          {% for city in cities %}
-            <option value="{{ city }}" {% if user.address.city == city %}selected{% endif %}>{{ city }}</option>
-          {% endfor %}
-        {% endif %}
-      </select>
+  <!-- Address Information -->
+  <div class="form-section">
+    <h3 class="section-title"><i class="fas fa-map-marker-alt"></i> Address Information</h3>
+    
+    <div class="form-row">
+      <div class="form-group" style="flex: 0.3;">
+        <label for="address-number">Street Number <span class="required">*</span></label>
+        <input type="text" id="address-number" name="address_number" value="{{ address_number|default:'' }}" placeholder="123" required>
+      </div>
+      <div class="form-group" style="flex: 0.7;">
+        <label for="address-street">Street Name <span class="required">*</span></label>
+        <input type="text" id="address-street" name="address_street" value="{{ address_street|default:'' }}" placeholder="Main Street" required>
+      </div>
     </div>
-    <div class="form-group">
-      <label for="zip">ZIP Code</label>
-      <input type="text" id="zip" name="zip" value="{% if user.address %}{{ user.address.postal_code|default:'' }}{% endif %}">
-    </div>
-  </div>
 
-  <div class="form-row">
-    <div class="form-group">
-      <label for="email">Email Address</label>
-      <input type="email" id="email" name="email" value="{{ user.email|default:'' }}">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="state">State <span class="required">*</span></label>
+        <select id="state" name="state" data-current="{{ user.address.state|default:'' }}" required>
+          <option value="">Select a State</option>
+          {% if states %}
+            {% for state_code, state_name in states %}
+              <option value="{{ state_code }}" {% if user.address.state == state_code %}selected{% endif %}>{{ state_name }}</option>
+            {% endfor %}
+          {% endif %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="county">County</label>
+        <select id="county" name="county" {% if not user.address.state %}disabled{% endif %}>
+          <option value="">Select a County</option>
+          {% if counties %}
+            {% for county in counties %}
+              <option value="{{ county }}" {% if user.address.county == county %}selected{% endif %}>{{ county }}</option>
+            {% endfor %}
+          {% endif %}
+        </select>
+      </div>
     </div>
-    <div class="form-group">
-      <label for="phone">Phone Number</label>
-      <input type="tel" id="phone" name="phone" value="{{ user.phone_number|default:'' }}">
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="city">City <span class="required">*</span></label>
+        <select id="city" name="city" {% if not user.address.county %}disabled{% endif %} required>
+          <option value="">Select a City</option>
+          {% if cities %}
+            {% for city in cities %}
+              <option value="{{ city }}" {% if user.address.city == city %}selected{% endif %}>{{ city }}</option>
+            {% endfor %}
+          {% endif %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="zip">ZIP Code <span class="required">*</span></label>
+        <input type="text" id="zip" name="zip" value="{{ user.address.postal_code|default:'' }}" placeholder="12345" pattern="[0-9]{5}" maxlength="5" required>
+      </div>
     </div>
   </div>
 
@@ -92,7 +109,48 @@
     </button>
   </div>
   
-  <div class="last-updated">
-    <i class="fas fa-clock"></i> Last updated: <span id="last-updated-timestamp">{{ user.updated_at|date:"F j, Y \a\t g:i A"|default:"Never" }}</span>
+  <div class="last-updated text-center mt-2">
+    <i class="fas fa-clock"></i> Last updated: 
+    <span id="last-updated-timestamp">
+      {% if user.updated_at %}
+        {{ user.updated_at|date:"F j, Y \a\t g:i A" }}
+      {% else %}
+        Never
+      {% endif %}
+    </span>
   </div>
-</form> 
+</form>
+
+<style>
+.required {
+  color: var(--danger-color);
+  font-weight: normal;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 1rem;
+  padding-bottom: 0;
+}
+
+.section-title {
+  font-size: 1.15rem;
+  color: var(--dark-color);
+  margin-bottom: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title i {
+  color: var(--primary-color);
+  font-size: 1.1rem;
+}
+</style>

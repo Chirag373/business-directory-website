@@ -1,28 +1,36 @@
 <!-- Promotional Offers Section -->
-<h2>Promotional Offers</h2>
+<h2><i class="fas fa-tags"></i> Promotional Offers</h2>
+
+<div class="offers-header">
+  <p class="offers-description">Browse exclusive discounts and special offers from local businesses in your area.</p>
+</div>
 
 <div class="filters-container">
+  <!-- Search will be inserted here by JavaScript -->
+  
   <div class="filter-group">
-    <label for="category-filter">Category:</label>
-    <select id="category-filter">
+    <label for="category-filter"><i class="fas fa-filter"></i> Category:</label>
+    <select id="category-filter" aria-label="Filter by category">
       <option value="all">All Categories</option>
       {% for category in categories %}
-        <option value="{{ category.value }}" {% if filter_category == category.value %}selected{% endif %}>{{ category.name }}</option>
+        <option value="{{ category.value }}" {% if filter_category == category.value %}selected{% endif %}>
+          {{ category.name }}
+        </option>
       {% endfor %}
     </select>
   </div>
   
   <div class="filter-group">
-    <label for="date-filter">Date:</label>
-    <select id="date-filter">
+    <label for="date-filter"><i class="fas fa-calendar"></i> Sort by Date:</label>
+    <select id="date-filter" aria-label="Sort by date">
       <option value="newest" {% if filter_date == 'newest' %}selected{% endif %}>Newest First</option>
       <option value="oldest" {% if filter_date == 'oldest' %}selected{% endif %}>Oldest First</option>
     </select>
   </div>
   
   <div class="filter-group">
-    <label for="discount-filter">Discount:</label>
-    <select id="discount-filter">
+    <label for="discount-filter"><i class="fas fa-percent"></i> Discount:</label>
+    <select id="discount-filter" aria-label="Sort by discount">
       <option value="highest" {% if filter_discount == 'highest' %}selected{% endif %}>Highest First</option>
       <option value="lowest" {% if filter_discount == 'lowest' %}selected{% endif %}>Lowest First</option>
     </select>
@@ -37,91 +45,372 @@
   </div>
 </div>
 
-<div class="quick-filters">
-  {% for category in categories|slice:":4" %}
-    <button class="quick-filter-button" data-category="{{ category.value }}">{{ category.name }}</button>
+<div class="quick-filters" role="group" aria-label="Quick filter buttons">
+  <span class="quick-filter-label">Quick Filters:</span>
+  {% for category in categories|slice:":5" %}
+    <button class="quick-filter-button" data-category="{{ category.value }}" aria-label="Filter by {{ category.name }}">
+      {{ category.name }}
+    </button>
   {% empty %}
     <button class="quick-filter-button" data-category="plumbing">Plumbing</button>
     <button class="quick-filter-button" data-category="electrical">Electrical</button>
     <button class="quick-filter-button" data-category="general">General</button>
     <button class="quick-filter-button" data-category="bathroom">Bathroom</button>
+    <button class="quick-filter-button" data-category="kitchen">Kitchen</button>
   {% endfor %}
 </div>
 
-<div class="offers-container">
+<div class="offers-stats-bar">
+  <div class="stat-item">
+    <i class="fas fa-chart-bar"></i>
+    <span>Showing <strong id="visible-offers">{{ offers|length }}</strong> offers</span>
+  </div>
+  <div class="stat-item">
+    <i class="fas fa-fire"></i>
+    <span><strong id="hot-deals">0</strong> hot deals (50%+ off)</span>
+  </div>
+  <div class="stat-item">
+    <i class="fas fa-clock"></i>
+    <span><strong id="expiring-today">0</strong> expiring today</span>
+  </div>
+</div>
+
+<div class="offers-container" role="region" aria-label="Promotional offers">
   {% if offers %}
     {% for offer in offers %}
-      <div class="offer-card {% if offer.expiring_soon %}expiring-soon{% endif %} {% if offer.categories_match_preferences %}matches-preferences{% endif %}">
+      <div class="offer-card {% if offer.expiring_soon %}expiring-soon{% endif %} {% if offer.categories_match_preferences %}matches-preferences{% endif %}" data-offer-id="{{ offer.id }}">
         <div class="offer-card-inner">
+          <!-- Front of card -->
           <div class="offer-card-front">
+            {% if offer.categories_match_preferences %}
+              <div class="preference-badge">
+                <i class="fas fa-heart"></i> Matches Your Interests
+              </div>
+            {% endif %}
+            
             <div class="business-card">
               <div class="business-logo">
                 <i class="fas fa-wrench"></i>
               </div>
               <h3 class="business-name">{{ offer.business_name }}</h3>
               <p class="business-title">Professional Services</p>
-              <p class="business-contact">{{ offer.business_phone }}</p>
+              <p class="business-contact">
+                <i class="fas fa-phone-alt"></i> {{ offer.business_phone|default:"Contact for details" }}
+              </p>
             </div>
+            
             <div class="offer-badge">
               <div class="discount-percentage">{{ offer.discount_percentage }}%</div>
               <div class="discount-label">OFF</div>
             </div>
+            
             <div class="offer-dates">
-              <span class="valid-label">Valid:</span> {{ offer.start_date|date:"F j, Y" }} - {{ offer.end_date|date:"F j, Y" }}
+              <i class="fas fa-calendar-check"></i>
+              <span class="valid-label">Valid:</span> 
+              {{ offer.start_date }} - {{ offer.end_date }}
             </div>
+            
             <div class="offer-code-container">
-              <span class="offer-code-label">Code:</span>
+              <span class="offer-code-label">Promo Code:</span>
               <span class="offer-code">{{ offer.code }}</span>
+              <button class="copy-code-btn" data-code="{{ offer.code }}" aria-label="Copy code">
+                <i class="fas fa-copy"></i>
+              </button>
             </div>
+            
             <div class="offer-categories">
               {% for category in offer.categories %}
-                <span class="category-tag">{{ category }}</span>
+                <span class="category-tag">
+                  <i class="fas fa-tag"></i> {{ category }}
+                </span>
               {% endfor %}
             </div>
-            <button class="view-details-button">View Details</button>
+            
+            <button class="view-details-button">
+              View Details <i class="fas fa-arrow-right"></i>
+            </button>
           </div>
+          
+          <!-- Back of card -->
           <div class="offer-card-back">
             <div class="offer-details">
-              <h3>{{ offer.title }}</h3>
-              <p>{{ offer.description }}</p>
+              <h3>{{ offer.title|default:"Special Offer Details" }}</h3>
+              <p>{{ offer.description|default:"Contact business for more details about this amazing offer!" }}</p>
+              
               <div class="business-details">
+                <h4><i class="fas fa-building"></i> Business Information</h4>
+                
                 <div class="detail-item">
                   <i class="fas fa-user"></i>
-                  <span>Business Owner</span>
+                  <span>{{ offer.business_name }}</span>
                 </div>
+                
+                {% if offer.business_phone %}
                 <div class="detail-item">
                   <i class="fas fa-phone"></i>
-                  <span>{{ offer.business_phone }}</span>
+                  <span>
+                    <a href="tel:{{ offer.business_phone }}">{{ offer.business_phone }}</a>
+                  </span>
                 </div>
+                {% endif %}
+                
+                {% if offer.business_email %}
                 <div class="detail-item">
                   <i class="fas fa-envelope"></i>
-                  <span>{{ offer.business_email }}</span>
+                  <span>
+                    <a href="mailto:{{ offer.business_email }}">{{ offer.business_email }}</a>
+                  </span>
                 </div>
+                {% endif %}
+                
+                {% if offer.business_address %}
                 <div class="detail-item">
                   <i class="fas fa-map-marker-alt"></i>
                   <span>{{ offer.business_address }}</span>
                 </div>
+                {% endif %}
               </div>
+              
+              {% if offer.expiring_soon %}
+              <div class="countdown-container warning">
+                <div class="countdown-label">
+                  <i class="fas fa-exclamation-triangle"></i> Expires Soon!
+                </div>
+                <div class="countdown" data-expiry="{{ offer.end_date }}">
+                  {{ offer.days_until_expiry }} days remaining
+                </div>
+              </div>
+              {% else %}
               <div class="countdown-container">
-                <div class="countdown-label">Expires in:</div>
-                <div class="countdown" data-expiry="{{ offer.end_date|date:'Y-m-d' }}">{{ offer.days_until_expiry }} days</div>
+                <div class="countdown-label">Time Remaining:</div>
+                <div class="countdown" data-expiry="{{ offer.end_date }}">
+                  {{ offer.days_until_expiry }} days
+                </div>
               </div>
+              {% endif %}
             </div>
+            
             <button class="back-to-front-button">
-              <i class="fas fa-arrow-left"></i> Back
+              <i class="fas fa-arrow-left"></i> Back to Offer
             </button>
           </div>
         </div>
       </div>
     {% endfor %}
   {% else %}
-    <!-- Empty state for when there are no offers -->
+    <!-- Empty state -->
     <div class="empty-offers">
       <div class="empty-state-illustration">
         <i class="fas fa-tags"></i>
       </div>
-      <h3>No promotional offers yet</h3>
-      <p>Update your service preferences to receive targeted discounts!</p>
+      <h3>No promotional offers available</h3>
+      <p>Check back soon or update your service preferences to see more targeted offers!</p>
     </div>
   {% endif %}
-</div> 
+</div>
+
+<!-- Loading spinner (hidden by default) -->
+<div class="offers-loading" style="display: none;">
+  <div class="spinner-container">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p>Loading amazing offers...</p>
+  </div>
+</div>
+
+<style>
+.offers-header {
+  margin-bottom: 2rem;
+}
+
+.offers-description {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.quick-filter-label {
+  font-weight: 600;
+  color: var(--dark-color);
+  margin-right: 1rem;
+}
+
+.offers-stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  padding: 1rem 1.5rem;
+  background-color: var(--light-color);
+  border-radius: var(--border-radius);
+  margin-bottom: 2rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.stat-item i {
+  color: var(--primary-color);
+}
+
+.stat-item strong {
+  color: var(--dark-color);
+  font-weight: 700;
+}
+
+.preference-badge {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--success-color) 0%, #5cb85c 100%);
+  color: white;
+  padding: 0.375rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.copy-code-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  margin-left: 0.5rem;
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+}
+
+.copy-code-btn:hover {
+  background-color: rgba(74, 108, 247, 0.1);
+}
+
+.copy-code-btn.copied {
+  color: var(--success-color);
+}
+
+.business-details h4 {
+  font-size: 1rem;
+  color: var(--dark-color);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.detail-item a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.detail-item a:hover {
+  text-decoration: underline;
+}
+
+.countdown-container.warning {
+  background: linear-gradient(135deg, var(--danger-color) 0%, #e83e8c 100%);
+  color: white;
+}
+
+.countdown-container.warning .countdown-label i {
+  margin-right: 0.5rem;
+}
+
+.offers-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.spinner-container {
+  display: inline-block;
+  padding: 2rem;
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow);
+}
+
+.spinner-container i {
+  font-size: 3rem;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.spinner-container p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+}
+
+@media (max-width: 768px) {
+  .offers-stats-bar {
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .stat-item {
+    font-size: 0.875rem;
+  }
+  
+  .quick-filter-label {
+    display: none;
+  }
+}
+</style>
+
+<script>
+// Copy code functionality
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.copy-code-btn')) {
+    const btn = e.target.closest('.copy-code-btn');
+    const code = btn.dataset.code;
+    
+    navigator.clipboard.writeText(code).then(() => {
+      btn.classList.add('copied');
+      btn.innerHTML = '<i class="fas fa-check"></i>';
+      
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = '<i class="fas fa-copy"></i>';
+      }, 2000);
+      
+      if (window.dashboard) {
+        window.dashboard.showToast('Promo code copied!', 'success');
+      }
+    }).catch(() => {
+      if (window.dashboard) {
+        window.dashboard.showToast('Failed to copy code', 'error');
+      }
+    });
+  }
+});
+
+// Update stats on load
+document.addEventListener('DOMContentLoaded', function() {
+  const offers = document.querySelectorAll('.offer-card');
+  let hotDeals = 0;
+  let expiringToday = 0;
+  
+  offers.forEach(card => {
+    const discount = parseInt(card.querySelector('.discount-percentage').textContent);
+    if (discount >= 50) hotDeals++;
+    
+    const daysRemaining = parseInt(card.querySelector('.countdown').textContent);
+    if (daysRemaining === 0) expiringToday++;
+  });
+  
+  document.getElementById('hot-deals').textContent = hotDeals;
+  document.getElementById('expiring-today').textContent = expiringToday;
+});
+</script>

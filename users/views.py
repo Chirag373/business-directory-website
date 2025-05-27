@@ -3,206 +3,674 @@ from django.contrib.auth import login, logout, authenticate, get_user_model
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.core.mail import send_mail
-from django.urls import reverse
-from django.conf import settings
-from .models import User, ConsumerInterest, UserType, UserProfile
-from core.models import Address, Category
-from .utils import send_login_email, process_login_token, process_logout
+from django.db.models import Q
+from django.utils import timezone
+from datetime import timedelta
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 import uuid
 import json
-from django.utils import timezone
 
-# Create your views here.
-def signup(request):
+from .models import User, ConsumerInterest, UserType, UserProfile, ServiceCategory
+from core.models import Address, Category
+from .utils import send_login_email, process_login_token, process_logout
+
+# Authentication Views
+def login_view(request):
+    """Handle user login with password or redirect to magic link"""
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(request, email=email, password=password)
+        
+        if user is not None:
+            login(request, user)
+            messages.success(request, 'Login successful!')
+            return redirect(get_user_dashboard_url(user))
+        else:
+            messages.error(request, 'Invalid email or password.')
+    
+    return render(request, 'users/login.html')
+
+def register_view(request):
+    """Display account type selection page"""
     return render(request, 'users/signup.html')
 
-# consumer signup
-def requestor_signup(request):
+def generate_login_link(request):
+    """Generate and send magic login link"""
     if request.method == 'POST':
-        # Get form data
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
         email = request.POST.get('email')
-        phone = request.POST.get('phone')
-        
-        # Address fields
-        street_number = request.POST.get('address_number')
-        street_name = request.POST.get('street_address')
-        street = f"{street_number} {street_name}".strip()
-        city = request.POST.get('city')
-        state = request.POST.get('state')
-        county = request.POST.get('county')
-        postal_code = request.POST.get('zip')
-        
-        
-        # Validate required fields
-        if not all([first_name, last_name, email, phone, street, city, state, postal_code]):
-            messages.error(request, 'Please fill in all required fields.')
-            return render(request, 'users/requestor_signup.html')
-        
-        # Check if user already exists
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'A user with that email already exists')
-            return render(request, 'users/requestor_signup.html')
         
         try:
-            # Create address
-            address = Address.objects.create(
-                street=street,
-                city=city,
-                state=state,
-                postal_code=postal_code
-            )
-            
-            # Generate a random temporary password
-            temp_password = uuid.uuid4().hex[:8]
-            
-            # Create user
-            user = User.objects.create_user(
-                email=email,
-                first_name=first_name,
-                last_name=last_name,
-                phone_number=phone,
-                address=address,
-                user_type=UserType.REQUESTOR,
-                password=temp_password
-            )
-            
-            # Handle promotional preferences
-            if request.POST.get('promotional_offers'):
-                receive_notifications = True
-                interests = ConsumerInterest.objects.create(
-                    user=user,
-                    receive_notifications=receive_notifications
-                )
-                
-                # Add selected categories to interests
-                selected_categories = request.POST.getlist('categories')
-                if selected_categories:
-                    for category_name in selected_categories:
-                        category, created = Category.objects.get_or_create(name=category_name, slug=category_name.lower())
-                        interests.categories.add(category)
-            
-            # Send login email with magic link
-            send_login_email(request, user, "Consumer")
-            
-            # Add success message
-            messages.success(request, 'Your account has been created successfully! Please check your email (or console for now) to get your login link.')
-            
-            # Redirect to a "check your email" page
-            return render(request, 'users/check_email.html', {'email': email})
-        
-        except Exception as e:
-            messages.error(request, f'An error occurred during registration: {str(e)}')
-            return render(request, 'users/requestor_signup.html')
+            user = User.objects.get(email=email)
+            login_url = send_login_email(request, user)
+            messages.info(request, f'Login link generated: {login_url}')
+            return render(request, 'users/login_link.html', {'email': email})
+        except User.DoesNotExist:
+            messages.error(request, 'No account found with this email.')
+            return redirect('login')
     
-    # For GET requests
+    return redirect('login')
+
+def verify_token(request, token):
+    """Verify magic link token and log user in"""
+    success, redirect_url, error_message = process_login_token(request, token)
+    
+    if success:
+        messages.success(request, 'Login successful!')
+        return redirect(redirect_url)
+    else:
+        if error_message:
+            messages.error(request, error_message)
+        return redirect('login')
+
+def magic_link_login(request, token):
+    """Alias for verify_token for backward compatibility"""
+    return verify_token(request, token)
+
+# Registration Views
+def requestor_signup(request):
+    """Handle consumer/requestor registration"""
+    if request.method == 'POST':
+        return process_requestor_registration(request)
+    
     return render(request, 'users/requestor_signup.html')
 
+def process_requestor_registration(request):
+    """Process consumer registration form submission"""
+    # Extract form data
+    form_data = extract_registration_data(request)
+    
+    # Validate form data
+    errors = validate_registration_data(form_data)
+    if errors:
+        for error in errors:
+            messages.error(request, error)
+        return render(request, 'users/requestor_signup.html')
+    
+    try:
+        # Create user and related objects
+        user = create_consumer_user(form_data)
+        
+        # Handle promotional preferences
+        if form_data['promotional_offers']:
+            setup_consumer_interests(user, form_data['categories'])
+        
+        # Send login email
+        send_login_email(request, user, "Consumer")
+        
+        messages.success(request, 'Account created successfully! Check your email for login link.')
+        return render(request, 'users/check_email.html', {'email': form_data['email']})
+        
+    except Exception as e:
+        messages.error(request, f'Registration error: {str(e)}')
+        return render(request, 'users/requestor_signup.html')
+
+# Dashboard Views
 @login_required
 def consumer_dashboard(request):
-    """
-    Main view for the consumer dashboard
-    """
+    """Main consumer dashboard view"""
     user = request.user
     
-    # If user's token is valid, clear it as they're now logged in
-    # This ensures tokens are truly one-time use
+    # Clear token if still valid (ensures one-time use)
     if user.login_token and user.is_token_valid():
         user.clear_token()
     
-    # Import needed models
-    from promotor.models import PromotionalOffer
-    from django.utils import timezone
-    from datetime import timedelta
+    # Gather dashboard data
+    context = {
+        'user': user,
+        **get_dashboard_stats(user),
+        **get_user_profile_data(user),
+        **get_user_preferences_data(user),
+        **get_offers_data(user),
+        **get_notification_settings(user),
+        'states': get_us_states(),
+        'all_categories': get_formatted_categories(),
+    }
     
-    # Get today's date for offer calculations
+    return render(request, 'users/consumer_dashboard.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def user_profile(request):
+    """Handle profile updates via AJAX"""
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+    
+    user = request.user
+    
+    try:
+        # Update user basic info
+        update_user_info(user, request.POST)
+        
+        # Update or create address
+        update_user_address(user, request.POST)
+        
+        user.save()
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Profile updated successfully!'
+        })
+        
+    except ValueError as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        })
+
+@login_required
+@require_http_methods(["POST"])
+def user_preferences(request):
+    """Handle service preferences updates via AJAX"""
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+    
+    user = request.user
+    
+    try:
+        # Update preferences
+        update_user_preferences(user, request.POST)
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Preferences updated successfully!'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Error updating preferences: {str(e)}'
+        })
+
+@login_required
+def filter_offers(request):
+    """Filter promotional offers based on criteria"""
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return redirect('consumer_dashboard')
+    
+    # Get filter parameters
+    filters = {
+        'category': request.GET.get('category', 'all'),
+        'date_sort': request.GET.get('date', 'newest'),
+        'discount_sort': request.GET.get('discount', 'highest'),
+        'active_only': request.GET.get('active_only', 'true').lower() == 'true',
+        'search_query': request.GET.get('search', '').strip()
+    }
+    
+    # Get filtered offers
+    offers = get_filtered_offers(request.user, filters)
+    
+    # Get stats
+    stats = get_offers_stats()
+    
+    return JsonResponse({
+        'status': 'success',
+        'offers': offers,
+        'total_offers': stats['total'],
+        'expiring_soon_count': stats['expiring_soon'],
+        'active_filters': filters
+    })
+
+@login_required
+def notifications_tab(request):
+    """Handle notification settings"""
+    user = request.user
+    
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        try:
+            update_notification_settings(user, request.POST)
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Notification settings updated!'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            })
+    
+    # GET request - return current settings
+    return JsonResponse(get_notification_settings(user))
+
+# Helper Functions
+def get_user_dashboard_url(user):
+    """Get appropriate dashboard URL based on user type"""
+    dashboard_urls = {
+        UserType.REQUESTOR: 'consumer_dashboard',
+        UserType.HANDYMAN: 'handyman_dashboard',
+        UserType.PROMOTER: 'promoter_dashboard'
+    }
+    return dashboard_urls.get(user.user_type, 'consumer_dashboard')
+
+def extract_registration_data(request):
+    """Extract and organize registration form data"""
+    return {
+        'first_name': request.POST.get('first_name', '').strip(),
+        'last_name': request.POST.get('last_name', '').strip(),
+        'email': request.POST.get('email', '').strip().lower(),
+        'phone': request.POST.get('phone', '').strip(),
+        'street_number': request.POST.get('address_number', '').strip(),
+        'street_name': request.POST.get('street_address', '').strip(),
+        'city': request.POST.get('city', '').strip(),
+        'state': request.POST.get('state', '').strip(),
+        'county': request.POST.get('county', '').strip(),
+        'postal_code': request.POST.get('zip', '').strip(),
+        'promotional_offers': request.POST.get('promotional_offers') == 'on',
+        'categories': request.POST.getlist('categories')
+    }
+
+def validate_registration_data(data):
+    """Validate registration form data"""
+    errors = []
+    
+    # Check required fields
+    required_fields = ['first_name', 'last_name', 'email', 'phone', 
+                      'city', 'state', 'postal_code']
+    
+    for field in required_fields:
+        if not data.get(field):
+            errors.append(f'{field.replace("_", " ").title()} is required.')
+    
+    # Check if street address is provided
+    if not data['street_number'] and not data['street_name']:
+        errors.append('Street address is required.')
+    
+    # Check email uniqueness
+    if data['email'] and User.objects.filter(email=data['email']).exists():
+        errors.append('An account with this email already exists.')
+    
+    return errors
+
+def create_consumer_user(data):
+    """Create a new consumer user with address"""
+    # Create address
+    street = f"{data['street_number']} {data['street_name']}".strip()
+    address = Address.objects.create(
+        street=street,
+        city=data['city'],
+        state=data['state'],
+        postal_code=data['postal_code']
+    )
+    
+    # Create user with temporary password
+    temp_password = uuid.uuid4().hex[:8]
+    user = User.objects.create_user(
+        email=data['email'],
+        first_name=data['first_name'],
+        last_name=data['last_name'],
+        phone_number=data['phone'],
+        address=address,
+        user_type=UserType.REQUESTOR,
+        password=temp_password
+    )
+    
+    return user
+
+def setup_consumer_interests(user, selected_categories):
+    """Set up consumer interests and categories"""
+    interests = ConsumerInterest.objects.create(
+        user=user,
+        receive_notifications=True
+    )
+    
+    # Add selected categories
+    for category_name in selected_categories:
+        category, _ = Category.objects.get_or_create(
+            name=category_name.title(),
+            slug=category_name.lower().replace(' ', '-')
+        )
+        interests.categories.add(category)
+    
+    return interests
+
+def get_dashboard_stats(user):
+    """Get dashboard statistics"""
+    from promotor.models import PromotionalOffer
     today = timezone.now().date()
     
-    # Calculate dashboard stats
-    # 1. Total active offers
-    total_offers = PromotionalOffer.objects.filter(
+    # Active offers count
+    active_offers = PromotionalOffer.objects.filter(
         is_active=True,
         start_date__lte=today,
         end_date__gte=today
-    ).count()
+    )
     
-    # 2. Offers expiring soon (within 7 days)
+    # Expiring soon (within 7 days)
     expiry_threshold = today + timedelta(days=7)
-    expiring_soon = PromotionalOffer.objects.filter(
-        is_active=True,
-        start_date__lte=today,
-        end_date__gte=today,
-        end_date__lte=expiry_threshold
-    ).count()
+    expiring_soon = active_offers.filter(end_date__lte=expiry_threshold).count()
     
-    # Get user's interests for preferred categories
+    # Matching preferences
     try:
         interests = ConsumerInterest.objects.get(user=user)
-        # 3. Active offers matching user's preferred categories
         preferred_categories = interests.categories.all()
-        if preferred_categories:
-            matching_offers = PromotionalOffer.objects.filter(
-                is_active=True,
-                start_date__lte=today,
-                end_date__gte=today,
-                categories__in=preferred_categories
-            ).distinct().count()
-        else:
-            matching_offers = 0
-        receive_notifications = interests.receive_notifications
+        matching_offers = active_offers.filter(
+            categories__in=preferred_categories
+        ).distinct().count() if preferred_categories else 0
     except ConsumerInterest.DoesNotExist:
-        interests = None
-        preferred_categories = []
         matching_offers = 0
-        receive_notifications = True
     
-    # Get specific services from user profile
-    specific_services = ""
-    if hasattr(user, 'profile') and user.profile and user.profile.bio:
-        specific_services = user.profile.bio
-    
-    # Prepare address data
+    return {
+        'total_offers': active_offers.count(),
+        'active_offers': active_offers.count(),
+        'expiring_soon': expiring_soon,
+        'matching_offers': matching_offers
+    }
+
+def get_user_profile_data(user):
+    """Get user profile data for dashboard"""
     address_number = ''
     address_street = ''
     
+    if user.address and user.address.street:
+        parts = user.address.street.split(' ', 1)
+        address_number = parts[0] if len(parts) > 0 else ''
+        address_street = parts[1] if len(parts) > 1 else ''
+    
+    return {
+        'address_number': address_number,
+        'address_street': address_street
+    }
+
+def get_user_preferences_data(user):
+    """Get user service preferences"""
+    try:
+        interests = ConsumerInterest.objects.get(user=user)
+        selected_categories = list(interests.categories.all())
+        receive_notifications = interests.receive_notifications
+        
+        # Get specific services from profile
+        specific_services = ""
+        if hasattr(user, 'profile') and user.profile:
+            specific_services = user.profile.bio or ""
+            
+    except ConsumerInterest.DoesNotExist:
+        selected_categories = []
+        receive_notifications = True
+        specific_services = ""
+    
+    return {
+        'selected_categories': selected_categories,
+        'receive_notifications': receive_notifications,
+        'specific_services': specific_services
+    }
+
+def get_offers_data(user, limit=None):
+    """Get promotional offers data"""
+    from promotor.models import PromotionalOffer
+    today = timezone.now().date()
+    
+    offers_query = PromotionalOffer.objects.filter(
+        is_active=True,
+        start_date__lte=today,
+        end_date__gte=today
+    ).order_by('-discount_percentage')
+    
+    if limit:
+        offers_query = offers_query[:limit]
+    
+    # Get user's preferred categories
+    try:
+        interests = ConsumerInterest.objects.get(user=user)
+        preferred_categories = interests.categories.all()
+    except ConsumerInterest.DoesNotExist:
+        preferred_categories = []
+    
+    offers_data = []
+    for offer in offers_query:
+        offers_data.append(format_offer_data(offer, today, preferred_categories))
+    
+    return {
+        'offers': offers_data,
+        'filter_category': 'all',
+        'filter_date': 'newest',
+        'filter_discount': 'highest',
+        'filter_active_only': True
+    }
+
+def format_offer_data(offer, today, preferred_categories):
+    """Format single offer data for frontend"""
+    days_until_expiry = (offer.end_date - today).days if offer.end_date >= today else 0
+    
+    # Get business info safely
+    business_info = {
+        'name': 'Business Name',
+        'email': '',
+        'phone': '',
+        'address': ''
+    }
+    
+    if hasattr(offer, 'user') and offer.user:
+        business_info.update({
+            'name': offer.user.business_name or f"{offer.user.first_name} {offer.user.last_name}",
+            'email': offer.user.email,
+            'phone': offer.user.phone_number or '',
+            'address': str(offer.user.address) if offer.user.address else ''
+        })
+    
+    return {
+        'id': offer.id,
+        'title': getattr(offer, 'title', f"{offer.discount_percentage}% Off"),
+        'description': offer.description,
+        'discount_percentage': offer.discount_percentage,
+        'code': offer.code,
+        'start_date': offer.start_date.strftime("%b %d, %Y"),
+        'end_date': offer.end_date.strftime("%b %d, %Y"),
+        'business_name': business_info['name'],
+        'business_email': business_info['email'],
+        'business_phone': business_info['phone'],
+        'business_address': business_info['address'],
+        'categories': [cat.name for cat in offer.categories.all()],
+        'days_until_expiry': max(0, days_until_expiry),
+        'expiring_soon': 0 <= days_until_expiry <= 7,
+        'expired': days_until_expiry < 0,
+        'categories_match_preferences': any(
+            cat in preferred_categories for cat in offer.categories.all()
+        ) if preferred_categories else False
+    }
+
+def get_notification_settings(user):
+    """Get user's notification settings"""
+    try:
+        interests = ConsumerInterest.objects.get(user=user)
+        return {
+            'notification_preference': interests.notification_preference,
+            'min_discount': interests.min_discount_threshold,
+            'time_period': interests.notification_time_period,
+            'notification_limit': interests.notification_limit,
+            'email_format': interests.email_format,
+            'status': 'success'
+        }
+    except ConsumerInterest.DoesNotExist:
+        return {
+            'notification_preference': 'all',
+            'min_discount': 10,
+            'time_period': 'week',
+            'notification_limit': 3,
+            'email_format': 'individual',
+            'status': 'success'
+        }
+
+def update_user_info(user, post_data):
+    """Update user basic information"""
+    user.first_name = post_data.get('first_name', '')
+    user.last_name = post_data.get('last_name', '')
+    user.phone_number = post_data.get('phone', '')
+    
+    # Handle email change
+    new_email = post_data.get('email', '').lower()
+    if new_email != user.email:
+        if User.objects.filter(email=new_email).exists():
+            raise ValueError('This email is already registered to another account.')
+        user.email = new_email
+
+def update_user_address(user, post_data):
+    """Update or create user address"""
+    address_number = post_data.get('address_number', '')
+    address_street = post_data.get('address_street', '')
+    street = f"{address_number} {address_street}".strip() if address_number else address_street
+    
+    address_data = {
+        'street': street,
+        'city': post_data.get('city', ''),
+        'state': post_data.get('state', ''),
+        'postal_code': post_data.get('zip', '')
+    }
+    
     if user.address:
-        # Split street into number and name if possible
-        street_parts = user.address.street.split(' ', 1) if user.address.street else ['', '']
-        address_number = street_parts[0] if len(street_parts) > 0 else ''
-        address_street = street_parts[1] if len(street_parts) > 1 else ''
+        for key, value in address_data.items():
+            setattr(user.address, key, value)
+        user.address.save()
+    else:
+        user.address = Address.objects.create(**address_data)
+
+def update_user_preferences(user, post_data):
+    """Update user service preferences"""
+    # Get or create interests
+    interests, _ = ConsumerInterest.objects.get_or_create(user=user)
+    interests.receive_notifications = post_data.get('receive_promotions') == 'on'
+    interests.save()
     
-    # Get all available categories for the form
-    from core.models import Category
-    all_categories = Category.objects.all()
+    # Update categories
+    selected_categories = post_data.getlist('service_category')
+    interests.categories.clear()
     
-    if not all_categories.exists():
-        # Create default categories if none exist
-        default_categories = [
-            {'name': 'Plumbing', 'slug': 'plumbing', 'description': 'Plumbing services'},
-            {'name': 'Electrical', 'slug': 'electrical', 'description': 'Electrical services'},
-            {'name': 'General', 'slug': 'general', 'description': 'General services'},
-            {'name': 'Foundation Repair', 'slug': 'foundation', 'description': 'Foundation repair services'},
-            {'name': 'Drywall/Paint', 'slug': 'drywall', 'description': 'Drywall and painting services'},
-            {'name': 'Flooring', 'slug': 'flooring', 'description': 'Flooring services'},
-            {'name': 'Moving', 'slug': 'moving', 'description': 'Moving services'},
-            {'name': 'Gardening', 'slug': 'gardening', 'description': 'Gardening services'},
-            {'name': 'Bathroom Renovation', 'slug': 'bathroom', 'description': 'Bathroom renovation services'},
-            {'name': 'Kitchen Cabinet/Countertops', 'slug': 'kitchen', 'description': 'Kitchen renovation services'},
-            {'name': 'Concrete', 'slug': 'concrete', 'description': 'Concrete services'},
-        ]
-        for cat in default_categories:
-            Category.objects.create(name=cat['name'], slug=cat['slug'], description=cat['description'])
-        all_categories = Category.objects.all()
+    for category_slug in selected_categories:
+        try:
+            category = Category.objects.get(slug=category_slug)
+            interests.categories.add(category)
+        except Category.DoesNotExist:
+            continue
     
-    # Format categories for template
-    formatted_categories = [
-        {'value': category.slug, 'name': category.name} for category in all_categories
+    # Update specific services in profile
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    profile.bio = post_data.get('specific_services', '')
+    profile.save()
+
+def update_notification_settings(user, post_data):
+    """Update notification settings"""
+    interests, _ = ConsumerInterest.objects.get_or_create(user=user)
+    
+    interests.notification_preference = post_data.get('notification_preference', 'all')
+    interests.min_discount_threshold = int(post_data.get('min_discount', 10))
+    interests.notification_time_period = post_data.get('time_period', 'week')
+    interests.notification_limit = int(post_data.get('notification_limit', 3))
+    interests.email_format = post_data.get('email_format', 'individual')
+    
+    interests.save()
+
+def get_filtered_offers(user, filters):
+    """Get filtered promotional offers"""
+    from promotor.models import PromotionalOffer
+    today = timezone.now().date()
+    
+    # Base query
+    offers_query = PromotionalOffer.objects.all()
+    
+    # Apply filters
+    if filters['active_only']:
+        offers_query = offers_query.filter(
+            is_active=True,
+            start_date__lte=today,
+            end_date__gte=today
+        )
+    
+    if filters['category'] != 'all':
+        offers_query = offers_query.filter(categories__slug=filters['category'])
+    
+    if filters['search_query']:
+        offers_query = offers_query.filter(
+            Q(code__icontains=filters['search_query']) |
+            Q(description__icontains=filters['search_query']) |
+            Q(user__business_name__icontains=filters['search_query']) |
+            Q(categories__name__icontains=filters['search_query'])
+        )
+    
+    # Apply sorting
+    if filters['date_sort'] == 'newest':
+        offers_query = offers_query.order_by('-start_date')
+    else:
+        offers_query = offers_query.order_by('start_date')
+    
+    if filters['discount_sort'] == 'highest':
+        offers_query = offers_query.order_by('-discount_percentage', 'id')
+    else:
+        offers_query = offers_query.order_by('discount_percentage', 'id')
+    
+    offers_query = offers_query.distinct()
+    
+    # Get user's preferred categories
+    try:
+        interests = ConsumerInterest.objects.get(user=user)
+        preferred_categories = interests.categories.all()
+    except ConsumerInterest.DoesNotExist:
+        preferred_categories = []
+    
+    # Format offers
+    return [format_offer_data(offer, today, preferred_categories) for offer in offers_query]
+
+def get_offers_stats():
+    """Get offer statistics"""
+    from promotor.models import PromotionalOffer
+    today = timezone.now().date()
+    
+    active_offers = PromotionalOffer.objects.filter(
+        is_active=True,
+        start_date__lte=today,
+        end_date__gte=today
+    )
+    
+    expiry_threshold = today + timedelta(days=7)
+    expiring_soon = active_offers.filter(end_date__lte=expiry_threshold).count()
+    
+    return {
+        'total': active_offers.count(),
+        'expiring_soon': expiring_soon
+    }
+
+def get_formatted_categories():
+    """Get all categories formatted for frontend"""
+    categories = Category.objects.all()
+    
+    if not categories.exists():
+        # Create default categories
+        create_default_categories()
+        categories = Category.objects.all()
+    
+    return [
+        {'value': cat.slug, 'name': cat.name}
+        for cat in categories
+    ]
+
+def create_default_categories():
+    """Create default service categories"""
+    default_categories = [
+        ('Plumbing', 'plumbing'),
+        ('Electrical', 'electrical'),
+        ('General', 'general'),
+        ('Foundation Repair', 'foundation'),
+        ('Drywall/Paint', 'drywall'),
+        ('Flooring', 'flooring'),
+        ('Moving', 'moving'),
+        ('Gardening', 'gardening'),
+        ('Bathroom Renovation', 'bathroom'),
+        ('Kitchen Cabinet/Countertops', 'kitchen'),
+        ('Concrete', 'concrete'),
+        ('HVAC', 'hvac'),
+        ('Roofing', 'roofing'),
+        ('Landscaping', 'landscaping')
     ]
     
-    # Create a list of US states
-    states = [
+    for name, slug in default_categories:
+        Category.objects.create(
+            name=name,
+            slug=slug,
+            description=f"{name} services"
+        )
+
+def get_us_states():
+    """Get list of US states"""
+    return [
         ('AL', 'Alabama'), ('AK', 'Alaska'), ('AZ', 'Arizona'), ('AR', 'Arkansas'),
         ('CA', 'California'), ('CO', 'Colorado'), ('CT', 'Connecticut'), ('DE', 'Delaware'),
         ('FL', 'Florida'), ('GA', 'Georgia'), ('HI', 'Hawaii'), ('ID', 'Idaho'),
@@ -217,545 +685,24 @@ def consumer_dashboard(request):
         ('VT', 'Vermont'), ('VA', 'Virginia'), ('WA', 'Washington'), ('WV', 'West Virginia'),
         ('WI', 'Wisconsin'), ('WY', 'Wyoming')
     ]
-    
-    # Fetch active offers for initial display
-    try:
-        active_offers = PromotionalOffer.objects.filter(
-            is_active=True,
-            start_date__lte=today,
-            end_date__gte=today
-        )
-        
-        # Process offers data for template
-        offers_data = []
-        for offer in active_offers:
-            days_until_expiry = (offer.end_date - today).days
-            expiring_soon_flag = days_until_expiry <= 7 and days_until_expiry >= 0
-            
-            offer_data = {
-                'id': offer.id,
-                'title': offer.title if hasattr(offer, 'title') else f"{offer.discount_percentage}% Off",
-                'description': offer.description,
-                'discount_percentage': offer.discount_percentage,
-                'code': offer.code,
-                'start_date': offer.start_date,
-                'end_date': offer.end_date,
-                'business_name': offer.business.name if hasattr(offer, 'business') and hasattr(offer.business, 'name') else "Business Name",
-                'business_email': offer.business.email if hasattr(offer, 'business') and hasattr(offer.business, 'email') else "",
-                'business_phone': offer.business.phone_number if hasattr(offer, 'business') and hasattr(offer.business, 'phone_number') else "",
-                'business_address': str(offer.business.address) if hasattr(offer, 'business') and hasattr(offer.business, 'address') else '',
-                'categories': [category.name for category in offer.categories.all()],
-                'days_until_expiry': days_until_expiry if days_until_expiry >= 0 else 0,
-                'expiring_soon': expiring_soon_flag,
-                'expired': today > offer.end_date,
-                'categories_match_preferences': any(category in preferred_categories for category in offer.categories.all()) if preferred_categories else False
-            }
-            offers_data.append(offer_data)
-    except Exception as e:
-        print(f"Error loading offers: {e}")
-        offers_data = []
-    
-    # Default notification settings
-    notification_settings = {
-        'notification_preference': 'all',
-        'min_discount': 10,
-        'time_period': 'week',
-        'notification_limit': 3,
-        'email_format': 'individual',
-    }
-    
-    # Get user's notification settings if available
-    if interests:
-        notification_settings.update({
-            'notification_preference': getattr(interests, 'notification_preference', 'all'),
-            'min_discount': getattr(interests, 'min_discount_threshold', 10),
-            'time_period': getattr(interests, 'notification_time_period', 'week'),
-            'notification_limit': getattr(interests, 'notification_limit', 3),
-            'email_format': getattr(interests, 'email_format', 'individual'),
-        })
-    
-    context = {
-        'total_offers': total_offers,
-        'active_offers': total_offers,
-        'expiring_soon': expiring_soon,
-        'matching_offers': matching_offers,
-        'all_categories': formatted_categories,
-        'selected_categories': preferred_categories,
-        'specific_services': specific_services,
-        'receive_notifications': receive_notifications,
-        'address_number': address_number,
-        'address_street': address_street,
-        'states': states,
-        'cities': [],  # Would be populated dynamically
-        'offers': offers_data,
-        'categories': all_categories,
-        'filter_category': 'all',
-        'filter_date': 'newest',
-        'filter_discount': 'highest',
-        'filter_active_only': True,
-    }
-    
-    # Add notification settings to context
-    context.update(notification_settings)
-    
-    return render(request, 'users/consumer_dashboard.html', context)
 
-
-
-@login_required
-def offers_tab(request):
-    """
-    View to handle the offers tab when accessed directly.
-    This redirects to the consumer dashboard with the offers tab active.
-    """
-    return redirect('consumer_dashboard')
-
-@login_required
-def filter_offers(request):
-    """
-    AJAX endpoint to filter promotional offers based on criteria
-    """
-    user = request.user
-    
-    # Get filter parameters
-    category = request.GET.get('category', 'all')
-    date_sort = request.GET.get('date', 'newest')
-    discount_sort = request.GET.get('discount', 'highest')
-    active_only = request.GET.get('active_only', 'true').lower() == 'true'
-    search_query = request.GET.get('search', '').strip()
-    
-    from django.db.models import Q
-    from promotor.models import PromotionalOffer
-    from django.utils import timezone
-    from datetime import timedelta
-    
-    # Base query
-    today = timezone.now().date()
-    offers_query = PromotionalOffer.objects.all()
-    
-    # Active only filter
-    if active_only:
-        offers_query = offers_query.filter(
-            is_active=True,
-            start_date__lte=today,
-            end_date__gte=today
-        )
-    
-    # Category filter
-    if category != 'all':
-        offers_query = offers_query.filter(categories__slug=category)
-    
-    # Search filter
-    if search_query:
-        offers_query = offers_query.filter(
-            Q(code__icontains=search_query) | 
-            Q(description__icontains=search_query) | 
-            Q(user__business_name__icontains=search_query) |
-            Q(categories__name__icontains=search_query) |
-            Q(user__email__icontains=search_query)
-        )
-    
-    # Date sorting
-    if date_sort == 'newest':
-        offers_query = offers_query.order_by('-start_date')
-    else:
-        offers_query = offers_query.order_by('start_date')
-    
-    # Discount sorting (applied after date sorting)
-    if discount_sort == 'highest':
-        offers_query = offers_query.order_by('-discount_percentage', 'id')
-    else:
-        offers_query = offers_query.order_by('discount_percentage', 'id')
-    
-    # Make sure results are distinct (in case of multiple filters)
-    offers_query = offers_query.distinct()
-    
-    # Get user's interests for preferred categories matching
-    try:
-        interests = ConsumerInterest.objects.get(user=user)
-        preferred_categories = interests.categories.all()
-    except ConsumerInterest.DoesNotExist:
-        preferred_categories = []
-    
-    # Process offers for response
-    offers_data = []
-    for offer in offers_query:
-        days_until_expiry = (offer.end_date - today).days if offer.end_date >= today else 0
-        expiring_soon_flag = days_until_expiry <= 7 and days_until_expiry >= 0
-        
-        offer_data = {
-            'id': offer.id,
-            'title': getattr(offer, 'title', f"{offer.discount_percentage}% Off"),
-            'description': offer.description,
-            'discount_percentage': offer.discount_percentage,
-            'code': offer.code,
-            'start_date': offer.start_date.strftime("%b %d, %Y"),
-            'end_date': offer.end_date.strftime("%b %d, %Y"),
-            'business_name': offer.user.business_name if offer.user.business_name else "Business Name",
-            'business_email': offer.user.email if offer.user.email else "",
-            'business_phone': offer.user.phone_number if offer.user.phone_number else "",
-            'business_address': str(offer.user.address) if offer.user.address else '',
-            'categories': [category.name for category in offer.categories.all()],
-            'days_until_expiry': days_until_expiry,
-            'expiring_soon': expiring_soon_flag,
-            'expired': today > offer.end_date,
-            'categories_match_preferences': any(category in preferred_categories for category in offer.categories.all()) if preferred_categories else False
-        }
-        offers_data.append(offer_data)
-    
-    # Calculate stats for response
-    total_offers = PromotionalOffer.objects.filter(
-        is_active=True,
-        start_date__lte=today,
-        end_date__gte=today
-    ).count()
-    
-    expiry_threshold = today + timedelta(days=7)
-    expiring_soon_count = PromotionalOffer.objects.filter(
-        is_active=True, 
-        start_date__lte=today,
-        end_date__gte=today,
-        end_date__lte=expiry_threshold
-    ).count()
-    
-    # Prepare response
-    response_data = {
-        'status': 'success',
-        'offers': offers_data,
-        'total_offers': total_offers,
-        'expiring_soon_count': expiring_soon_count,
-        'active_filters': {
-            'category': category,
-            'date': date_sort,
-            'discount': discount_sort,
-            'active_only': active_only,
-            'search': search_query
-        }
-    }
-    
-    return JsonResponse(response_data)
-
-@login_required
-def notifications_tab(request):
-    """
-    Handle notification settings tab
-    """
-    user = request.user
-    
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # Get form data
-        notification_preference = request.POST.get('notification_preference', 'all')
-        min_discount = int(request.POST.get('min_discount', 10))
-        time_period = request.POST.get('time_period', 'week')
-        notification_limit = int(request.POST.get('notification_limit', 3))
-        email_format = request.POST.get('email_format', 'individual')
-        
-        # Get or create the user's consumer interest record
-        consumer_interest, created = ConsumerInterest.objects.get_or_create(
-            user=user
-        )
-        
-        # Update the notification settings
-        consumer_interest.notification_preference = notification_preference
-        consumer_interest.min_discount_threshold = min_discount
-        consumer_interest.notification_time_period = time_period
-        consumer_interest.notification_limit = notification_limit
-        consumer_interest.email_format = email_format
-        consumer_interest.save()
-        
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Notification settings updated successfully!'
-        })
-    
-    # For GET requests or non-AJAX POST requests, return current notification settings
-    try:
-        consumer_interest = ConsumerInterest.objects.get(user=user)
-        notification_settings = {
-            'notification_preference': consumer_interest.notification_preference,
-            'min_discount': consumer_interest.min_discount_threshold,
-            'time_period': consumer_interest.notification_time_period,
-            'notification_limit': consumer_interest.notification_limit,
-            'email_format': consumer_interest.email_format,
-            'status': 'success'
-        }
-    except ConsumerInterest.DoesNotExist:
-        notification_settings = {
-            'notification_preference': 'all',
-            'min_discount': 10,
-            'time_period': 'week',
-            'notification_limit': 3,
-            'email_format': 'individual',
-            'status': 'success'
-        }
-    
-    return JsonResponse(notification_settings)
-
-def magic_link_login(request, token):
-    """
-    Handle login via magic link tokens
-    """
-    success, redirect_url, error_message = process_login_token(request, token)
-    
-    if success:
-        return redirect(redirect_url)
-    else:
-        if error_message:
-            messages.error(request, error_message)
-        return redirect(redirect_url)
-
-def user_logout(request):
-    """
-    Log the user out and redirect to home
-    """
-    redirect_url = process_logout(request)
-    messages.info(request, 'You have been logged out successfully.')
-    return redirect(redirect_url)
-
-def login_view(request):
-    """Handle user login"""
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        user = authenticate(request, email=email, password=password)
-        
-        if user is not None:
-            login(request, user)
-            messages.success(request, 'Login successful!')
-            
-            # Redirect based on user type
-            if user.user_type == 'requestor':
-                return redirect('consumer_dashboard')
-            elif user.user_type == 'handyman':
-                return redirect('handyman_dashboard')
-            elif user.user_type == 'promoter':
-                return redirect('promoter_dashboard')
-            else:
-                return redirect('consumer_dashboard')
-        else:
-            messages.error(request, 'Invalid email or password.')
-    
-    return render(request, 'users/login.html')
-
-def register_view(request):
-    """Handle user registration"""
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        user_type = request.POST.get('user_type', 'requestor')
-        
-        # Validate data
-        if password != confirm_password:
-            messages.error(request, 'Passwords do not match.')
-            return render(request, 'users/signup.html')
-        
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'Email is already registered.')
-            return render(request, 'users/signup.html')
-        
-        # Create user
-        user = User.objects.create_user(
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name,
-            user_type=user_type
-        )
-        
-        # Create user profile
-        UserProfile.objects.create(user=user)
-        
-        # Create consumer interest if user type is requestor
-        if user_type == 'requestor':
-            ConsumerInterest.objects.create(user=user)
-        
-        # Log the user in
-        login(request, user)
-        messages.success(request, 'Registration successful!')
-        
-        # Redirect based on user type
-        if user_type == 'requestor':
-            return redirect('consumer_dashboard')
-        elif user_type == 'handyman':
-            return redirect('handyman_dashboard')
-        elif user_type == 'promoter':
-            return redirect('promoter_dashboard')
-        
-    return render(request, 'users/signup.html')
-
-def generate_login_link(request):
-    """Generate a magic login link and email it to the user"""
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        
-        try:
-            user = User.objects.get(email=email)
-            token = user.generate_login_token()
-            
-            # Here you would send an email with the token link
-            # For now we'll just show it on the page
-            login_url = request.build_absolute_uri(f'/users/verify-token/{token}/')
-            messages.info(request, f'Login link generated: {login_url}')
-            
-        except User.DoesNotExist:
-            messages.error(request, 'No account found with this email.')
-    
-    return render(request, 'users/login_link.html')
-
-def verify_token(request, token):
-    """Verify a login token and log the user in"""
-    User = get_user_model()
-    
-    try:
-        user = User.objects.get(login_token=token)
-        
-        if user.is_token_valid():
-            # Log the user in
-            user.backend = 'django.contrib.auth.backends.ModelBackend'
-            login(request, user)
-            
-            # Clear the token so it can't be used again
-            user.clear_token()
-            
-            messages.success(request, 'Login successful!')
-            
-            # Redirect based on user type
-            if user.user_type == 'requestor':
-                return redirect('consumer_dashboard')
-            elif user.user_type == 'handyman':
-                return redirect('handyman_dashboard')
-            elif user.user_type == 'promoter':
-                return redirect('promoter_dashboard')
-            else:
-                return redirect('consumer_dashboard')
-        else:
-            messages.error(request, 'The login link has expired.')
-    except User.DoesNotExist:
-        messages.error(request, 'Invalid login link.')
-    
-    return redirect('login')
-
+# Redirect views for other user types
 @login_required
 def provider_dashboard(request):
-    """
-    Dashboard view for service providers
-    """
-    # Redirect to the proper handyman dashboard in handyman app
+    """Redirect to handyman dashboard"""
     return redirect('handyman_dashboard')
 
 @login_required
 def promoter_dashboard(request):
-    """
-    Dashboard view for promoters
-    """
+    """Redirect to promoter dashboard"""
     return redirect('promotor_dashboard')
 
 @login_required
-def user_profile(request):
-    """
-    Handle user profile updates
-    """
-    user = request.user
-    
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # Get form data
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
-        phone = request.POST.get('phone')
-        address_number = request.POST.get('address_number')
-        address_street = request.POST.get('address_street')
-        state = request.POST.get('state')
-        city = request.POST.get('city')
-        zip_code = request.POST.get('zip')
-        
-        # Update user information
-        user.first_name = first_name
-        user.last_name = last_name
-        user.phone_number = phone
-        
-        # Only update email if it's different and not already taken
-        if email != user.email:
-            if User.objects.filter(email=email).exists():
-                return JsonResponse({
-                    'status': 'error', 
-                    'message': 'This email is already registered to another account.'
-                })
-            user.email = email
-        
-        # Update or create address
-        from core.models import Address
-        if user.address:
-            address = user.address
-            address.street = f"{address_number} {address_street}" if address_number else address_street
-            address.city = city
-            address.state = state
-            address.postal_code = zip_code
-            address.save()
-        else:
-            address = Address.objects.create(
-                street=f"{address_number} {address_street}" if address_number else address_street,
-                city=city,
-                state=state,
-                postal_code=zip_code
-            )
-            user.address = address
-        
-        # Save user
-        user.save()
-        
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Profile updated successfully!'
-        })
-    
-    return JsonResponse({
-        'status': 'error',
-        'message': 'Invalid request'
-    })
+def offers_tab(request):
+    """Redirect to consumer dashboard with offers tab active"""
+    return redirect('consumer_dashboard')
 
-@login_required
-def user_preferences(request):
-    """
-    Handle user service preferences updates
-    """
-    user = request.user
-    
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # Get form data
-        selected_categories = request.POST.getlist('service_category')
-        specific_services = request.POST.get('specific_services', '')
-        receive_promotions = request.POST.get('receive_promotions', '') == 'on'
-        
-        # Update or create interests
-        from core.models import Category
-        interests, created = ConsumerInterest.objects.get_or_create(user=user)
-        interests.receive_notifications = receive_promotions
-        interests.save()
-        
-        # Clear previous categories and add new ones
-        interests.categories.clear()
-        for category_slug in selected_categories:
-            try:
-                category = Category.objects.get(slug=category_slug)
-                interests.categories.add(category)
-            except Category.DoesNotExist:
-                pass
-        
-        # Update specific services in user profile
-        profile, _ = UserProfile.objects.get_or_create(user=user)
-        profile.bio = specific_services
-        profile.save()
-        
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Preferences updated successfully!'
-        })
-    
-    return JsonResponse({
-        'status': 'error',
-        'message': 'Invalid request'
-    })
+# Alias for backward compatibility
+def signup(request):
+    """Alias for register_view"""
+    return register_view(request)

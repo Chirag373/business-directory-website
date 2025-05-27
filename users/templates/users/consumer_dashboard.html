@@ -5,39 +5,48 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/consumer_dashboard.css' %}">
+<!-- Include Toastify CSS if not already in base -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 {% endblock %}
 
 {% block content %}
 <main class="consumer-dashboard">
   <!-- Header Section -->
   <header class="dashboard-header">
-    <h1>Welcome, <span id="user-first-name">{{ user.first_name }}</span></h1>
+    <h1>Welcome, <span id="user-first-name">{{ user.first_name|default:"there" }}</span>!</h1>
     <div class="logout-container">
-      <a href="{% url 'logout' %}" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      <a href="{% url 'logout' %}" class="logout-button">
+        <i class="fas fa-sign-out-alt"></i> 
+        <span class="logout-text">Logout</span>
+      </a>
       <button class="dashboard-hamburger" aria-label="Toggle dashboard menu">
         <i class="fas fa-bars"></i>
       </button>
     </div>
   </header>
 
-  <!-- Dashboard Tabs -->
-  <div class="dashboard-tabs">
-    <button class="tab-button active" data-tab="profile">
-      <i class="fas fa-user"></i> My Profile
+  <!-- Desktop Dashboard Tabs -->
+  <nav class="dashboard-tabs" role="tablist">
+    <button class="tab-button active" data-tab="profile" role="tab" aria-selected="true" aria-controls="profile-section">
+      <i class="fas fa-user"></i> 
+      <span>My Profile</span>
     </button>
-    <button class="tab-button" data-tab="preferences">
-      <i class="fas fa-sliders-h"></i> Service Preferences
+    <button class="tab-button" data-tab="preferences" role="tab" aria-selected="false" aria-controls="preferences-section">
+      <i class="fas fa-sliders-h"></i> 
+      <span>Service Preferences</span>
     </button>
-    <button class="tab-button" data-tab="offers">
-      <i class="fas fa-tags"></i> Promotional Offers
+    <button class="tab-button" data-tab="offers" role="tab" aria-selected="false" aria-controls="offers-section">
+      <i class="fas fa-tags"></i> 
+      <span>Promotional Offers</span>
     </button>
-    <button class="tab-button" data-tab="notifications">
-      <i class="fas fa-bell"></i> Notification Settings
+    <button class="tab-button" data-tab="notifications" role="tab" aria-selected="false" aria-controls="notifications-section">
+      <i class="fas fa-bell"></i> 
+      <span>Notification Settings</span>
     </button>
-  </div>
+  </nav>
 
   <!-- Mobile Dashboard Sidebar -->
-  <div class="dashboard-sidebar">
+  <aside class="dashboard-sidebar" role="navigation" aria-label="Mobile dashboard menu">
     <div class="sidebar-header">
       <h3>Dashboard Menu</h3>
       <button class="close-sidebar" aria-label="Close menu">
@@ -66,13 +75,13 @@
         </button>
       </li>
     </ul>
-  </div>
+  </aside>
 
   <!-- Dashboard Sidebar Overlay -->
-  <div class="dashboard-overlay"></div>
+  <div class="dashboard-overlay" aria-hidden="true"></div>
 
   <!-- Dashboard Stats -->
-  <div class="dashboard-stats">
+  <section class="dashboard-stats" aria-label="Dashboard statistics">
     <div class="stat-card">
       <div class="stat-number" id="total-offers">{{ total_offers|default:"0" }}</div>
       <div class="stat-label">Total Offers</div>
@@ -85,620 +94,687 @@
       <div class="stat-number" id="expiring-soon">{{ expiring_soon|default:"0" }}</div>
       <div class="stat-label">Expiring Soon</div>
     </div>
-  </div>
+  </section>
 
   <!-- Tab Content -->
-  <section class="dashboard-content active" id="profile-section">
+  <section class="dashboard-content active" id="profile-section" role="tabpanel" aria-labelledby="profile-tab">
     {% include "users/consumer_dashboard_profile.html" %}
   </section>
-  <section class="dashboard-content" id="preferences-section">
+  
+  <section class="dashboard-content" id="preferences-section" role="tabpanel" aria-labelledby="preferences-tab">
     {% include "users/consumer_dashboard_preferences.html" %}
   </section>
-  <section class="dashboard-content" id="offers-section">
+  
+  <section class="dashboard-content" id="offers-section" role="tabpanel" aria-labelledby="offers-tab">
     {% include "users/consumer_dashboard_offers.html" %}
   </section>
-  <section class="dashboard-content" id="notifications-section">
+  
+  <section class="dashboard-content" id="notifications-section" role="tabpanel" aria-labelledby="notifications-tab">
     {% include "users/consumer_dashboard_notifications.html" %}
   </section>
 </main>
 {% endblock %}
 
 {% block extra_js %}
+<!-- Include Toastify JS -->
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // -----------------------
-    // Tab Navigation System
-    // -----------------------
+// Dashboard Manager Class
+class DashboardManager {
+  constructor() {
+    this.currentTab = 'profile';
+    this.initializeElements();
+    this.bindEvents();
+    this.initialize();
+  }
+
+  initializeElements() {
+    // Tab elements
+    this.tabButtons = document.querySelectorAll('.tab-button, .sidebar-tab-button');
+    this.tabSections = document.querySelectorAll('.dashboard-content');
     
-    // Handle tab switching
-    const tabButtons = document.querySelectorAll('.tab-button, .sidebar-tab-button');
-    const tabSections = document.querySelectorAll('.dashboard-content');
+    // Mobile menu elements
+    this.hamburger = document.querySelector('.dashboard-hamburger');
+    this.sidebar = document.querySelector('.dashboard-sidebar');
+    this.overlay = document.querySelector('.dashboard-overlay');
+    this.closeSidebar = document.querySelector('.close-sidebar');
     
-    tabButtons.forEach(button => {
-      button.addEventListener('click', function() {
-        // Remove active class from all buttons and sections
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        tabSections.forEach(section => section.classList.remove('active'));
-        
-        // Add active class to clicked button and corresponding section
-        this.classList.add('active');
-        const tabName = this.dataset.tab;
-        document.getElementById(`${tabName}-section`).classList.add('active');
-        
-        // For mobile: close sidebar when a tab is selected
-        document.querySelector('.dashboard-sidebar').classList.remove('open');
-        document.querySelector('.dashboard-overlay').classList.remove('active');
-        
-        // Load tab-specific data
-        if (tabName === 'offers') {
-          loadOffers();
-        } else if (tabName === 'notifications') {
-          loadNotificationSettings();
-        }
-      });
+    // Form elements
+    this.profileForm = document.querySelector('.profile-form');
+    this.preferencesForm = document.querySelector('.preferences-form');
+    this.notificationForm = document.querySelector('.notification-form');
+    
+    // State/County/City selects
+    this.stateSelect = document.getElementById('state');
+    this.countySelect = document.getElementById('county');
+    this.citySelect = document.getElementById('city');
+  }
+
+  bindEvents() {
+    // Tab switching
+    this.tabButtons.forEach(button => {
+      button.addEventListener('click', (e) => this.switchTab(e.currentTarget.dataset.tab));
     });
-    
-    // Mobile menu toggle
-    document.querySelector('.dashboard-hamburger').addEventListener('click', function() {
-      document.querySelector('.dashboard-sidebar').classList.add('open');
-      document.querySelector('.dashboard-overlay').classList.add('active');
+
+    // Mobile menu
+    if (this.hamburger) {
+      this.hamburger.addEventListener('click', () => this.openSidebar());
+    }
+    if (this.closeSidebar) {
+      this.closeSidebar.addEventListener('click', () => this.closeSidebar());
+    }
+    if (this.overlay) {
+      this.overlay.addEventListener('click', () => this.closeSidebar());
+    }
+
+    // Form submissions
+    if (this.profileForm) {
+      this.profileForm.addEventListener('submit', (e) => this.handleProfileSubmit(e));
+    }
+    if (this.preferencesForm) {
+      this.preferencesForm.addEventListener('submit', (e) => this.handlePreferencesSubmit(e));
+    }
+    if (this.notificationForm) {
+      this.notificationForm.addEventListener('submit', (e) => this.handleNotificationSubmit(e));
+    }
+
+    // Location selects
+    if (this.stateSelect) {
+      this.stateSelect.addEventListener('change', (e) => this.handleStateChange(e));
+    }
+    if (this.countySelect) {
+      this.countySelect.addEventListener('change', (e) => this.handleCountyChange(e));
+    }
+
+    // Profile completion tracking
+    const profileInputs = document.querySelectorAll('.profile-form input, .profile-form select');
+    profileInputs.forEach(input => {
+      input.addEventListener('input', () => this.calculateProfileCompletion());
     });
-    
-    document.querySelector('.close-sidebar').addEventListener('click', function() {
-      document.querySelector('.dashboard-sidebar').classList.remove('open');
-      document.querySelector('.dashboard-overlay').classList.remove('active');
+  }
+
+  initialize() {
+    // Initialize profile if on profile tab
+    if (this.currentTab === 'profile') {
+      this.initializeProfile();
+    }
+
+    // Check URL hash for initial tab
+    const hash = window.location.hash.replace('#', '');
+    if (hash && ['profile', 'preferences', 'offers', 'notifications'].includes(hash)) {
+      this.switchTab(hash);
+    }
+
+    // Initialize offer filters
+    this.initializeOfferFilters();
+
+    // Initialize notification settings
+    this.initializeNotificationSettings();
+  }
+
+  // Tab Management
+  switchTab(tabName) {
+    // Update active states
+    this.tabButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tabName);
+      btn.setAttribute('aria-selected', btn.dataset.tab === tabName);
     });
-    
-    document.querySelector('.dashboard-overlay').addEventListener('click', function() {
-      document.querySelector('.dashboard-sidebar').classList.remove('open');
-      this.classList.remove('active');
+
+    this.tabSections.forEach(section => {
+      section.classList.toggle('active', section.id === `${tabName}-section`);
     });
-    
-    // -----------------------
-    // Profile Tab Functions
-    // -----------------------
-    
-    // Initialize the profile form data
-    function initializeProfile() {
-      const stateSelect = document.getElementById('state');
-      if (stateSelect && stateSelect.options.length <= 1) {
-        const states = {
-          'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas',
-          'CA': 'California', 'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware',
-          'FL': 'Florida', 'GA': 'Georgia', 'HI': 'Hawaii', 'ID': 'Idaho',
-          'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa', 'KS': 'Kansas',
-          'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
-          'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi',
-          'MO': 'Missouri', 'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada',
-          'NH': 'New Hampshire', 'NJ': 'New Jersey', 'NM': 'New Mexico', 'NY': 'New York',
-          'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio', 'OK': 'Oklahoma',
-          'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
-          'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah',
-          'VT': 'Vermont', 'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia',
-          'WI': 'Wisconsin', 'WY': 'Wyoming'
-        };
-        
-        Object.entries(states).forEach(([code, name]) => {
-          const option = document.createElement('option');
-          option.value = code;
-          option.textContent = name;
-          stateSelect.appendChild(option);
-        });
-        
-        // Set the current state if any
-        const currentState = "{{ user.address.state|default:'' }}";
-        if (currentState) {
-          stateSelect.value = currentState;
-          // Enable county dropdown
-          document.getElementById('county').disabled = false;
-        }
-      }
-      
-      // Calculate profile completion
-      calculateProfileCompletion();
+
+    this.currentTab = tabName;
+    window.location.hash = tabName;
+
+    // Close mobile sidebar
+    this.closeSidebar();
+
+    // Load tab-specific data
+    switch(tabName) {
+      case 'offers':
+        this.loadOffers();
+        break;
+      case 'notifications':
+        this.loadNotificationSettings();
+        break;
     }
-    
-    // Calculate profile completion percentage
-    function calculateProfileCompletion() {
-      const requiredFields = [
-        document.getElementById('first-name')?.value || '',
-        document.getElementById('last-name')?.value || '',
-        document.getElementById('email')?.value || '',
-        document.getElementById('phone')?.value || '',
-        document.getElementById('address-number')?.value || '',
-        document.getElementById('address-street')?.value || '',
-        document.getElementById('state')?.value || '',
-        document.getElementById('city')?.value || '',
-        document.getElementById('zip')?.value || ''
-      ];
-      
-      const filledFields = requiredFields.filter(field => field && field.trim() !== '').length;
-      const completionPercentage = Math.round((filledFields / requiredFields.length) * 100);
-      
-      // Update the progress bar
-      const progressBar = document.getElementById('profile-progress');
-      const percentageText = document.querySelector('.completion-percentage');
-      
-      if (progressBar) progressBar.style.width = `${completionPercentage}%`;
-      if (percentageText) percentageText.textContent = `${completionPercentage}%`;
+  }
+
+  // Mobile Menu
+  openSidebar() {
+    this.sidebar.classList.add('active');
+    this.overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeSidebar() {
+    this.sidebar.classList.remove('active');
+    this.overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  // Profile Management
+  initializeProfile() {
+    this.populateStates();
+    this.calculateProfileCompletion();
+  }
+
+  populateStates() {
+    if (!this.stateSelect || this.stateSelect.options.length > 1) return;
+
+    const states = {
+      'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas',
+      'CA': 'California', 'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware',
+      'FL': 'Florida', 'GA': 'Georgia', 'HI': 'Hawaii', 'ID': 'Idaho',
+      'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa', 'KS': 'Kansas',
+      'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
+      'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi',
+      'MO': 'Missouri', 'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada',
+      'NH': 'New Hampshire', 'NJ': 'New Jersey', 'NM': 'New Mexico', 'NY': 'New York',
+      'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio', 'OK': 'Oklahoma',
+      'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+      'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah',
+      'VT': 'Vermont', 'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia',
+      'WI': 'Wisconsin', 'WY': 'Wyoming'
+    };
+
+    Object.entries(states).forEach(([code, name]) => {
+      const option = new Option(name, code);
+      this.stateSelect.add(option);
+    });
+
+    // Set current state if any
+    const currentState = this.stateSelect.dataset.current;
+    if (currentState) {
+      this.stateSelect.value = currentState;
+      this.countySelect.disabled = false;
     }
+  }
+
+  calculateProfileCompletion() {
+    const requiredFields = [
+      'first-name', 'last-name', 'email', 'phone',
+      'address-number', 'address-street', 'state', 'city', 'zip'
+    ];
+
+    const filledFields = requiredFields.filter(id => {
+      const field = document.getElementById(id);
+      return field && field.value.trim() !== '';
+    });
+
+    const percentage = Math.round((filledFields.length / requiredFields.length) * 100);
     
-    // Handle state-county-city dependencies
-    const stateSelect = document.getElementById('state');
-    if (stateSelect) {
-      stateSelect.addEventListener('change', function() {
-        const countySelect = document.getElementById('county');
-        countySelect.disabled = !this.value;
-        countySelect.innerHTML = '<option value="">Select a County</option>';
-        
-        const citySelect = document.getElementById('city');
-        citySelect.disabled = true;
-        citySelect.innerHTML = '<option value="">Select a City</option>';
-        
-        if (this.value) {
-          // In a real application, you would make an AJAX call here to get counties
-          // For this example, we'll simulate with dummy data
-          const dummyCounties = ['County 1', 'County 2', 'County 3'];
-          dummyCounties.forEach(county => {
-            const option = document.createElement('option');
-            option.value = county;
-            option.textContent = county;
-            countySelect.appendChild(option);
-          });
-        }
-      });
+    const progressBar = document.getElementById('profile-progress');
+    const percentageText = document.querySelector('.completion-percentage');
+    
+    if (progressBar) {
+      progressBar.style.width = `${percentage}%`;
     }
-    
-    const countySelect = document.getElementById('county');
-    if (countySelect) {
-      countySelect.addEventListener('change', function() {
-        const citySelect = document.getElementById('city');
-        citySelect.disabled = !this.value;
-        citySelect.innerHTML = '<option value="">Select a City</option>';
-        
-        if (this.value) {
-          // In a real application, you would make an AJAX call here to get cities
-          // For this example, we'll simulate with dummy data
-          const dummyCities = ['City 1', 'City 2', 'City 3'];
-          dummyCities.forEach(city => {
-            const option = document.createElement('option');
-            option.value = city;
-            option.textContent = city;
-            citySelect.appendChild(option);
-          });
-        }
-      });
+    if (percentageText) {
+      percentageText.textContent = `${percentage}%`;
     }
-    
-    // Profile form submission
-    const profileForm = document.querySelector('.profile-form');
-    if (profileForm) {
-      profileForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Get form data
-        const formData = new FormData(this);
-        
-        // Send AJAX request
-        fetch(this.action, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.status === 'success') {
-            // Show success notification
-            showToast(data.message, 'success');
-            
-            // Update the last updated timestamp
-            const now = new Date();
-            const lastUpdatedEl = document.getElementById('last-updated-timestamp');
-            if (lastUpdatedEl) {
-              lastUpdatedEl.textContent = now.toLocaleString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric',
-                hour12: true
-              });
-            }
-            
-            // Update first name in welcome message if changed
-            const firstName = document.getElementById('first-name').value;
-            const userNameEl = document.getElementById('user-first-name');
-            if (userNameEl) userNameEl.textContent = firstName;
-            
-            // Recalculate profile completion
-            calculateProfileCompletion();
-          } else if (data.status === 'error') {
-            // Show error notification
-            showToast(data.message, 'error');
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          showToast('An error occurred while updating profile', 'error');
-        });
-      });
+  }
+
+  handleStateChange(e) {
+    const state = e.target.value;
+    this.countySelect.disabled = !state;
+    this.countySelect.innerHTML = '<option value="">Select a County</option>';
+    this.citySelect.disabled = true;
+    this.citySelect.innerHTML = '<option value="">Select a City</option>';
+
+    if (state) {
+      // In production, make AJAX call to get counties
+      this.loadCounties(state);
     }
-    
-    // -----------------------
-    // Preferences Tab Functions
-    // -----------------------
-    
-    // Handle AJAX form submission for preferences
-    const preferencesForm = document.querySelector('.preferences-form');
-    if (preferencesForm) {
-      preferencesForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Get form data
-        const formData = new FormData(this);
-        
-        // Send AJAX request
-        fetch(this.action, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.status === 'success') {
-            showToast(data.message, 'success');
-          } else if (data.status === 'error') {
-            showToast(data.message, 'error');
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          showToast('An error occurred while updating preferences', 'error');
-        });
-      });
+  }
+
+  handleCountyChange(e) {
+    const county = e.target.value;
+    this.citySelect.disabled = !county;
+    this.citySelect.innerHTML = '<option value="">Select a City</option>';
+
+    if (county) {
+      // In production, make AJAX call to get cities
+      this.loadCities(this.stateSelect.value, county);
     }
+  }
+
+  loadCounties(state) {
+    // Simulated for demo - replace with actual AJAX call
+    const dummyCounties = ['County 1', 'County 2', 'County 3'];
+    dummyCounties.forEach(county => {
+      const option = new Option(county, county);
+      this.countySelect.add(option);
+    });
+  }
+
+  loadCities(state, county) {
+    // Simulated for demo - replace with actual AJAX call
+    const dummyCities = ['City 1', 'City 2', 'City 3'];
+    dummyCities.forEach(city => {
+      const option = new Option(city, city);
+      this.citySelect.add(option);
+    });
+  }
+
+  async handleProfileSubmit(e) {
+    e.preventDefault();
     
-    // -----------------------
-    // Offers Tab Functions
-    // -----------------------
+    const formData = new FormData(this.profileForm);
+    const submitBtn = this.profileForm.querySelector('[type="submit"]');
     
-    // Load offers data
-    function loadOffers() {
-      const offersContainer = document.querySelector('.offers-container');
-      if (!offersContainer) return;
-      
-      // Show loading state
-      offersContainer.innerHTML = '<div class="loading">Loading offers...</div>';
-      
-      // Get filter values
-      const categoryFilter = document.getElementById('category-filter')?.value || '';
-      const dateFilter = document.getElementById('date-filter')?.value || 'newest';
-      const discountFilter = document.getElementById('discount-filter')?.value || 'highest';
-      const activeOnly = document.getElementById('active-filter')?.checked || true;
-      const searchValue = document.getElementById('offer-search')?.value || '';
-      
-      // Make API call to get offers
-      fetch(`{% url 'filter_offers' %}?category=${categoryFilter}&date=${dateFilter}&discount=${discountFilter}&active_only=${activeOnly}&search=${searchValue}`, {
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+    try {
+      const response = await fetch(this.profileForm.action, {
+        method: 'POST',
+        body: formData,
         headers: {
-          'X-Requested-With': 'XMLHttpRequest'
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
         }
-      })
-      .then(response => response.json())
-      .then(data => {
-        // Update stats
-        document.getElementById('total-offers').textContent = data.total_offers;
-        document.getElementById('active-offers').textContent = data.total_offers;
-        document.getElementById('expiring-soon').textContent = data.expiring_soon_count;
-        
-        // Render offers
-        renderOffers(data.offers);
-      })
-      .catch(error => {
-        console.error('Error loading offers:', error);
-        offersContainer.innerHTML = '<div class="error">Failed to load offers. Please try again.</div>';
+      });
+
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        this.showToast(data.message, 'success');
+        this.updateLastUpdated();
+        this.updateWelcomeName(formData.get('first_name'));
+        this.calculateProfileCompletion();
+      } else {
+        this.showToast(data.message || 'An error occurred', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      this.showToast('An error occurred while updating profile', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+    }
+  }
+
+  async handlePreferencesSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this.preferencesForm);
+    const submitBtn = this.preferencesForm.querySelector('[type="submit"]');
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+
+    try {
+      const response = await fetch(this.preferencesForm.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        this.showToast(data.message, 'success');
+      } else {
+        this.showToast(data.message || 'An error occurred', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      this.showToast('An error occurred while updating preferences', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-check"></i> Update Preferences';
+    }
+  }
+
+  async handleNotificationSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this.notificationForm);
+    const submitBtn = this.notificationForm.querySelector('[type="submit"]');
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+    try {
+      const response = await fetch('{% url "user_notifications" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        this.showToast(data.message, 'success');
+      } else {
+        this.showToast('An error occurred while updating notification settings', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      this.showToast('An error occurred while updating notification settings', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Settings';
+    }
+  }
+
+  // Offers Management
+  initializeOfferFilters() {
+    // Setup search
+    const filtersContainer = document.querySelector('.filters-container');
+    if (filtersContainer && !document.getElementById('offer-search')) {
+      const searchDiv = document.createElement('div');
+      searchDiv.className = 'search-container';
+      searchDiv.innerHTML = `
+        <input type="text" id="offer-search" placeholder="Search offers..." aria-label="Search offers">
+        <button id="search-button" aria-label="Search">
+          <i class="fas fa-search"></i>
+        </button>
+      `;
+      filtersContainer.insertBefore(searchDiv, filtersContainer.firstChild);
+    }
+
+    // Bind filter events
+    const searchButton = document.getElementById('search-button');
+    const searchInput = document.getElementById('offer-search');
+    const filterElements = [
+      'category-filter', 'date-filter', 'discount-filter', 'active-filter'
+    ].map(id => document.getElementById(id)).filter(Boolean);
+
+    if (searchButton) {
+      searchButton.addEventListener('click', () => this.loadOffers());
+    }
+
+    if (searchInput) {
+      let searchTimeout;
+      searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => this.loadOffers(), 300);
       });
     }
-    
-    // Render offers from data
-    function renderOffers(offers) {
-      const offersContainer = document.querySelector('.offers-container');
-      if (!offersContainer) return;
+
+    filterElements.forEach(element => {
+      element.addEventListener('change', () => this.loadOffers());
+    });
+
+    // Quick filters
+    document.querySelectorAll('.quick-filter-button').forEach(button => {
+      button.addEventListener('click', () => {
+        const categoryFilter = document.getElementById('category-filter');
+        if (categoryFilter) {
+          categoryFilter.value = button.dataset.category;
+          this.loadOffers();
+        }
+      });
+    });
+  }
+
+  async loadOffers() {
+    const offersContainer = document.querySelector('.offers-container');
+    if (!offersContainer) return;
+
+    // Show loading state
+    offersContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading offers...</div>';
+
+    // Get filter values
+    const params = new URLSearchParams({
+      category: document.getElementById('category-filter')?.value || 'all',
+      date: document.getElementById('date-filter')?.value || 'newest',
+      discount: document.getElementById('discount-filter')?.value || 'highest',
+      active_only: document.getElementById('active-filter')?.checked || true,
+      search: document.getElementById('offer-search')?.value || ''
+    });
+
+    try {
+      const response = await fetch(`{% url 'filter_offers' %}?${params}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+
+      const data = await response.json();
       
-      // Clear container
-      offersContainer.innerHTML = '';
+      // Update stats
+      document.getElementById('total-offers').textContent = data.total_offers;
+      document.getElementById('active-offers').textContent = data.total_offers;
+      document.getElementById('expiring-soon').textContent = data.expiring_soon_count;
       
-      // Show empty state if no offers
-      if (!offers || offers.length === 0) {
-        offersContainer.innerHTML = `
-          <div class="empty-offers">
-            <div class="empty-state-illustration">
-              <i class="fas fa-tags"></i>
-            </div>
-            <h3>No promotional offers match your filters</h3>
-            <p>Try adjusting your filter criteria or check back later for new offers!</p>
+      // Render offers
+      this.renderOffers(data.offers);
+    } catch (error) {
+      console.error('Error loading offers:', error);
+      offersContainer.innerHTML = '<div class="error"><i class="fas fa-exclamation-circle"></i> Failed to load offers. Please try again.</div>';
+    }
+  }
+
+  renderOffers(offers) {
+    const offersContainer = document.querySelector('.offers-container');
+    if (!offersContainer) return;
+
+    if (!offers || offers.length === 0) {
+      offersContainer.innerHTML = `
+        <div class="empty-offers">
+          <div class="empty-state-illustration">
+            <i class="fas fa-tags"></i>
           </div>
-        `;
-        return;
-      }
+          <h3>No promotional offers found</h3>
+          <p>Try adjusting your filters or check back later for new offers!</p>
+        </div>
+      `;
+      return;
+    }
+
+    offersContainer.innerHTML = offers.map(offer => this.createOfferCard(offer)).join('');
+    
+    // Bind card flip events
+    offersContainer.querySelectorAll('.offer-card').forEach(card => {
+      const viewBtn = card.querySelector('.view-details-button');
+      const backBtn = card.querySelector('.back-to-front-button');
+      const inner = card.querySelector('.offer-card-inner');
       
-      // Create offer cards
-      offers.forEach(offer => {
-        const categoryTags = offer.categories.map(cat => 
-          `<span class="category-tag">${typeof cat === 'string' ? cat : cat.name}</span>`
-        ).join('');
-        
-        const expiryClass = offer.expiring_soon ? 'expiring-soon' : '';
-        const matchesPreferences = offer.categories_match_preferences ? 'matches-preferences' : '';
-        
-        const offerCard = document.createElement('div');
-        offerCard.className = `offer-card ${expiryClass} ${matchesPreferences}`;
-        offerCard.innerHTML = `
-          <div class="offer-card-inner">
-            <div class="offer-card-front">
-              <div class="business-card">
-                <div class="business-logo">
-                  <i class="fas fa-wrench"></i>
-                </div>
-                <h3 class="business-name">${offer.business_name}</h3>
-                <p class="business-title">Professional Services</p>
-                <p class="business-contact">${offer.business_phone}</p>
+      viewBtn.addEventListener('click', () => inner.classList.add('flipped'));
+      backBtn.addEventListener('click', () => inner.classList.remove('flipped'));
+    });
+  }
+
+  createOfferCard(offer) {
+    const categoryTags = offer.categories.map(cat => 
+      `<span class="category-tag">${cat}</span>`
+    ).join('');
+    
+    const classes = ['offer-card'];
+    if (offer.expiring_soon) classes.push('expiring-soon');
+    if (offer.categories_match_preferences) classes.push('matches-preferences');
+    
+    return `
+      <div class="${classes.join(' ')}">
+        <div class="offer-card-inner">
+          <div class="offer-card-front">
+            <div class="business-card">
+              <div class="business-logo">
+                <i class="fas fa-wrench"></i>
               </div>
-              <div class="offer-badge">
-                <div class="discount-percentage">${offer.discount_percentage}%</div>
-                <div class="discount-label">OFF</div>
-              </div>
-              <div class="offer-dates">
-                <span class="valid-label">Valid:</span> ${offer.start_date} - ${offer.end_date}
-              </div>
-              <div class="offer-code-container">
-                <span class="offer-code-label">Code:</span>
-                <span class="offer-code">${offer.code}</span>
-              </div>
-              <div class="offer-categories">
-                ${categoryTags}
-              </div>
-              <button class="view-details-button">View Details</button>
+              <h3 class="business-name">${offer.business_name}</h3>
+              <p class="business-title">Professional Services</p>
+              <p class="business-contact">${offer.business_phone || 'Contact for details'}</p>
             </div>
-            <div class="offer-card-back">
-              <div class="offer-details">
-                <h3>${offer.title || 'Offer Details'}</h3>
-                <p>${offer.description}</p>
-                <div class="business-details">
-                  <div class="detail-item">
-                    <i class="fas fa-user"></i>
-                    <span>Business Owner</span>
-                  </div>
+            <div class="offer-badge">
+              <div class="discount-percentage">${offer.discount_percentage}%</div>
+              <div class="discount-label">OFF</div>
+            </div>
+            <div class="offer-dates">
+              <span class="valid-label">Valid:</span> ${offer.start_date} - ${offer.end_date}
+            </div>
+            <div class="offer-code-container">
+              <span class="offer-code-label">Code:</span>
+              <span class="offer-code">${offer.code}</span>
+            </div>
+            <div class="offer-categories">
+              ${categoryTags}
+            </div>
+            <button class="view-details-button">View Details</button>
+          </div>
+          <div class="offer-card-back">
+            <div class="offer-details">
+              <h3>${offer.title || 'Offer Details'}</h3>
+              <p>${offer.description}</p>
+              <div class="business-details">
+                <div class="detail-item">
+                  <i class="fas fa-user"></i>
+                  <span>${offer.business_name}</span>
+                </div>
+                ${offer.business_phone ? `
                   <div class="detail-item">
                     <i class="fas fa-phone"></i>
                     <span>${offer.business_phone}</span>
                   </div>
+                ` : ''}
+                ${offer.business_email ? `
                   <div class="detail-item">
                     <i class="fas fa-envelope"></i>
                     <span>${offer.business_email}</span>
                   </div>
+                ` : ''}
+                ${offer.business_address ? `
                   <div class="detail-item">
                     <i class="fas fa-map-marker-alt"></i>
                     <span>${offer.business_address}</span>
                   </div>
-                </div>
-                <div class="countdown-container">
-                  <div class="countdown-label">Expires in:</div>
-                  <div class="countdown">${offer.days_until_expiry} days</div>
-                </div>
+                ` : ''}
               </div>
-              <button class="back-to-front-button">
-                <i class="fas fa-arrow-left"></i> Back
-              </button>
+              <div class="countdown-container">
+                <div class="countdown-label">Expires in:</div>
+                <div class="countdown">${offer.days_until_expiry} days</div>
+              </div>
             </div>
+            <button class="back-to-front-button">
+              <i class="fas fa-arrow-left"></i> Back
+            </button>
           </div>
-        `;
-        offersContainer.appendChild(offerCard);
-        
-        // Add flip card functionality
-        const viewDetailsBtn = offerCard.querySelector('.view-details-button');
-        const backToFrontBtn = offerCard.querySelector('.back-to-front-button');
-        
-        viewDetailsBtn.addEventListener('click', () => {
-          offerCard.querySelector('.offer-card-inner').classList.add('flipped');
-        });
-        
-        backToFrontBtn.addEventListener('click', () => {
-          offerCard.querySelector('.offer-card-inner').classList.remove('flipped');
-        });
+        </div>
+      </div>
+    `;
+  }
+
+  // Notification Settings
+  initializeNotificationSettings() {
+    const notificationSlider = document.getElementById('notification-limit');
+    const sliderValue = document.getElementById('slider-value');
+    
+    if (notificationSlider && sliderValue) {
+      sliderValue.textContent = notificationSlider.value;
+      notificationSlider.addEventListener('input', function() {
+        sliderValue.textContent = this.value;
       });
     }
-    
-    // Add search input to offers container and set up filter handlers
-    function setupOffersFiltering() {
-      // Add search input
-      const filtersContainer = document.querySelector('.filters-container');
-      if (filtersContainer && !document.getElementById('offer-search')) {
-        const searchDiv = document.createElement('div');
-        searchDiv.className = 'search-container';
-        searchDiv.innerHTML = `
-          <input type="text" id="offer-search" placeholder="Search offers...">
-          <button id="search-button"><i class="fas fa-search"></i></button>
-        `;
-        filtersContainer.insertBefore(searchDiv, filtersContainer.firstChild);
-        
-        // Add event listener for search button
-        document.getElementById('search-button').addEventListener('click', loadOffers);
-        
-        // Add debounced input event for search
-        const searchInput = document.getElementById('offer-search');
-        let searchTimeout;
-        searchInput.addEventListener('input', () => {
-          clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(loadOffers, 300); // 300ms debounce
-        });
+  }
+
+  async loadNotificationSettings() {
+    try {
+      const response = await fetch('{% url "user_notifications" %}', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+
+      const data = await response.json();
+      
+      // Set form values
+      if (data.notification_preference) {
+        const radio = document.querySelector(`input[name="notification_preference"][value="${data.notification_preference}"]`);
+        if (radio) radio.checked = true;
       }
       
-      // Set up filter change handlers
-      const filterElements = [
-        document.getElementById('category-filter'),
-        document.getElementById('date-filter'),
-        document.getElementById('discount-filter'),
-        document.getElementById('active-filter')
-      ];
+      const minDiscount = document.querySelector('select[name="min_discount"]');
+      if (minDiscount && data.min_discount) {
+        minDiscount.value = data.min_discount;
+      }
       
-      filterElements.forEach(element => {
-        if (element) element.addEventListener('change', loadOffers);
-      });
+      const timePeriod = document.querySelector('select[name="time_period"]');
+      if (timePeriod && data.time_period) {
+        timePeriod.value = data.time_period;
+      }
       
-      // Set up quick filter buttons
-      const quickFilterButtons = document.querySelectorAll('.quick-filter-button');
-      quickFilterButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          const category = button.dataset.category;
-          const categoryFilter = document.getElementById('category-filter');
-          if (categoryFilter) {
-            categoryFilter.value = category;
-            loadOffers();
-          }
-        });
-      });
-    }
-    
-    // -----------------------
-    // Notifications Tab Functions
-    // -----------------------
-    
-    // Load notification settings from API
-    function loadNotificationSettings() {
-      const notificationForm = document.querySelector('.notification-form');
-      if (!notificationForm) return;
-      
-      // Fetch current notification settings
-      fetch('{% url "user_notifications" %}', {
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        // Set radio button values
-        const notificationPreference = document.querySelector(`input[name="notification_preference"][value="${data.notification_preference}"]`);
-        if (notificationPreference) notificationPreference.checked = true;
-        
-        // Set dropdown values
-        const minDiscount = document.querySelector('select[name="min_discount"]');
-        if (minDiscount) minDiscount.value = data.min_discount;
-        
-        const timePeriod = document.querySelector('select[name="time_period"]');
-        if (timePeriod) timePeriod.value = data.time_period;
-        
-        // Set slider value
-        const notificationLimit = document.getElementById('notification-limit');
+      const notificationLimit = document.getElementById('notification-limit');
+      if (notificationLimit && data.notification_limit) {
+        notificationLimit.value = data.notification_limit;
         const sliderValue = document.getElementById('slider-value');
-        if (notificationLimit) {
-          notificationLimit.value = data.notification_limit;
-          if (sliderValue) sliderValue.textContent = data.notification_limit;
-        }
-        
-        // Set email format
+        if (sliderValue) sliderValue.textContent = data.notification_limit;
+      }
+      
+      if (data.email_format) {
         const emailFormat = document.querySelector(`input[name="email_format"][value="${data.email_format}"]`);
         if (emailFormat) emailFormat.checked = true;
-      })
-      .catch(error => {
-        console.error('Error loading notification settings:', error);
-        showToast('Error loading notification settings', 'error');
-      });
-    }
-    
-    // Handle notification settings form submission
-    const notificationForm = document.querySelector('.notification-form');
-    if (notificationForm) {
-      notificationForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Get form data
-        const formData = new FormData(this);
-        
-        // Send AJAX request
-        fetch('{% url "user_notifications" %}', {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.status === 'success') {
-            showToast(data.message, 'success');
-          } else {
-            showToast('An error occurred while updating notification settings', 'error');
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          showToast('An error occurred while updating notification settings', 'error');
-        });
-      });
-    }
-    
-    // Initialize notification slider value display
-    const notificationSlider = document.getElementById('notification-limit');
-    if (notificationSlider) {
-      const sliderValue = document.getElementById('slider-value');
-      if (sliderValue) sliderValue.textContent = notificationSlider.value;
-      
-      notificationSlider.addEventListener('input', function() {
-        if (sliderValue) sliderValue.textContent = this.value;
-      });
-    }
-    
-    // -----------------------
-    // Utility Functions
-    // -----------------------
-    
-    // Helper function for displaying toasts
-    function showToast(message, type) {
-      if (typeof Toastify === 'undefined') {
-        console.log(message);
-        return;
       }
-      
+    } catch (error) {
+      console.error('Error loading notification settings:', error);
+      this.showToast('Error loading notification settings', 'error');
+    }
+  }
+
+  // Utility Methods
+  showToast(message, type = 'info') {
+    if (typeof Toastify !== 'undefined') {
       Toastify({
         text: message,
         duration: 3000,
         gravity: "top",
         position: "right",
-        backgroundColor: type === 'success' ? "#4CAF50" : 
-                        type === 'error' ? "#F44336" : 
-                        type === 'info' ? "#2196F3" : "#FF9800"
+        backgroundColor: {
+          success: "#28a745",
+          error: "#dc3545",
+          warning: "#ffc107",
+          info: "#17a2b8"
+        }[type] || "#17a2b8",
+        className: "toast-" + type,
+        stopOnFocus: true
       }).showToast();
+    } else {
+      // Fallback to console if Toastify not available
+      console.log(`[${type.toUpperCase()}] ${message}`);
     }
-    
-    // -----------------------
-    // Initialization
-    // -----------------------
-    
-    // Initialize everything
-    function init() {
-      // Initialize profile tab
-      initializeProfile();
-      
-      // Setup offers filtering
-      setupOffersFiltering();
-      
-      // Check which tab is active and load appropriate data
-      if (document.querySelector('.tab-button[data-tab="offers"].active')) {
-        loadOffers();
-      } else if (document.querySelector('.tab-button[data-tab="notifications"].active')) {
-        loadNotificationSettings();
-      }
+  }
+
+  updateLastUpdated() {
+    const timestamp = document.getElementById('last-updated-timestamp');
+    if (timestamp) {
+      const now = new Date();
+      timestamp.textContent = now.toLocaleString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true
+      });
     }
-    
-    // Run initialization
-    init();
-  });
+  }
+
+  updateWelcomeName(firstName) {
+    const nameElement = document.getElementById('user-first-name');
+    if (nameElement && firstName) {
+      nameElement.textContent = firstName;
+    }
+  }
+}
+
+// Initialize dashboard when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  window.dashboard = new DashboardManager();
+});
+
+// Handle browser back/forward for tabs
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash.replace('#', '');
+  if (hash && window.dashboard) {
+    window.dashboard.switchTab(hash);
+  }
+});
 </script>
-{% endblock %} 
+{% endblock %}
