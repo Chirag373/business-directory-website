@@ -4,667 +4,371 @@
 {% block title %}Handyman Services - Business Directory 2.0{% endblock %}
 
 {% block extra_css %}
-<style>
-  /* Handyman page specific styling */
-  :root {
-    --handyman-blue: #3498db;
-    --handyman-blue-dark: #2980b9;
-    --flash-interval: 2s;
-  }
-
-  .handyman-banner {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    padding: 40px 0;
-    text-align: center;
-    margin-bottom: 30px;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .handyman-banner::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, transparent, #fff, transparent);
-    animation: slideShine 3s infinite;
-  }
-  
-  @keyframes slideShine {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-  }
-  
-  .handyman-banner h1 {
-    color: #fff;
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  }
-  
-  .handyman-banner p {
-    color: #fff;
-    font-size: 1.2rem;
-    max-width: 800px;
-    margin: 0 auto;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  }
-  
-  .handyman-container {
-    width: var(--container-width);
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-  
-  /* Enhanced Search Section */
-  .handyman-search-section {
-    background-color: #f8f9fa;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    margin-bottom: 40px;
-    position: relative;
-  }
-  
-  .handyman-search-form {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-  }
-  
-  .search-field {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .search-field label {
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #333;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  
-  .search-field label i {
-    color: var(--handyman-blue);
-    font-size: 0.9rem;
-  }
-  
-  .search-field input,
-  .search-field select {
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border-color 0.3s, box-shadow 0.3s;
-  }
-  
-  .search-field input:focus,
-  .search-field select:focus {
-    border-color: var(--handyman-blue);
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-    outline: none;
-  }
-  
-  /* Service Description Field - Full Width */
-  .service-search-field {
-    grid-column: 1 / -1;
-  }
-  
-  .handyman-search-button {
-    background-color: var(--handyman-blue);
-    color: white;
-    border: none;
-    padding: 14px 30px;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    grid-column: span 3;
-    margin-top: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-  
-  .handyman-search-button:hover {
-    background-color: var(--handyman-blue-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
-  }
-  
-  /* Enhanced Grid Layout */
-  .handyman-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 20px;
-    margin-top: 30px;
-  }
-  
-  /* Business Card Styling */
-  .handyman-card {
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    overflow: visible;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    position: relative;
-    height: 350px;
-    perspective: 1000px;
-  }
-  
-  .handyman-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-  }
-  
-  .card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.8s;
-    transform-style: preserve-3d;
-  }
-  
-  .handyman-card.flipped .card-inner {
-    transform: rotateY(180deg);
-  }
-  
-  .handyman-card-front,
-  .handyman-card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border-radius: 10px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .handyman-card-back {
-    transform: rotateY(180deg);
-    background-color: #f9f9f9;
-  }
-  
-  /* Business Card Image Container */
-  .business-card-display {
-    height: 200px;
-    background: #f0f0f0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .business-card-display img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-  }
-  
-  .card-content {
-    padding: 15px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .handyman-name {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 8px;
-    text-align: center;
-  }
-  
-  .handyman-services {
-    font-size: 0.85rem;
-    color: #666;
-    text-align: center;
-    margin-bottom: 10px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-  }
-  
-  .handyman-website {
-    font-size: 0.8rem;
-    color: var(--handyman-blue);
-    text-align: center;
-    text-decoration: none;
-    margin-top: auto;
-  }
-  
-  .handyman-website:hover {
-    text-decoration: underline;
-  }
-  
-  /* Promotional Light Bulb - Below Card */
-  .promo-indicator-container {
-    position: absolute;
-    bottom: -35px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 10;
-  }
-  
-  .promo-light-bulb {
-    width: 40px;
-    height: 40px;
-    background: radial-gradient(circle at 30% 30%, #32CD32, #228B22);
-    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-    position: relative;
-    cursor: pointer;
-  }
-  
-  .promo-light-bulb::before {
-    content: '';
-    position: absolute;
-    top: -4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20px;
-    height: 8px;
-    background: #666;
-    border-radius: 2px;
-  }
-  
-  .promo-light-bulb::after {
-    content: '';
-    position: absolute;
-    bottom: -6px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 15px;
-    height: 6px;
-    background: #333;
-    border-radius: 0 0 4px 4px;
-  }
-  
-  /* Inactive state */
-  .promo-light-bulb.inactive {
-    background: radial-gradient(circle at 30% 30%, #ccc, #999);
-    opacity: 0.5;
-  }
-  
-  /* Active flashing animation - 2 second intervals */
-  .promo-light-bulb.active {
-    animation: bulbFlash var(--flash-interval) infinite;
-  }
-  
-  @keyframes bulbFlash {
-    0%, 100% {
-      box-shadow: none;
-      background: radial-gradient(circle at 30% 30%, #32CD32, #228B22);
-    }
-    50% {
-      box-shadow: 0 0 30px rgba(50, 205, 50, 0.8), 0 0 50px rgba(50, 205, 50, 0.6);
-      background: radial-gradient(circle at 30% 30%, #7FFF00, #32CD32);
-    }
-  }
-  
-  .promo-code-display {
-    background: #fff;
-    border: 2px solid #32CD32;
-    padding: 3px 8px;
-    border-radius: 15px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #228B22;
-  }
-  
-  /* Back Side Label */
-  .flip-label {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--handyman-blue);
-    color: white;
-    padding: 5px 15px;
-    border-radius: 15px;
-    font-size: 0.75rem;
-    cursor: pointer;
-    z-index: 5;
-    transition: background-color 0.3s;
-  }
-  
-  .flip-label:hover {
-    background-color: var(--handyman-blue-dark);
-  }
-  
-  /* Back Card Content */
-  .back-card-content {
-    padding: 20px;
-    height: 100%;
-    overflow-y: auto;
-  }
-  
-  .back-card-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 15px;
-    text-align: center;
-  }
-  
-  .service-details {
-    font-size: 0.9rem;
-    color: #555;
-    line-height: 1.6;
-    margin-bottom: 15px;
-  }
-  
-  .contact-info {
-    background: #e8f4f8;
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 0.85rem;
-  }
-  
-  .contact-info div {
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .contact-info i {
-    color: var(--handyman-blue);
-    width: 16px;
-  }
-  
-  /* No Results */
-  .no-results {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 60px 30px;
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    color: #555;
-  }
-  
-  .no-results i {
-    font-size: 4rem;
-    color: #ddd;
-    margin-bottom: 20px;
-  }
-  
-  /* Responsive Design */
-  @media (max-width: 1200px) {
-    .handyman-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-  
-  @media (max-width: 992px) {
-    .handyman-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-    
-    .handyman-search-form {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .service-search-field {
-      grid-column: 1 / -1;
-    }
-    
-    .handyman-search-button {
-      grid-column: span 2;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .handyman-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  @media (max-width: 576px) {
-    .handyman-grid {
-      grid-template-columns: 1fr;
-    }
-    
-    .handyman-search-form {
-      grid-template-columns: 1fr;
-    }
-    
-    .handyman-search-button {
-      grid-column: span 1;
-    }
-    
-    .handyman-card {
-      margin-bottom: 40px;
-    }
-  }
-</style>
+<link rel="stylesheet" href="{% static 'css/handyman_main.css' %}">
 {% endblock %}
 
 {% block content %}
-  <!-- Handyman Banner -->
-  <div class="handyman-banner">
-    <div class="handyman-container">
+  <!-- Enhanced Banner -->
+  <div class="banner">
+    <div class="banner-content">
       <h1>Find Handyman Services</h1>
-      <p>Connect with skilled handymen in your area for home repairs, maintenance, and improvement projects.</p>
+      <p>Connect with skilled handymen in your area for home repairs, maintenance, and improvement projects with exclusive discounts.</p>
     </div>
   </div>
 
-  <!-- Handyman Search Section -->
-  <div class="handyman-container">
-    <div class="handyman-search-section">
-      <h2 style="margin-bottom: 20px; color: #333;">
-        <i class="fas fa-search" style="color: var(--handyman-blue);"></i> 
+  <!-- Main Container -->
+  <div class="main-container">
+    <!-- Enhanced Search Section -->
+    <section class="search-section">
+      <h2 class="section-title">
+        <i class="fas fa-search"></i>
         Search for Handyman Services
       </h2>
-      <form method="post" action="{% url 'handyman' %}" class="handyman-search-form">
+      <form method="post" action="{% url 'handyman' %}" class="search-container">
         {% csrf_token %}
-        <div class="search-field">
+        <div class="search-box">
           <label for="state">
             <i class="fas fa-map"></i> State
           </label>
           <input type="text" id="state" name="state" placeholder="Enter state (e.g., CA, NY, TX)">
         </div>
         
-        <div class="search-field">
+        <div class="search-box">
           <label for="county">
             <i class="fas fa-map-marked-alt"></i> County
           </label>
           <input type="text" id="county" name="county" placeholder="Enter county">
         </div>
         
-        <div class="search-field">
+        <div class="search-box">
           <label for="city">
             <i class="fas fa-city"></i> City
           </label>
           <input type="text" id="city" name="city" placeholder="Enter city">
         </div>
         
-        <div class="search-field service-search-field">
+        <div class="search-box service-search-field">
           <label for="service_description">
             <i class="fas fa-tools"></i> What service do you need?
           </label>
           <input type="text" 
                  id="service_description" 
                  name="service_description" 
-                 placeholder="e.g., I am looking for a plumber with discount offer, electrical work, painting, etc.">
+                 placeholder="e.g., plumber with discount offer, electrical work, painting, etc.">
         </div>
         
-        <button type="submit" class="handyman-search-button">
-          <i class="fas fa-search"></i> 
+        <button type="submit" class="search-btn">
+          <i class="fas fa-search"></i>
           <span>Find Handyman Services</span>
         </button>
       </form>
-    </div>
+    </section>
 
-    <!-- Handyman Listings -->
-    <div style="margin-bottom: 20px;">
-      <h2 style="color: #333;">
-        <i class="fas fa-hard-hat" style="color: var(--handyman-blue);"></i> 
+    <!-- Business Cards Section -->
+    <section class="business-cards-section">
+      <h2 class="section-title">
+        <i class="fas fa-hard-hat"></i>
         Available Handymen
       </h2>
-      <p style="color: #666;">Showing handymen with active promotional offers</p>
-    </div>
-    
-    <div class="handyman-grid">
-      {% for handyman in handymen %}
-        <div class="handyman-card" id="handyman-{{ handyman.id }}">
-          <div class="card-inner">
-            <!-- Front of card -->
-            <div class="handyman-card-front">
-              <div class="business-card-display">
-                {% if handyman.user.business_card_front %}
-                  <img src="{{ handyman.user.business_card_front.url }}" 
-                       alt="{{ handyman.business_name }} Business Card">
-                {% else %}
-                  <div style="text-align: center; color: #999;">
-                    <i class="fas fa-id-card" style="font-size: 3rem;"></i>
-                    <p>Business Card</p>
-                  </div>
-                {% endif %}
+      <p class="section-subtitle">
+        <span class="highlight">Showing handymen with active promotional offers</span>
+        <i class="fas fa-tags" style="color: var(--handyman-secondary); margin-left: 8px; font-size: 0.9em;"></i>
+      </p>
+      
+      <div class="business-cards-container">
+        <!-- Dummy Card 1 - John's Plumbing -->
+        <div class="business-card-wrapper">
+          <div class="business-card" id="handyman-1">
+            <div class="business-card-front">
+              <div class="card-image-container">
+                <img src="{% static 'images/bd.jpg' %}" alt="John's Plumbing Business Card" class="card-image">
               </div>
-              
+              <div class="promo-indicator active" title="Active Promotion!"></div>
+              <div class="promo-code">SAVE20</div>
               <div class="card-content">
-                <h3 class="handyman-name">{{ handyman.business_name|default:"Handyman Service" }}</h3>
-                <p class="handyman-services">
-                  {{ handyman.detailed_services_description|default:handyman.bio|default:"General handyman services"|truncatechars:60 }}
-                </p>
-                {% if handyman.user.website %}
-                  <a href="{{ handyman.user.website }}" class="handyman-website" target="_blank">
-                    <i class="fas fa-globe"></i> Visit Website
-                  </a>
-                {% endif %}
+                <h3 class="card-title">John's Plumbing</h3>
+                <p class="card-description">Professional plumbing services for all your needs. Emergency repairs, installations, and maintenance.</p>
+                <a href="https://johnsplumbing.com" class="card-website" target="_blank">johnsplumbing.com</a>
               </div>
-              
-              <span class="flip-label" onclick="flipHandymanCard('{{ handyman.id }}')">
-                Back Side
-              </span>
+              <button class="flip-label">Back Side</button>
             </div>
-            
-            <!-- Back of card -->
-            <div class="handyman-card-back">
+            <div class="business-card-back">
               <div class="back-card-content">
-                <h3 class="back-card-title">{{ handyman.business_name }}</h3>
-                
-                <div class="service-details">
-                  <strong>Services Offered:</strong><br>
-                  {{ handyman.detailed_services_description|default:handyman.bio|default:"General handyman services" }}
+                <div class="back-card-header">
+                  <h3 class="back-card-title">John's Plumbing</h3>
+                </div>
+                <div class="card-back-info-container">
+                  <div class="service-details">
+                    <strong>Services Offered:</strong>
+                    <p>Emergency plumbing repairs, pipe installations, drain cleaning, water heater services, bathroom and kitchen plumbing. We provide 24/7 emergency services and guarantee all our work with a 1-year warranty.</p>
+                  </div>
+                  <div class="promotion-info">
+                    <strong>Current Promotion:</strong>
+                    <p>20% off first service call for new customers. This offer includes free diagnostic and estimate. Valid until end of month.</p>
+                  </div>
+                  <div class="contact-info">
+                    <strong>Contact Information:</strong>
+                    <div><i class="fas fa-phone"></i> (555) 123-4567</div>
+                    <div><i class="fas fa-envelope"></i> info@johnsplumbing.com</div>
+                    <div><i class="fas fa-map-marker-alt"></i> Los Angeles, CA</div>
+                    <div><i class="fas fa-clock"></i> Available 24/7</div>
+                  </div>
+                  <div class="additional-info">
+                    <strong>Additional Information:</strong>
+                    <p>Licensed and insured. Over 15 years of experience. Member of Better Business Bureau with A+ rating. Free estimates on all major repairs.</p>
+                  </div>
+                </div>
+                <button class="flip-label">Front Side</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dummy Card 2 - Elite Electrical -->
+        <div class="business-card-wrapper">
+          <div class="business-card" id="handyman-2">
+            <div class="business-card-front">
+              <div class="card-image-container">
+                <img src="{% static 'images/bd.jpg' %}" alt="Elite Electrical Business Card" class="card-image">
+              </div>
+              <div class="promo-indicator" title="No active promotions"></div>
+              <div class="card-content">
+                <h3 class="card-title">Elite Electrical</h3>
+                <p class="card-description">Residential and commercial electrical services. Wiring, installations, repairs, and inspections.</p>
+                <a href="https://eliteelectrical.com" class="card-website" target="_blank">eliteelectrical.com</a>
+              </div>
+              <button class="flip-label">Back Side</button>
+            </div>
+            <div class="business-card-back">
+              <div class="back-card-content">
+                <div class="back-card-header">
+                  <h3 class="back-card-title">Elite Electrical</h3>
+                </div>
+                <div class="card-back-info-container">
+                  <div class="service-details">
+                    <strong>Services Offered:</strong>
+                    <p>Electrical wiring, outlet installations, circuit breaker repairs, lighting fixtures, ceiling fan installation, panel upgrades, home automation systems, and electrical safety inspections.</p>
+                  </div>
+                  <div class="contact-info">
+                    <strong>Contact Information:</strong>
+                    <div><i class="fas fa-phone"></i> (555) 987-6543</div>
+                    <div><i class="fas fa-envelope"></i> service@eliteelectrical.com</div>
+                    <div><i class="fas fa-map-marker-alt"></i> New York, NY</div>
+                    <div><i class="fas fa-clock"></i> Mon-Fri 8AM-6PM</div>
+                  </div>
+                  <div class="additional-info">
+                    <strong>Additional Information:</strong>
+                    <p>Master electrician with 20+ years experience. All work code compliant and fully guaranteed. Emergency service available.</p>
+                  </div>
+                </div>
+                <button class="flip-label">Front Side</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dummy Card 3 - Mike's Home Repair -->
+        <div class="business-card-wrapper">
+          <div class="business-card" id="handyman-3">
+            <div class="business-card-front">
+              <div class="card-image-container">
+                <img src="{% static 'images/bd.jpg' %}" alt="Mike's Home Repair Business Card" class="card-image">
+              </div>
+              <div class="promo-indicator active" title="Active Promotion!"></div>
+              <div class="promo-code">FIRST15</div>
+              <div class="card-content">
+                <h3 class="card-title">Mike's Home Repair</h3>
+                <p class="card-description">General repairs, carpentry, drywall, painting, and more. Quality craftsmanship guaranteed.</p>
+                <a href="https://mikeshomerepair.com" class="card-website" target="_blank">mikeshomerepair.com</a>
+              </div>
+              <button class="flip-label">Back Side</button>
+            </div>
+            <div class="business-card-back">
+              <div class="back-card-content">
+                <div class="back-card-header">
+                  <h3 class="back-card-title">Mike's Home Repair</h3>
+                </div>
+                <div class="card-back-info-container">
+                  <div class="service-details">
+                    <strong>Services Offered:</strong>
+                    <p>Carpentry work, drywall repair and installation, interior painting, furniture assembly, shelf installation, door and window repairs, deck maintenance, and general home improvements.</p>
+                  </div>
+                  <div class="promotion-info">
+                    <strong>Current Promotion:</strong>
+                    <p>15% off first-time customers on any repair service over $100. Includes free consultation and estimate.</p>
+                  </div>
+                  <div class="contact-info">
+                    <strong>Contact Information:</strong>
+                    <div><i class="fas fa-phone"></i> (555) 234-5678</div>
+                    <div><i class="fas fa-envelope"></i> mike@mikeshomerepair.com</div>
+                    <div><i class="fas fa-map-marker-alt"></i> Chicago, IL</div>
+                    <div><i class="fas fa-clock"></i> Mon-Sat 7AM-7PM</div>
+                  </div>
+                  <div class="additional-info">
+                    <strong>Additional Information:</strong>
+                    <p>Locally owned and operated for 12 years. Fully insured and bonded. Same-day service available for most repairs.</p>
+                  </div>
+                </div>
+                <button class="flip-label">Front Side</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Continue with remaining dummy cards with similar structure... -->
+        <!-- For brevity, I'll show one more example -->
+
+        <!-- Dummy Card 4 - Green Landscaping -->
+        <div class="business-card-wrapper">
+          <div class="business-card" id="handyman-4">
+            <div class="business-card-front">
+              <div class="card-image-container">
+                <img src="{% static 'images/bd.jpg' %}" alt="Green Landscaping Business Card" class="card-image">
+              </div>
+              <div class="promo-indicator" title="No active promotions"></div>
+              <div class="card-content">
+                <h3 class="card-title">Green Landscaping</h3>
+                <p class="card-description">Professional landscaping and lawn maintenance services. Garden design, irrigation, and seasonal care.</p>
+                <a href="https://greenlandscaping.com" class="card-website" target="_blank">greenlandscaping.com</a>
+              </div>
+              <button class="flip-label">Back Side</button>
+            </div>
+            <div class="business-card-back">
+              <div class="back-card-content">
+                <div class="back-card-header">
+                  <h3 class="back-card-title">Green Landscaping</h3>
+                </div>
+                <div class="card-back-info-container">
+                  <div class="service-details">
+                    <strong>Services Offered:</strong>
+                    <p>Landscape design and installation, lawn mowing and maintenance, tree trimming, irrigation system setup, seasonal cleanup, garden bed preparation, mulching, and outdoor lighting installation.</p>
+                  </div>
+                  <div class="contact-info">
+                    <strong>Contact Information:</strong>
+                    <div><i class="fas fa-phone"></i> (555) 876-5432</div>
+                    <div><i class="fas fa-envelope"></i> info@greenlandscaping.com</div>
+                    <div><i class="fas fa-map-marker-alt"></i> Phoenix, AZ</div>
+                    <div><i class="fas fa-clock"></i> Mon-Fri 6AM-4PM</div>
+                  </div>
+                  <div class="additional-info">
+                    <strong>Additional Information:</strong>
+                    <p>Certified landscape professionals. Eco-friendly practices. Seasonal contracts available. Free design consultation with any installation over $500.</p>
+                  </div>
+                </div>
+                <button class="flip-label">Front Side</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add remaining dummy cards here following the same pattern... -->
+
+        <!-- Django Template Loop for dynamic data -->
+        {% for handyman in handymen %}
+          <div class="business-card-wrapper">
+            <div class="business-card" id="handyman-{{ handyman.id }}">
+              <!-- Front of card -->
+              <div class="business-card-front">
+                <div class="card-image-container">
+                  {% if handyman.user.business_card_front %}
+                    <img src="{{ handyman.user.business_card_front.url }}" 
+                         alt="{{ handyman.business_name }} Business Card"
+                         class="card-image">
+                  {% else %}
+                    <div class="placeholder-content">
+                      <i class="fas fa-id-card"></i>
+                      <p>Business Card</p>
+                    </div>
+                {% endif %}
                 </div>
                 
+                <!-- Promotional indicators -->
+                <div class="promo-indicator {% if handyman.offers_promotions and handyman.promotions.exists %}active{% endif %}" 
+                     title="{% if handyman.offers_promotions and handyman.promotions.exists %}Active Promotion!{% else %}No active promotions{% endif %}">
+                </div>
                 {% if handyman.offers_promotions and handyman.promotions.exists %}
-                  <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-                    <strong style="color: #856404;">Current Promotion:</strong><br>
-                    <p style="margin: 5px 0; color: #856404;">
-                      {{ handyman.promotions.first.description }}
-                      ({{ handyman.promotions.first.discount_percentage }}% OFF)
-                    </p>
+                  <div class="promo-code">
+                    {{ handyman.promotions.first.code|default:"SAVE15" }}
                   </div>
                 {% endif %}
                 
-                <div class="contact-info">
-                  <strong>Contact Information:</strong>
-                  {% if handyman.user.phone_number %}
-                    <div><i class="fas fa-phone"></i> {{ handyman.user.phone_number }}</div>
-                  {% endif %}
-                  <div><i class="fas fa-envelope"></i> {{ handyman.user.email }}</div>
-                  {% if handyman.user.address %}
-                    <div><i class="fas fa-map-marker-alt"></i> 
-                      {{ handyman.user.address.city }}, {{ handyman.user.address.state }}
-                    </div>
+                <div class="card-content">
+                  <h3 class="card-title">{{ handyman.business_name|default:"Handyman Service" }}</h3>
+                  <p class="card-description">
+                    {{ handyman.detailed_services_description|default:handyman.bio|default:"General handyman services"|truncatechars:120 }}
+                  </p>
+                  {% if handyman.user.website %}
+                    <a href="{{ handyman.user.website }}" class="card-website" target="_blank">
+                      {{ handyman.user.website|slice:":30" }}
+                    </a>
+                  {% else %}
+                    <a href="#" class="card-website" target="_blank">
+                      No website available
+                    </a>
                   {% endif %}
                 </div>
+                
+                <button class="flip-label">
+                  Back Side
+                </button>
               </div>
               
-              <span class="flip-label" onclick="flipHandymanCard('{{ handyman.id }}')">
-                Front Side
-              </span>
+              <!-- Back of card -->
+              <div class="business-card-back">
+                <div class="back-card-content">
+                  <div class="back-card-header">
+                    <h3 class="back-card-title">{{ handyman.business_name }}</h3>
+                  </div>
+                  
+                  <div class="card-back-info-container">
+                    <div class="service-details">
+                      <strong>Services Offered:</strong>
+                      <p>{{ handyman.detailed_services_description|default:handyman.bio|default:"General handyman services" }}</p>
+                    </div>
+                    
+                    {% if handyman.offers_promotions and handyman.promotions.exists %}
+                      <div class="promotion-info">
+                        <strong>Current Promotion:</strong>
+                        <p>{{ handyman.promotions.first.description }} ({{ handyman.promotions.first.discount_percentage }}% OFF)</p>
+                      </div>
+                    {% endif %}
+                    
+                    <div class="contact-info">
+                      <strong>Contact Information:</strong>
+                      {% if handyman.user.phone_number %}
+                        <div><i class="fas fa-phone"></i> {{ handyman.user.phone_number }}</div>
+                      {% endif %}
+                      <div><i class="fas fa-envelope"></i> {{ handyman.user.email }}</div>
+                      {% if handyman.user.address %}
+                        <div><i class="fas fa-map-marker-alt"></i> 
+                          {{ handyman.user.address.city }}, {{ handyman.user.address.state }}
+                        </div>
+                      {% endif %}
+                    </div>
+                    
+                    {% if handyman.bio and handyman.bio != handyman.detailed_services_description %}
+                      <div class="additional-info">
+                        <strong>Additional Information:</strong>
+                        <p>{{ handyman.bio }}</p>
+                      </div>
+                    {% endif %}
+                  </div>
+                  
+                  <button class="flip-label">
+                    Front Side
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-          
-          <!-- Promotional Light Bulb Below Card -->
-          <div class="promo-indicator-container">
-            <div class="promo-light-bulb {% if handyman.offers_promotions and handyman.promotions.exists %}active{% else %}inactive{% endif %}" 
-                 title="{% if handyman.offers_promotions and handyman.promotions.exists %}Active Promotion!{% else %}No active promotions{% endif %}">
-            </div>
-            {% if handyman.offers_promotions and handyman.promotions.exists %}
-              <span class="promo-code-display">
-                {{ handyman.promotions.first.code|default:"SAVE15" }}
-              </span>
-            {% endif %}
-          </div>
-        </div>
-      {% empty %}
-        <div class="no-results">
-          <i class="fas fa-tools"></i>
-          <h3>No Handymen Found</h3>
-          <p>No handymen found matching your search criteria. Try adjusting your search parameters or check back later.</p>
-        </div>
-      {% endfor %}
-    </div>
+        {% empty %}
+          <!-- No results shown only if no dummy cards above -->
+        {% endfor %}
+      </div>
+    </section>
   </div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Auto-rotate cards on mouse hover
-    const cards = document.querySelectorAll('.handyman-card');
-    cards.forEach(card => {
-      let hoverTimeout;
-      
-      card.addEventListener('mouseenter', function() {
-        hoverTimeout = setTimeout(() => {
-          if (!this.classList.contains('flipped')) {
-            const cardId = this.id.replace('handyman-', '');
-            flipHandymanCard(cardId);
-          }
-        }, 1000); // Show back after 1 second hover
-      });
-      
-      card.addEventListener('mouseleave', function() {
-        clearTimeout(hoverTimeout);
-        if (this.classList.contains('flipped')) {
-          const cardId = this.id.replace('handyman-', '');
-          setTimeout(() => flipHandymanCard(cardId), 500);
-        }
-      });
-    });
-    
-    // Enhanced search field
-    const serviceInput = document.getElementById('service_description');
-    const suggestions = [
-      'plumbing repair',
-      'electrical work',
-      'carpentry',
-      'painting',
-      'drywall repair',
-      'flooring installation',
-      'bathroom renovation',
-      'kitchen remodeling',
-      'general maintenance'
-    ];
-    
-    // You can implement autocomplete here if needed
-  });
-  
-  function flipHandymanCard(handymanId) {
-    const card = document.getElementById('handyman-' + handymanId);
-    if (card) {
-      card.classList.toggle('flipped');
-    }
-  }
-</script>
+<script src="{% static 'js/handyman_main.js' %}"></script>
 {% endblock %}

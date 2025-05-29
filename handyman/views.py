@@ -12,7 +12,9 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import JsonResponse
 from datetime import timedelta
-from django.db.models import Q
+from django.db.models import Q, Prefetch
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 
 from users.models import User, UserType, UserProfile
 from core.models import Address, Category
@@ -21,32 +23,79 @@ from .models import Handyman, Service, HandymanService, HandymanPromotion, Handy
 import json
 
 # Create your views here.
+@cache_page(60 * 15)  # Cache this view for 15 minutes
 def handyman_main(request):
     """Main handyman page with search functionality"""
-    handymen = Handyman.objects.filter(is_active=True)
-    services = Service.objects.all()
-    
-    # Process search filters if submitted
+    # Check if it's a POST request - if so, we can't use the cached version
     if request.method == 'POST':
-        state = request.POST.get('state', '')
-        county = request.POST.get('county', '')
-        city = request.POST.get('city', '')
-        service_description = request.POST.get('service_description', '')
+        return _handyman_search(request)
         
-        # Filter handymen based on location if provided
-        if state:
-            handymen = handymen.filter(service_areas__state__iexact=state)
-        if county:
-            handymen = handymen.filter(service_areas__city__icontains=county)
-        if city:
-            handymen = handymen.filter(service_areas__city__iexact=city)
-            
-        # Filter by service description if provided
-        if service_description:
-            handymen = handymen.filter(
-                Q(detailed_services_description__icontains=service_description) |
-                Q(services__name__icontains=service_description)
-            ).distinct()
+    # For GET requests, optimize the query with prefetching
+    handymen = Handyman.objects.filter(is_active=True).select_related('user').prefetch_related(
+        'service_areas',
+        'services',
+        Prefetch('promotions', queryset=HandymanPromotion.objects.filter(is_active=True))
+    )
+    
+    # Cache services list for 1 hour
+    services = cache.get('all_handyman_services')
+    if not services:
+        services = list(Service.objects.all())
+        cache.set('all_handyman_services', services, 60 * 60)
+    
+    return render(request, 'handyman/handyman_main.html', {
+        'handymen': handymen,
+        'services': services,
+    })
+
+def _handyman_search(request):
+    """Private helper function to handle handyman search submissions"""
+    state = request.POST.get('state', '')
+    county = request.POST.get('county', '')
+    city = request.POST.get('city', '')
+    service_description = request.POST.get('service_description', '')
+    
+    # Start with a base optimized query
+    query = Handyman.objects.filter(is_active=True).select_related('user').prefetch_related(
+        'service_areas',
+        'services',
+        Prefetch('promotions', queryset=HandymanPromotion.objects.filter(is_active=True))
+    )
+    
+    # Build query filters incrementally
+    filters = Q()
+    location_filtered = False
+    
+    # Filter handymen based on location if provided
+    if state:
+        filters &= Q(service_areas__state__iexact=state)
+        location_filtered = True
+    if county:
+        filters &= Q(service_areas__county__icontains=county)
+        location_filtered = True
+    if city:
+        filters &= Q(service_areas__city__iexact=city)
+        location_filtered = True
+        
+    # Apply location filters if any were set
+    if location_filtered:
+        query = query.filter(filters)
+    
+    # Filter by service description if provided
+    if service_description:
+        # Use Q objects to optimize OR query
+        service_filters = Q(detailed_services_description__icontains=service_description) | \
+                        Q(services__name__icontains=service_description)
+        query = query.filter(service_filters)
+    
+    # Always call distinct() to eliminate duplicate results
+    handymen = query.distinct()
+    
+    # Get services (from cache if available)
+    services = cache.get('all_handyman_services')
+    if not services:
+        services = list(Service.objects.all())
+        cache.set('all_handyman_services', services, 60 * 60)
     
     return render(request, 'handyman/handyman_main.html', {
         'handymen': handymen,
@@ -308,10 +357,17 @@ def dashboard(request):
     if user.user_type != UserType.HANDYMAN:
         messages.error(request, "Your account is not registered as a handyman. Please contact support.")
         return redirect('login')
+    
+    # Early cache check for frequently accessed data
+    cache_key = f'handyman_dashboard_{user.id}'
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return render(request, 'handyman/handyman_dashboard.html', cached_data)
         
     # Get the handyman profile
     try:
-        handyman = Handyman.objects.get(user=user)
+        # Use select_related to get user data in the same query
+        handyman = Handyman.objects.select_related('user').get(user=user)
     except Handyman.DoesNotExist:
         # Instead of trying to create a profile automatically, redirect to a setup page
         messages.info(request, "Please complete your handyman profile setup.")
@@ -320,14 +376,14 @@ def dashboard(request):
     # Get today's date for calculations
     today = timezone.now().date()
     
-    # Calculate dashboard stats
-    # 1. Get active promotions
+    # Calculate dashboard stats using optimized queries
+    # 1. Get active promotions with a single query
     active_promotions = HandymanPromotion.objects.filter(
         handyman=handyman,
         is_active=True,
         start_date__lte=today,
         end_date__gte=today
-    ).order_by('-created_at')
+    ).select_related('service').order_by('-created_at')
     
     # 2. Calculate profile views (placeholder for now)
     profile_views = 0  # This would be implemented with a tracking system
@@ -341,92 +397,100 @@ def dashboard(request):
     # 5. Calculate website clicks (placeholder) 
     website_clicks = 0
     
-    # Get the handyman's services
+    # Get the handyman's services with a more efficient query
     handyman_services = HandymanService.objects.filter(
         handyman=handyman
-    )
+    ).select_related('service')
     
-    # Format services for the template
+    # Format services for the template - Reuse this data for multiple sections
     services_data = []
-    for service in handyman_services:
+    for hs in handyman_services:
+        service = hs.service
         services_data.append({
             'id': service.id,
-            'name': service.service.name,
-            'hourly_rate': service.hourly_rate,
-            'flat_rate': service.flat_rate
+            'name': service.name,
+            'hourly_rate': hs.hourly_rate,
+            'flat_rate': hs.flat_rate,
         })
     
-    # Format promotions for the template
+    # Get promotions in a single optimized query
+    all_promotions = HandymanPromotion.objects.filter(
+        handyman=handyman
+    ).select_related('service').order_by('-created_at')
+    
+    # Format promotions data
     promotions_data = []
-    for promo in active_promotions:
-        days_until_expiry = (promo.end_date - today).days
-        expiring_soon = days_until_expiry <= 7 and days_until_expiry >= 0
-        
+    for promo in all_promotions:
+        service_name = promo.service.name if promo.service else "General Service"
         promotions_data.append({
             'id': promo.id,
-            'description': promo.description,
-            'discount_percentage': promo.discount_percentage,
+            'discount': promo.discount_percentage,
+            'service': service_name, 
             'code': promo.code,
             'start_date': promo.start_date,
             'end_date': promo.end_date,
-            'days_until_expiry': days_until_expiry,
-            'expiring_soon': expiring_soon,
-            'service': promo.service.name if promo.service else "All Services"
+            'is_active': promo.is_active and promo.start_date <= today and promo.end_date >= today,
         })
     
-    # Get recent jobs
+    # Get recent jobs with status info
     recent_jobs = HandymanJob.objects.filter(
         handyman=handyman
-    ).order_by('-created_at')[:5]
+    ).select_related('service', 'client', 'address').order_by('-created_at')[:5]
     
     # Format jobs data
     jobs_data = []
     for job in recent_jobs:
         jobs_data.append({
             'id': job.id,
-            'client_name': job.client.get_full_name() or job.client.email,
+            'client': job.client.get_full_name() or job.client.email,
             'service': job.service.name,
-            'scheduled_date': job.scheduled_date,
-            'scheduled_time': job.scheduled_time,
-            'status': job.status,
-            'address': str(job.address)
+            'status': job.get_status_display(),
+            'date': job.scheduled_date,
+            'raw_status': job.status,
         })
     
-    # Prepare address data for display
-    address_number = ''
-    address_street = ''
+    # Process address data
+    address = user.address
+    address_number = ""
+    address_street = ""
     
-    if user.address:
-        # Split street into number and name if possible
-        street_parts = user.address.street.split(' ', 1) if user.address.street else ['', '']
-        address_number = street_parts[0] if len(street_parts) > 0 else ''
-        address_street = street_parts[1] if len(street_parts) > 1 else ''
+    if address and address.street:
+        # Split address into number and street
+        address_parts = address.street.split(' ', 1)
+        if len(address_parts) > 1:
+            address_number = address_parts[0]
+            address_street = address_parts[1]
+        else:
+            address_street = address.street
     
-    # Get all service categories
-    all_categories = Category.objects.all()
-    services = Service.objects.all()
+    # Get service categories efficiently 
+    categories = list(Category.objects.filter(is_active=True).order_by('name'))
     
-    # Format for template
-    formatted_categories = [
-        {'value': category.slug, 'name': category.name} for category in all_categories
-    ]
+    # Format categories data
+    formatted_categories = []
+    for category in categories:
+        formatted_categories.append({
+            'id': category.id,
+            'name': category.name,
+        })
     
-    # Create a list of US states
-    states = [
-        ('AL', 'Alabama'), ('AK', 'Alaska'), ('AZ', 'Arizona'), ('AR', 'Arkansas'),
-        ('CA', 'California'), ('CO', 'Colorado'), ('CT', 'Connecticut'), ('DE', 'Delaware'),
-        ('FL', 'Florida'), ('GA', 'Georgia'), ('HI', 'Hawaii'), ('ID', 'Idaho'),
-        ('IL', 'Illinois'), ('IN', 'Indiana'), ('IA', 'Iowa'), ('KS', 'Kansas'),
-        ('KY', 'Kentucky'), ('LA', 'Louisiana'), ('ME', 'Maine'), ('MD', 'Maryland'),
-        ('MA', 'Massachusetts'), ('MI', 'Michigan'), ('MN', 'Minnesota'), ('MS', 'Mississippi'),
-        ('MO', 'Missouri'), ('MT', 'Montana'), ('NE', 'Nebraska'), ('NV', 'Nevada'),
-        ('NH', 'New Hampshire'), ('NJ', 'New Jersey'), ('NM', 'New Mexico'), ('NY', 'New York'),
-        ('NC', 'North Carolina'), ('ND', 'North Dakota'), ('OH', 'Ohio'), ('OK', 'Oklahoma'),
-        ('OR', 'Oregon'), ('PA', 'Pennsylvania'), ('RI', 'Rhode Island'), ('SC', 'South Carolina'),
-        ('SD', 'South Dakota'), ('TN', 'Tennessee'), ('TX', 'Texas'), ('UT', 'Utah'),
-        ('VT', 'Vermont'), ('VA', 'Virginia'), ('WA', 'Washington'), ('WV', 'West Virginia'),
-        ('WI', 'Wisconsin'), ('WY', 'Wyoming')
-    ]
+    # Get all services - use cached data if available
+    services = cache.get('all_handyman_services')
+    if not services:
+        services = list(Service.objects.all())
+        cache.set('all_handyman_services', services, 60 * 60)
+    
+    # Get US states from cached data
+    states = cache.get('us_states')
+    if not states:
+        states = [
+            "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+            "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+            "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+            "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+            "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+        ]
+        cache.set('us_states', states, 60 * 60 * 24)  # Cache for 24 hours
     
     context = {
         'handyman': handyman,
@@ -447,6 +511,9 @@ def dashboard(request):
         'service_description': handyman.detailed_services_description or handyman.bio
     }
     
+    # Cache the dashboard data for 5 minutes to reduce database load
+    cache.set(cache_key, context, 60 * 5)
+    
     return render(request, 'handyman/handyman_dashboard.html', context)
 
 @login_required
@@ -454,59 +521,67 @@ def profile_tab(request):
     """View function for the profile tab in handyman dashboard."""
     user = request.user
     
+    # Check if we have cached data
+    cache_key = f'handyman_profile_tab_{user.id}'
+    cached_content = cache.get(cache_key)
+    if cached_content:
+        return cached_content
+    
     try:
-        handyman = Handyman.objects.get(user=user)
+        # Use select_related for more efficient query
+        handyman = Handyman.objects.select_related('user', 'user__address').get(user=user)
     except Handyman.DoesNotExist:
         return redirect('handyman_dashboard')
     
     context = {
         'handyman': handyman,
+        'address': user.address,
     }
     
-    return render(request, 'handyman/handyman_dashboard_profile.html', context)
+    response = render(request, 'handyman/handyman_dashboard_profile.html', context)
+    
+    # Cache the response for 10 minutes
+    cache.set(cache_key, response, 60 * 10)
+    
+    return response
 
 @login_required
 def promotions_tab(request):
     """View function for the promotions tab in handyman dashboard."""
     user = request.user
+    today = timezone.now().date()
     
     try:
-        handyman = Handyman.objects.get(user=user)
+        handyman = Handyman.objects.select_related('user').get(user=user)
     except Handyman.DoesNotExist:
         return redirect('handyman_dashboard')
     
-    # Get today's date for calculations
-    today = timezone.now().date()
-    
-    # Get all promotions for this handyman
-    all_promotions = HandymanPromotion.objects.filter(handyman=handyman).order_by('-created_at')
+    # Get all promotions in a single optimized query
+    all_promotions = HandymanPromotion.objects.filter(
+        handyman=handyman
+    ).select_related('service').order_by('-created_at')
     
     # Get active promotions
-    active_promotions = all_promotions.filter(
-        is_active=True,
-        start_date__lte=today,
-        end_date__gte=today
-    )
+    active_promotions = [
+        promo for promo in all_promotions 
+        if promo.is_active and promo.start_date <= today and promo.end_date >= today
+    ]
     
-    # Get expired promotions
-    expired_promotions = all_promotions.filter(
-        end_date__lt=today
-    )
+    # Get all available services efficiently
+    services = cache.get('all_handyman_services')
+    if not services:
+        services = list(Service.objects.all())
+        cache.set('all_handyman_services', services, 60 * 60)
     
-    # Get upcoming promotions
-    upcoming_promotions = all_promotions.filter(
-        start_date__gt=today
-    )
-    
-    # Get handyman services for the promotion form
-    services = HandymanService.objects.filter(handyman=handyman)
+    # Get discount choices from the model
+    discount_choices = HandymanPromotion._meta.get_field('discount_percentage').choices
     
     context = {
         'handyman': handyman,
+        'promotions': all_promotions,
         'active_promotions': active_promotions,
-        'expired_promotions': expired_promotions,
-        'upcoming_promotions': upcoming_promotions,
         'services': services,
+        'discount_choices': [choice[0] for choice in discount_choices],
     }
     
     return render(request, 'handyman/handyman_dashboard_promotions.html', context)
@@ -517,20 +592,30 @@ def services_tab(request):
     user = request.user
     
     try:
-        handyman = Handyman.objects.get(user=user)
+        handyman = Handyman.objects.select_related('user').get(user=user)
     except Handyman.DoesNotExist:
         return redirect('handyman_dashboard')
     
-    # Get all services offered by this handyman
-    handyman_services = HandymanService.objects.filter(handyman=handyman)
+    # Get all services offered by this handyman efficiently
+    handyman_services = HandymanService.objects.filter(
+        handyman=handyman
+    ).select_related('service')
     
-    # Get all available services for the form
-    all_services = Service.objects.all()
+    # Get all available services from cache
+    all_services = cache.get('all_handyman_services')
+    if not all_services:
+        all_services = list(Service.objects.all())
+        cache.set('all_handyman_services', all_services, 60 * 60)
+    
+    # Get service categories efficiently
+    categories = list(Category.objects.filter(is_active=True).order_by('name'))
     
     context = {
         'handyman': handyman,
         'handyman_services': handyman_services,
         'all_services': all_services,
+        'categories': categories,
+        'service_description': handyman.detailed_services_description or handyman.bio
     }
     
     return render(request, 'handyman/handyman_dashboard_services.html', context)
@@ -541,116 +626,125 @@ def jobs_tab(request):
     user = request.user
     
     try:
-        handyman = Handyman.objects.get(user=user)
+        handyman = Handyman.objects.select_related('user').get(user=user)
     except Handyman.DoesNotExist:
         return redirect('handyman_dashboard')
     
-    # Get all jobs for this handyman
-    all_jobs = HandymanJob.objects.filter(handyman=handyman).order_by('-created_at')
-    
-    # Get pending jobs
-    pending_jobs = all_jobs.filter(status='pending')
-    
-    # Get in_progress jobs
-    active_jobs = all_jobs.filter(status='in_progress')
-    
-    # Get completed jobs
-    completed_jobs = all_jobs.filter(status='completed')
+    # Get jobs with all necessary related objects in a single query
+    jobs = HandymanJob.objects.filter(
+        handyman=handyman
+    ).select_related(
+        'service', 
+        'client',
+        'address',
+        'promotion_applied'
+    ).order_by('-created_at')
     
     context = {
         'handyman': handyman,
-        'all_jobs': all_jobs,
-        'pending_jobs': pending_jobs,
-        'active_jobs': active_jobs,
-        'completed_jobs': completed_jobs,
+        'jobs': jobs,
     }
     
     return render(request, 'handyman/handyman_dashboard_jobs.html', context)
 
 @login_required
+@transaction.atomic
 def update_profile(request):
-    """Update handyman profile information."""
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        user = request.user
-        
-        try:
-            handyman = Handyman.objects.get(user=user)
-        except Handyman.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Handyman profile not found'})
-        
-        # Get form data
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        business_name = request.POST.get('business_name')
-        email = request.POST.get('email')
-        phone = request.POST.get('phone')
-        website = request.POST.get('website')
-        experience_years = request.POST.get('experience_years')
-        license_number = request.POST.get('license_number')
-        is_licensed = request.POST.get('is_licensed') == 'on'
-        is_insured = request.POST.get('is_insured') == 'on'
-        
-        # Address information
-        address_number = request.POST.get('address_number')
-        address_street = request.POST.get('address_street')
-        state = request.POST.get('state')
-        city = request.POST.get('city')
-        zip_code = request.POST.get('zip')
-        
-        # Update user information
-        user.first_name = first_name
-        user.last_name = last_name
-        user.business_name = business_name
-        user.phone_number = phone
-        user.website = website
-        
-        # Only update email if it's different and not already taken
-        if email != user.email:
-            if User.objects.filter(email=email).exists():
-                return JsonResponse({
-                    'status': 'error', 
-                    'message': 'This email is already registered to another account.'
-                })
-            user.email = email
-        
-        # Update or create address
-        if user.address:
-            address = user.address
-            address.street = f"{address_number} {address_street}" if address_number else address_street
-            address.city = city
-            address.state = state
-            address.postal_code = zip_code
-            address.save()
-        else:
-            address = Address.objects.create(
-                street=f"{address_number} {address_street}" if address_number else address_street,
-                city=city,
-                state=state,
-                postal_code=zip_code
-            )
-            user.address = address
-        
-        # Save user changes
-        user.save()
-        
-        # Update handyman profile
-        if experience_years:
-            try:
-                handyman.experience_years = int(experience_years)
-            except ValueError:
-                pass
-        
-        handyman.license_number = license_number
-        handyman.is_licensed = is_licensed
-        handyman.is_insured = is_insured
-        handyman.business_name = business_name
-        
-        # Save handyman changes
-        handyman.save()
-        
-        return JsonResponse({'status': 'success', 'message': 'Profile updated successfully'})
+    """Update the handyman's profile information."""
+    user = request.user
     
-    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+    # Verify this user is a handyman
+    if user.user_type != UserType.HANDYMAN:
+        messages.error(request, "Your account is not registered as a handyman.")
+        return redirect('login')
+    
+    if request.method == 'POST':
+        try:
+            # Get both user and handyman in a single transaction to ensure consistency
+            with transaction.atomic():
+                handyman = Handyman.objects.select_related('user').get(user=user)
+                
+                # Update basic information
+                user.first_name = request.POST.get('first_name', user.first_name)
+                user.last_name = request.POST.get('last_name', user.last_name)
+                user.phone_number = request.POST.get('phone_number', user.phone_number)
+                user.website = request.POST.get('website', user.website)
+                handyman.business_name = request.POST.get('business_name', handyman.business_name)
+                
+                # Process experience years
+                experience = request.POST.get('experience_years')
+                if experience and experience.isdigit():
+                    handyman.experience_years = int(experience)
+                
+                # Process license information
+                license_number = request.POST.get('license_number')
+                if license_number:
+                    handyman.license_number = license_number
+                    handyman.is_licensed = True
+                
+                # Handle insurance checkbox
+                handyman.is_insured = request.POST.get('is_insured') == 'on'
+                
+                # Update bio if provided
+                bio = request.POST.get('bio')
+                if bio:
+                    handyman.bio = bio
+                
+                # Handle address updates efficiently
+                address_number = request.POST.get('address_number', '')
+                address_street = request.POST.get('address_street', '')
+                city = request.POST.get('city', '')
+                state = request.POST.get('state', '')
+                postal_code = request.POST.get('zip', '')
+                
+                if address_number or address_street or city or state or postal_code:
+                    # Combine street number and name
+                    full_street = f"{address_number} {address_street}".strip()
+                    
+                    # Get or create address with all fields at once
+                    if user.address:
+                        # Update existing address
+                        address = user.address
+                        if full_street:
+                            address.street = full_street
+                        if city:
+                            address.city = city
+                        if state:
+                            address.state = state
+                        if postal_code:
+                            address.postal_code = postal_code
+                        address.save()
+                    else:
+                        # Create new address
+                        address = Address.objects.create(
+                            street=full_street,
+                            city=city,
+                            state=state,
+                            postal_code=postal_code
+                        )
+                        user.address = address
+                
+                # Save all changes at once
+                user.save()
+                handyman.save()
+                
+                # Clear any cached data for this user
+                cache_keys = [
+                    f'handyman_dashboard_{user.id}',
+                    f'handyman_profile_tab_{user.id}'
+                ]
+                for key in cache_keys:
+                    cache.delete(key)
+                
+                messages.success(request, "Your profile has been updated successfully!")
+                
+        except Exception as e:
+            messages.error(request, f"Could not update your profile: {str(e)}")
+        
+        return redirect('handyman_dashboard_profile')
+    
+    # GET requests shouldn't reach here, redirect to profile tab
+    return redirect('handyman_dashboard_profile')
 
 @login_required
 def update_service_description(request):
@@ -732,41 +826,68 @@ def add_service(request):
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
 @login_required
+@transaction.atomic
 def create_promotion(request):
-    """Create a new promotion for the handyman."""
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        user = request.user
+    """Create a new promotion for the handyman's services."""
+    user = request.user
+    
+    # Verify this user is a handyman
+    if user.user_type != UserType.HANDYMAN:
+        messages.error(request, "Your account is not registered as a handyman.")
+        return redirect('login')
+    
+    # Only accept POST requests
+    if request.method != 'POST':
+        return redirect('handyman_dashboard_promotions')
+    
+    # Check if request is AJAX
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
+    try:
+        # Get handyman profile
+        handyman = Handyman.objects.get(user=user)
         
-        try:
-            handyman = Handyman.objects.get(user=user)
-        except Handyman.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Handyman profile not found'})
-        
-        # Get form data
-        description = request.POST.get('promotion_description')
+        # Extract form data
+        service_id = request.POST.get('service')
         discount_percentage = request.POST.get('discount_percentage')
-        service_id = request.POST.get('service_id')
-        start_date_str = request.POST.get('start_date')
-        end_date_str = request.POST.get('end_date')
+        promotion_description = request.POST.get('description')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
         
-        # Validate data
-        if not all([description, discount_percentage]):
-            return JsonResponse({'status': 'error', 'message': 'Description and discount percentage are required'})
+        # Validate required fields
+        if not all([discount_percentage, promotion_description, start_date, end_date]):
+            error_msg = "Please fill in all required fields."
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': error_msg})
+            messages.error(request, error_msg)
+            return redirect('handyman_dashboard_promotions')
         
-        # Process dates
+        # Convert dates to proper format
         try:
-            start_date = timezone.datetime.strptime(start_date_str, "%Y-%m-%d").date() if start_date_str else timezone.now().date()
-            end_date = timezone.datetime.strptime(end_date_str, "%Y-%m-%d").date() if end_date_str else (timezone.now().date() + timezone.timedelta(days=30))
+            start_date = timezone.datetime.strptime(start_date, "%Y-%m-%d").date()
+            end_date = timezone.datetime.strptime(end_date, "%Y-%m-%d").date()
+            
+            # Validate date range
+            today = timezone.now().date()
+            if start_date < today:
+                error_msg = "Start date cannot be in the past."
+                if is_ajax:
+                    return JsonResponse({'status': 'error', 'message': error_msg})
+                messages.error(request, error_msg)
+                return redirect('handyman_dashboard_promotions')
+            
+            if end_date <= start_date:
+                error_msg = "End date must be after start date."
+                if is_ajax:
+                    return JsonResponse({'status': 'error', 'message': error_msg})
+                messages.error(request, error_msg)
+                return redirect('handyman_dashboard_promotions')
         except ValueError:
-            return JsonResponse({'status': 'error', 'message': 'Invalid date format'})
-        
-        # Ensure start date is not in the past
-        if start_date < timezone.now().date():
-            start_date = timezone.now().date()
-        
-        # Ensure end date is after start date
-        if end_date <= start_date:
-            end_date = start_date + timezone.timedelta(days=30)
+            error_msg = "Invalid date format."
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': error_msg})
+            messages.error(request, error_msg)
+            return redirect('handyman_dashboard_promotions')
         
         # Get service if provided
         service = None
@@ -774,17 +895,23 @@ def create_promotion(request):
             try:
                 service = Service.objects.get(id=service_id)
             except Service.DoesNotExist:
-                return JsonResponse({'status': 'error', 'message': 'Selected service does not exist'})
+                # Non-critical error, can continue without service
+                pass
         
-        # Generate a unique promo code
-        promo_code = f"PROMO-{uuid.uuid4().hex[:8].upper()}"
+        # Generate unique promo code
+        promo_code = f"{handyman.business_name[:5] or 'PROMO'}-{uuid.uuid4().hex[:6].upper()}"
         
         # Create the promotion
-        try:
+        with transaction.atomic():
+            # Mark handyman as offering promotions
+            handyman.offers_promotions = True
+            handyman.save(update_fields=['offers_promotions'])
+            
+            # Create the promotion
             promotion = HandymanPromotion.objects.create(
                 handyman=handyman,
                 service=service,
-                description=description,
+                description=promotion_description,
                 discount_percentage=int(discount_percentage),
                 code=promo_code,
                 start_date=start_date,
@@ -792,27 +919,38 @@ def create_promotion(request):
                 is_active=True
             )
             
-            # Update handyman to indicate they offer promotions
-            handyman.offers_promotions = True
-            handyman.save()
+            # Clear any cached data related to promotions
+            cache_keys = [
+                f'handyman_dashboard_{user.id}',
+                'all_handyman_services'  # This might be overkill but ensures consistency
+            ]
+            for key in cache_keys:
+                cache.delete(key)
             
+        success_msg = "Promotion created successfully!"
+        if is_ajax:
             return JsonResponse({
                 'status': 'success',
-                'message': 'Promotion created successfully',
+                'message': success_msg,
                 'promotion': {
                     'id': promotion.id,
-                    'description': promotion.description,
-                    'discount_percentage': promotion.discount_percentage,
                     'code': promotion.code,
-                    'start_date': promotion.start_date.strftime("%Y-%m-%d"),
-                    'end_date': promotion.end_date.strftime("%Y-%m-%d"),
+                    'discount': promotion.discount_percentage,
+                    'start_date': promotion.start_date.strftime('%Y-%m-%d'),
+                    'end_date': promotion.end_date.strftime('%Y-%m-%d'),
                     'service': service.name if service else 'All Services'
                 }
             })
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': f'Error creating promotion: {str(e)}'})
+        
+        messages.success(request, success_msg)
     
-    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+    except Exception as e:
+        error_msg = f"Error creating promotion: {str(e)}"
+        if is_ajax:
+            return JsonResponse({'status': 'error', 'message': error_msg})
+        messages.error(request, error_msg)
+    
+    return redirect('handyman_dashboard_promotions')
 
 @login_required
 def deactivate_promotion(request, promotion_id):
@@ -1108,8 +1246,7 @@ def job_requests(request):
         jobs_data.append({
             'id': job.id,
             'client_name': job.client.get_full_name() or job.client.email,
-            'service_name': job.service.name,
-            'description': job.description,
+            'service': job.service.name,
             'scheduled_date': job.scheduled_date.strftime('%Y-%m-%d'),
             'scheduled_time': job.scheduled_time.strftime('%H:%M'),
             'status': job.status,

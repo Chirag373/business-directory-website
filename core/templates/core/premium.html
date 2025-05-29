@@ -5,11 +5,32 @@
 
 {% block extra_css %}
 <style>
-  /* Premium page specific styling */
+  /* Fixed navigation bar width - This matches the home page style */
+  nav {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  nav .nav-container {
+    max-width: 80% !important;
+    margin: 0 auto !important;
+    width: 80% !important;
+  }
+  
+  @media (max-width: 1440px) {
+    nav .nav-container {
+      max-width: 95% !important;
+      width: 95% !important;
+    }
+  }
+
+  /* Premium page specific styling - Enhanced Responsive Version */
   :root {
     --premium-gold: #f5a623;
     --premium-gold-dark: #e09000;
     --flash-duration: 2s;
+    --bulb-glow-color: #f5a623;
+    --container-width: 95%;
   }
 
   .premium-banner {
@@ -92,13 +113,28 @@
     box-shadow: 0 12px 20px rgba(0,0,0,0.15);
   }
   
-  /* Business Card Container - Centered */
+  /* Business Card Container - Responsive Centered */
   .business-card-container {
     margin: 20px auto;
-    width: 300px;
-    height: 180px;
+    width: min(100%, 350px);
+    height: 200px;
     perspective: 1000px;
     cursor: pointer;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .business-card-container::after {
+    content: '';
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: -8px;
+    height: 15px;
+    background: rgba(0,0,0,0.1);
+    filter: blur(10px);
+    border-radius: 50%;
+    z-index: -1;
   }
   
   .business-card-inner {
@@ -107,6 +143,7 @@
     height: 100%;
     transition: transform 0.8s;
     transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
   
   .business-card-container.flipped .business-card-inner {
@@ -120,11 +157,27 @@
     height: 100%;
     backface-visibility: hidden;
     border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+  
+  .business-card-front::after,
+  .business-card-back::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4), 
+                inset 0 0 30px rgba(0,0,0,0.03),
+                inset 0 1px 3px rgba(0,0,0,0.05);
+    pointer-events: none;
+    border-radius: 7px;
   }
   
   .business-card-back {
@@ -138,7 +191,6 @@
     object-fit: cover;
   }
   
-  /* Enhanced Business Card Styling */
   .business-card-display {
     display: flex;
     align-items: center;
@@ -150,12 +202,25 @@
   .custom-business-card {
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #ffffff, #f5f5f5);
+    background: linear-gradient(135deg, #ffffff, #f8f8f8);
     display: flex;
     flex-direction: column;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.02);
+    position: relative;
+  }
+  
+  .custom-business-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f0f0f0' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 5v1H0z'/%3E%3Cpath d='M6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.5;
+    pointer-events: none;
   }
   
   .custom-card-header {
@@ -169,6 +234,8 @@
     align-items: center;
     justify-content: center;
     gap: 5px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
   }
   
   .custom-card-header i {
@@ -194,6 +261,7 @@
     width: 20px;
     color: var(--premium-gold);
     margin-right: 5px;
+    flex-shrink: 0;
   }
   
   .custom-card-footer {
@@ -203,82 +271,79 @@
     font-size: 0.7rem;
     font-style: italic;
     color: #666;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
   }
   
-  /* Premium Discount Light Bulb - Below Business Card */
-  .discount-light-container {
-    position: relative;
-    margin: 15px auto;
-    text-align: center;
-  }
-  
-  .discount-light-bulb {
-    display: inline-block;
-    width: 50px;
-    height: 50px;
-    background: radial-gradient(circle at 30% 30%, #fff700, #f5a623);
-    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-    position: relative;
-    box-shadow: 0 0 20px rgba(245, 166, 35, 0.5);
-    cursor: pointer;
-  }
-  
-  .discount-light-bulb::before {
-    content: '';
+  /* Premium Discount Light Bulb Positioning */
+  .card-promotion-indicator {
     position: absolute;
-    top: -5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 30px;
-    height: 10px;
-    background: #666;
-    border-radius: 2px;
+    top: 15px;
+    right: 15px;
+    z-index: 10;
   }
   
-  .discount-light-bulb::after {
-    content: '';
+  .card-promotion-code {
     position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20px;
-    height: 8px;
-    background: #333;
-    border-radius: 0 0 5px 5px;
-  }
-  
-  /* Flashing Animation - 2 second intervals */
-  .discount-light-bulb.active {
-    animation: lightFlash var(--flash-duration) infinite;
-  }
-  
-  @keyframes lightFlash {
-    0%, 100% {
-      box-shadow: 0 0 20px rgba(245, 166, 35, 0.5);
-      background: radial-gradient(circle at 30% 30%, #fff700, #f5a623);
-    }
-    50% {
-      box-shadow: 0 0 40px rgba(245, 166, 35, 1), 0 0 60px rgba(245, 166, 35, 0.8);
-      background: radial-gradient(circle at 30% 30%, #ffffff, #fff700);
-    }
-  }
-  
-  .promotion-code {
-    display: inline-block;
-    margin-left: 15px;
-    background-color: #fff;
-    color: #333;
+    top: 15px;
+    right: 60px;
+    background-color: var(--premium-gold);
+    color: white;
     padding: 5px 12px;
     border-radius: 20px;
     font-weight: 700;
     font-size: 0.9rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    border: 2px solid var(--premium-gold);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 10;
+    animation: fadeInDown 0.5s ease;
+    display: none; /* Hide promo code by default */
+  }
+  
+  .discount-light-bulb {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #ccc;
+    border-radius: 50%;
+    position: relative;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+    font-size: 18px;
+    color: #666;
+    cursor: pointer; /* Add cursor pointer to indicate it's clickable */
+  }
+  
+  .discount-light-bulb.active {
+    background: var(--bulb-glow-color);
+    opacity: 1;
+    box-shadow: 0 0 10px var(--bulb-glow-color);
+    animation: bulbPulse 2s infinite;
+    color: #fff;
+  }
+  
+  @keyframes bulbPulse {
+    0% { box-shadow: 0 0 0 0 rgba(245, 166, 35, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(245, 166, 35, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(245, 166, 35, 0); }
+  }
+  
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   
   .premium-card-content {
     padding: 25px;
     flex-grow: 1;
+    position: relative;
   }
   
   .premium-card-header {
@@ -301,7 +366,6 @@
     max-width: 90%;
   }
   
-  /* Card Flip Label */
   .card-flip-label {
     display: inline-block;
     margin-top: 10px;
@@ -319,32 +383,48 @@
     background-color: var(--premium-gold-dark);
   }
   
-  /* Product Images Section */
   .premium-product-section {
     margin-top: 30px;
     padding-top: 20px;
     border-top: 2px solid #f0f0f0;
+    clear: both;
   }
   
   .premium-product-images {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: 15px;
     margin-top: 15px;
+    justify-content: space-between;
+  }
+  
+  .premium-product-image-container {
+    width: calc(25% - 12px);
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+    height: 0;
+    padding-bottom: calc((25% - 12px) / 1.75);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 5px;
+  }
+  
+  .premium-product-image-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
   }
   
   .premium-product-image {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 180px;
+    height: 100%;
     object-fit: cover;
     border-radius: 8px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
-  }
-  
-  .premium-product-image:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
   }
   
   .premium-card-contact {
@@ -360,12 +440,14 @@
     margin-bottom: 8px;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
   }
   
   .premium-card-contact i {
     width: 20px;
     margin-right: 10px;
     color: var(--premium-gold);
+    flex-shrink: 0;
   }
   
   .premium-website {
@@ -386,53 +468,477 @@
     background-color: var(--premium-gold-dark);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(245, 166, 35, 0.3);
+    color: #fff;
   }
   
-  /* Premium Badge */
   .premium-badge {
     position: absolute;
     top: 15px;
     left: 15px;
     background: linear-gradient(135deg, #ffd700, #ffed4e);
     color: #333;
-    padding: 5px 15px;
-    border-radius: 20px;
+    padding: 8px;
+    border-radius: 50%;
     font-weight: 700;
     font-size: 0.8rem;
     box-shadow: 0 3px 8px rgba(0,0,0,0.2);
     z-index: 10;
     display: flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
   }
   
   .premium-badge i {
     font-size: 0.9rem;
   }
 
-  /* Sample Product Image */
-  .sample-product {
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  }
+
+  .no-results i {
+    font-size: 4rem;
+    color: #ddd;
+    margin-bottom: 20px;
+  }
+
+  .no-results h3 {
+    color: #333;
+    margin-bottom: 10px;
+  }
+
+  .no-results p {
+    color: #666;
   }
   
-  @media (max-width: 768px) {
-    .premium-grid {
-      grid-template-columns: 1fr;
+  /* Enhanced Responsive Design - Mobile First Approach */
+  
+  /* Large Tablets and Small Desktops (1024px and down) */
+  @media (max-width: 1024px) {
+    .premium-container {
+      width: 95%;
+      padding: 15px;
     }
     
-    .premium-product-images {
-      grid-template-columns: 1fr;
+    .premium-grid {
+      gap: 25px;
+    }
+    
+    .premium-card-content {
+      padding: 20px;
+    }
+    
+    .premium-card-title {
+      font-size: 1.6rem;
+    }
+    
+    .premium-card-description {
+      font-size: 1rem;
     }
     
     .business-card-container {
-      width: 250px;
-      height: 150px;
+      width: min(100%, 320px);
+      height: 180px;
+    }
+  }
+  
+  /* Tablets (768px and down) */
+  @media (max-width: 768px) {
+    :root {
+      --container-width: 95%;
+    }
+    
+    .premium-banner {
+      padding: 30px 0;
+    }
+    
+    .premium-banner h1 {
+      font-size: 2rem;
+    }
+    
+    .premium-banner p {
+      font-size: 1rem;
+      padding: 0 15px;
+    }
+    
+    .premium-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .premium-card-content {
+      padding: 18px;
+    }
+    
+    .premium-card-title {
+      font-size: 1.5rem;
+    }
+    
+    .premium-card-description {
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    
+    .business-card-container {
+      width: min(100%, 300px);
+      height: 170px;
+      margin: 15px auto;
+    }
+    
+    .custom-card-header {
+      font-size: 0.9rem;
+      padding: 8px;
+    }
+    
+    .custom-card-content {
+      padding: 8px;
+      gap: 4px;
+    }
+    
+    .custom-card-row {
+      font-size: 0.75rem;
+    }
+    
+    .custom-card-row i {
+      width: 18px;
+      margin-right: 4px;
+    }
+    
+    .premium-product-images {
+      justify-content: center;
+      gap: 12px;
+    }
+    
+    .premium-product-image-container {
+      width: calc(50% - 6px);
+      padding-bottom: calc((50% - 6px) / 1.75);
+    }
+    
+    .premium-card-contact {
+      font-size: 1rem;
+      padding: 12px;
+    }
+    
+    .premium-card-contact div {
+      margin-bottom: 6px;
+    }
+    
+    .card-promotion-code {
+      right: 55px;
+      font-size: 0.8rem;
+      padding: 4px 10px;
+    }
+    
+    .card-promotion-indicator {
+      top: 12px;
+      right: 12px;
+    }
+    
+    .discount-light-bulb {
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+    }
+    
+    .premium-badge {
+      top: 12px;
+      left: 12px;
+      font-size: 0.75rem;
+      padding: 4px 12px;
+    }
+  }
+  
+  /* Mobile Landscape and Small Tablets (640px and down) */
+  @media (max-width: 640px) {
+    .premium-container {
+      padding: 12px;
+    }
+    
+    .premium-grid {
+      gap: 18px;
+    }
+    
+    .premium-card-content {
+      padding: 15px;
+    }
+    
+    .premium-card-title {
+      font-size: 1.4rem;
+    }
+    
+    .business-card-container {
+      width: min(100%, 280px);
+      height: 160px;
+    }
+    
+    .premium-product-images {
+      gap: 10px;
+    }
+    
+    .premium-product-image-container {
+      width: calc(50% - 5px);
+      padding-bottom: calc((50% - 5px) / 1.75);
+    }
+  }
+  
+  /* Mobile Portrait (480px and down) */
+  @media (max-width: 480px) {
+    .premium-banner {
+      padding: 25px 0;
+    }
+    
+    .premium-banner h1 {
+      font-size: 1.8rem;
+    }
+    
+    .premium-banner p {
+      font-size: 0.95rem;
+    }
+    
+    .premium-container {
+      width: 98%;
+      padding: 10px;
+    }
+    
+    .premium-grid {
+      gap: 15px;
+    }
+    
+    .premium-card-content {
+      padding: 12px;
+    }
+    
+    .premium-card-title {
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+    }
+    
+    .premium-card-description {
+      font-size: 0.9rem;
+      margin-bottom: 15px;
+    }
+    
+    .business-card-container {
+      width: min(100%, 260px);
+      height: 148px;
+      margin: 12px auto;
+    }
+    
+    .custom-card-header {
+      font-size: 0.8rem;
+      padding: 6px;
+    }
+    
+    .custom-card-header i {
+      font-size: 1rem;
+    }
+    
+    .custom-card-content {
+      padding: 6px;
+    }
+    
+    .custom-card-row {
+      font-size: 0.7rem;
+      line-height: 1.2;
+    }
+    
+    .custom-card-row i {
+      width: 16px;
+      margin-right: 3px;
+    }
+    
+    .custom-card-footer {
+      font-size: 0.65rem;
+      padding: 4px;
+    }
+    
+    .premium-product-images {
+      justify-content: space-between;
+    }
+    
+    .premium-product-image-container {
+      width: calc(50% - 5px);
+      padding-bottom: calc((50% - 5px) / 1.75);
+    }
+    
+    .premium-card-contact {
+      font-size: 0.9rem;
+      padding: 10px;
+    }
+    
+    .premium-card-contact i {
+      width: 18px;
+      margin-right: 8px;
+    }
+    
+    .premium-website {
+      padding: 10px 20px;
+      font-size: 0.9rem;
+    }
+    
+    .card-promotion-code {
+      right: 50px;
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      top: 12px;
+    }
+    
+    .card-promotion-indicator {
+      top: 10px;
+      right: 10px;
+    }
+    
+    .discount-light-bulb {
+      width: 30px;
+      height: 30px;
+      font-size: 14px;
+    }
+    
+    .premium-badge {
+      top: 10px;
+      left: 10px;
+      font-size: 0.7rem;
+      padding: 6px;
+      width: 25px;
+      height: 25px;
+    }
+    
+    .card-flip-label {
+      font-size: 0.8rem;
+      padding: 4px 12px;
+    }
+  }
+  
+  /* Very Small Mobile (360px and down) */
+  @media (max-width: 360px) {
+    .premium-banner h1 {
+      font-size: 1.6rem;
+    }
+    
+    .premium-banner p {
+      font-size: 0.9rem;
+    }
+    
+    .business-card-container {
+      width: min(100%, 240px);
+      height: 137px;
+    }
+    
+    .premium-card-title {
+      font-size: 1.2rem;
+    }
+    
+    .premium-card-description {
+      font-size: 0.85rem;
+    }
+    
+    .custom-card-row {
+      font-size: 0.65rem;
+    }
+    
+    .premium-card-contact {
+      font-size: 0.85rem;
+    }
+    
+    .premium-product-image-container {
+      width: 100%;
+      padding-bottom: calc(100% / 1.75);
+      max-width: 280px;
+      margin: 0 auto 8px;
+    }
+    
+    .premium-product-images {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .card-promotion-code {
+      right: 45px;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+    }
+    
+    .discount-light-bulb {
+      width: 28px;
+      height: 28px;
+      font-size: 12px;
+    }
+  }
+  
+  /* Touch Device Optimizations */
+  @media (hover: none) and (pointer: coarse) {
+    .premium-card:hover {
+      transform: none;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+    
+    .premium-product-image-container:hover {
+      transform: none;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .premium-website:hover {
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .card-flip-label:hover {
+      background-color: var(--premium-gold);
+    }
+    
+    /* Increase touch targets */
+    .business-card-container {
+      min-height: 44px;
+    }
+    
+    .card-flip-label {
+      padding: 8px 16px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .premium-website {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .premium-product-image-container {
+      min-height: 44px;
+    }
+  }
+  
+  /* Improve text readability on small screens */
+  @media (max-width: 480px) {
+    .custom-card-row span {
+      word-break: break-word;
+      hyphens: auto;
+    }
+    
+    .premium-card-contact div {
+      word-break: break-word;
+    }
+  }
+  
+  /* Handle very wide screens */
+  @media (min-width: 1400px) {
+    .premium-container {
+      max-width: 1300px;
+    }
+    
+    .premium-grid {
+      gap: 35px;
     }
   }
 </style>
@@ -454,7 +960,6 @@
       <div class="premium-card-wrapper">
         <div class="premium-badge">
           <i class="fas fa-crown"></i>
-          PREMIUM
         </div>
         
         <div class="premium-card">
@@ -463,6 +968,12 @@
               <h2 class="premium-card-title">Elegant Interiors</h2>
               <p class="premium-card-description">Luxury interior design services specializing in high-end residential and commercial spaces. Our team of experienced designers creates bespoke interiors that reflect your unique style and personality.</p>
             </div>
+            
+            <!-- New positioned light bulb indicator -->
+            <div class="card-promotion-indicator">
+              <div class="discount-light-bulb active" title="Active Promotion!"><i class="fas fa-lightbulb"></i></div>
+            </div>
+            <div class="card-promotion-code">ELEGANCE25</div>
             
             <!-- Business Card with Flip Animation -->
             <div class="business-card-container" id="card-elegant">
@@ -523,12 +1034,6 @@
               </span>
             </div>
             
-            <!-- Discount Light Bulb Below Card -->
-            <div class="discount-light-container">
-              <div class="discount-light-bulb active" title="Active Promotion!"></div>
-              <span class="promotion-code">ELEGANCE25</span>
-            </div>
-            
             <div class="premium-card-contact">
               <div><i class="fas fa-map-marker-alt"></i> 123 Design Avenue, New York, NY 10001</div>
               <div><i class="fas fa-phone"></i> (555) 123-4567</div>
@@ -544,16 +1049,16 @@
                 <i class="fas fa-images"></i> Recent Projects
               </h3>
               <div class="premium-product-images">
-                <div class="sample-product" style="background-color: #e1e1e1;" onclick="openImageModal('https://source.unsplash.com/random/800x600/?luxury-interior')">
+                <div class="premium-product-image-container" onclick="openImageModal('https://source.unsplash.com/random/800x600/?luxury-interior')">
                   <img src="https://source.unsplash.com/random/800x600/?luxury-interior" alt="Luxury Interior Project" class="premium-product-image">
                 </div>
-                <div class="sample-product" style="background-color: #e1e1e1;" onclick="openImageModal('https://source.unsplash.com/random/800x600/?modern-decor')">
+                <div class="premium-product-image-container" onclick="openImageModal('https://source.unsplash.com/random/800x600/?modern-decor')">
                   <img src="https://source.unsplash.com/random/800x600/?modern-decor" alt="Modern Decor Project" class="premium-product-image">
                 </div>
-                <div class="sample-product" style="background-color: #e1e1e1;" onclick="openImageModal('https://source.unsplash.com/random/800x600/?interior-design')">
+                <div class="premium-product-image-container" onclick="openImageModal('https://source.unsplash.com/random/800x600/?interior-design')">
                   <img src="https://source.unsplash.com/random/800x600/?interior-design" alt="Interior Design Project" class="premium-product-image">
                 </div>
-                <div class="sample-product" style="background-color: #e1e1e1;" onclick="openImageModal('https://source.unsplash.com/random/800x600/?apartment-design')">
+                <div class="premium-product-image-container" onclick="openImageModal('https://source.unsplash.com/random/800x600/?apartment-design')">
                   <img src="https://source.unsplash.com/random/800x600/?apartment-design" alt="Apartment Design Project" class="premium-product-image">
                 </div>
               </div>
@@ -566,7 +1071,6 @@
       <div class="premium-card-wrapper">
         <div class="premium-badge">
           <i class="fas fa-crown"></i>
-          PREMIUM
         </div>
         
         <div class="premium-card">
@@ -575,6 +1079,12 @@
               <h2 class="premium-card-title">TechHub Gadgets</h2>
               <p class="premium-card-description">Your one-stop shop for cutting-edge technology and smart home devices. We offer the latest gadgets, expert advice, and professional installation services for all your tech needs.</p>
             </div>
+            
+            <!-- New positioned light bulb indicator -->
+            <div class="card-promotion-indicator">
+              <div class="discount-light-bulb active" title="Active Promotion!"><i class="fas fa-lightbulb"></i></div>
+            </div>
+            <div class="card-promotion-code">TECH20</div>
             
             <!-- Business Card with Flip Animation -->
             <div class="business-card-container" id="card-techhub">
@@ -643,12 +1153,6 @@
               </span>
             </div>
             
-            <!-- Discount Light Bulb Below Card -->
-            <div class="discount-light-container">
-              <div class="discount-light-bulb active" title="Active Promotion!"></div>
-              <span class="promotion-code">TECH20</span>
-            </div>
-            
             <div class="premium-card-contact">
               <div><i class="fas fa-map-marker-alt"></i> 456 Tech Boulevard, San Francisco, CA 94107</div>
               <div><i class="fas fa-phone"></i> (555) 987-6543</div>
@@ -664,16 +1168,16 @@
                 <i class="fas fa-images"></i> Featured Products
               </h3>
               <div class="premium-product-images">
-                <div class="sample-product" style="background-color: #e1e1e1;" onclick="openImageModal('https://source.unsplash.com/random/800x600/?smart-home')">
+                <div class="premium-product-image-container" onclick="openImageModal('https://source.unsplash.com/random/800x600/?smart-home')">
                   <img src="https://source.unsplash.com/random/800x600/?smart-home" alt="Smart Home Products" class="premium-product-image">
                 </div>
-                <div class="sample-product" style="background-color: #e1e1e1;" onclick="openImageModal('https://source.unsplash.com/random/800x600/?tech-gadgets')">
+                <div class="premium-product-image-container" onclick="openImageModal('https://source.unsplash.com/random/800x600/?tech-gadgets')">
                   <img src="https://source.unsplash.com/random/800x600/?tech-gadgets" alt="Tech Gadgets" class="premium-product-image">
                 </div>
-                <div class="sample-product" style="background-color: #e1e1e1;" onclick="openImageModal('https://source.unsplash.com/random/800x600/?smartphone')">
+                <div class="premium-product-image-container" onclick="openImageModal('https://source.unsplash.com/random/800x600/?smartphone')">
                   <img src="https://source.unsplash.com/random/800x600/?smartphone" alt="Smartphone Products" class="premium-product-image">
                 </div>
-                <div class="sample-product" style="background-color: #e1e1e1;" onclick="openImageModal('https://source.unsplash.com/random/800x600/?wearable-tech')">
+                <div class="premium-product-image-container" onclick="openImageModal('https://source.unsplash.com/random/800x600/?wearable-tech')">
                   <img src="https://source.unsplash.com/random/800x600/?wearable-tech" alt="Wearable Tech Products" class="premium-product-image">
                 </div>
               </div>
@@ -686,7 +1190,6 @@
         <div class="premium-card-wrapper">
           <div class="premium-badge">
             <i class="fas fa-crown"></i>
-            PREMIUM
           </div>
           
           <div class="premium-card">
@@ -695,6 +1198,18 @@
                 <h2 class="premium-card-title">{{ business.name }}</h2>
                 <p class="premium-card-description">{{ business.description }}</p>
               </div>
+              
+              <!-- New positioned light bulb indicator -->
+              {% if business.promotions.exists %}
+              <div class="card-promotion-indicator">
+                <div class="discount-light-bulb active" title="Active Promotion!"><i class="fas fa-lightbulb"></i></div>
+              </div>
+              <div class="card-promotion-code">{{ business.promotions.first.code|default:"PROMO2025" }}</div>
+              {% else %}
+              <div class="card-promotion-indicator">
+                <div class="discount-light-bulb" title="No active promotions"><i class="fas fa-lightbulb"></i></div>
+              </div>
+              {% endif %}
               
               <!-- Business Card with Flip Animation -->
               <div class="business-card-container" id="card-{{ business.id }}">
@@ -776,16 +1291,6 @@
                 </span>
               </div>
               
-              <!-- Discount Light Bulb Below Card -->
-              <div class="discount-light-container">
-                {% if business.promotions.exists %}
-                  <div class="discount-light-bulb active" title="Active Promotion!"></div>
-                  <span class="promotion-code">{{ business.promotions.first.code|default:"PROMO2025" }}</span>
-                {% else %}
-                  <div class="discount-light-bulb" style="opacity: 0.3;" title="No active promotions"></div>
-                {% endif %}
-              </div>
-              
               <div class="premium-card-contact">
                 <div><i class="fas fa-map-marker-alt"></i> {{ business.address }}</div>
                 <div><i class="fas fa-phone"></i> {{ business.phone }}</div>
@@ -804,11 +1309,12 @@
                     <i class="fas fa-images"></i> Product Gallery
                   </h3>
                   <div class="premium-product-images">
-                    {% for image in business.images.all|slice:":4" %}
-                      <img src="{{ image.image.url }}" 
-                           alt="{{ business.name }} - {{ image.caption }}" 
-                           class="premium-product-image"
-                           onclick="openImageModal('{{ image.image.url }}')">
+                    {% for image in business.images.all %}
+                      <div class="premium-product-image-container" onclick="openImageModal('{{ image.image.url }}')">
+                        <img src="{{ image.image.url }}" 
+                             alt="{{ business.name }} - {{ image.caption }}" 
+                             class="premium-product-image">
+                      </div>
                     {% endfor %}
                   </div>
                 </div>
@@ -817,13 +1323,11 @@
           </div>
         </div>
       {% empty %}
-        {% if not premium_businesses.exists %}
-        <div class="no-results" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+        <div class="no-results">
           <i class="fas fa-store-slash" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i>
           <h3>No Premium Businesses Available</h3>
           <p style="color: #666;">Check back later for featured premium businesses in your area.</p>
         </div>
-        {% endif %}
       {% endfor %}
     </div>
   </div>
@@ -838,9 +1342,56 @@
       card.addEventListener('click', function() {
         const businessId = this.id.replace('card-', '');
         flipCard(businessId);
+        
+        // Add tilt effect for realistic card feel (only on non-touch devices)
+        if (window.matchMedia('(hover: hover)').matches) {
+          addTiltEffect(this);
+        }
+      });
+    });
+    
+    // Add click event listeners to light bulbs
+    const lightBulbs = document.querySelectorAll('.discount-light-bulb');
+    lightBulbs.forEach(bulb => {
+      bulb.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent card flip when clicking the bulb
+        const promoCode = this.closest('.premium-card-content').querySelector('.card-promotion-code');
+        if (promoCode) {
+          // Toggle the promo code visibility
+          if (promoCode.style.display === 'block') {
+            promoCode.style.display = 'none';
+          } else {
+            promoCode.style.display = 'block';
+          }
+        }
       });
     });
   });
+  
+  // 3D tilt effect for business cards (desktop only)
+  function addTiltEffect(element) {
+    element.addEventListener('mousemove', function(e) {
+      const cardWidth = this.offsetWidth;
+      const cardHeight = this.offsetHeight;
+      const centerX = this.offsetLeft + cardWidth/2;
+      const centerY = this.offsetTop + cardHeight/2;
+      const mouseX = e.clientX - centerX;
+      const mouseY = e.clientY - centerY;
+      const rotateY = -5 * mouseX / (cardWidth/2);
+      const rotateX = 5 * mouseY / (cardHeight/2);
+      
+      // Limit the rotation to a subtle effect
+      const limitedRotateX = Math.min(Math.max(rotateX, -5), 5);
+      const limitedRotateY = Math.min(Math.max(rotateY, -5), 5);
+      
+      this.querySelector('.business-card-inner').style.transform = 
+        `perspective(1000px) rotateX(${limitedRotateX}deg) rotateY(${limitedRotateY}deg)`;
+    });
+    
+    element.addEventListener('mouseleave', function() {
+      this.querySelector('.business-card-inner').style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+    });
+  }
   
   function flipCard(businessId) {
     const card = document.getElementById('card-' + businessId);
@@ -854,6 +1405,10 @@
       } else {
         flipLabel.textContent = 'Back Side';
       }
+      
+      // Reset any tilt when flipping
+      card.querySelector('.business-card-inner').style.transform = card.classList.contains('flipped') ? 
+        'rotateY(180deg)' : 'rotateY(0deg)';
     }
   }
   
@@ -888,6 +1443,38 @@
     
     modal.addEventListener('click', function() {
       document.body.removeChild(modal);
+    });
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function escapeHandler(e) {
+      if (e.key === 'Escape') {
+        if (document.body.contains(modal)) {
+          document.body.removeChild(modal);
+        }
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    });
+  }
+  
+  // Improved touch handling for mobile devices
+  if ('ontouchstart' in window) {
+    const cards = document.querySelectorAll('.business-card-container');
+    cards.forEach(card => {
+      let touchStartTime;
+      
+      card.addEventListener('touchstart', function(e) {
+        touchStartTime = Date.now();
+      });
+      
+      card.addEventListener('touchend', function(e) {
+        const touchDuration = Date.now() - touchStartTime;
+        // Only trigger flip on quick taps (not long presses or swipes)
+        if (touchDuration < 200) {
+          e.preventDefault();
+          const businessId = this.id.replace('card-', '');
+          flipCard(businessId);
+        }
+      });
     });
   }
 </script>
