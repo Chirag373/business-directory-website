@@ -7,7 +7,63 @@
   <p class="lead-text">Upload clear, high-quality images of your business card. This helps us verify your business information and builds trust with potential customers.</p>
 </div>
 
-<form class="business-card-form" action="{% url 'handyman_update_business_card' %}" method="post" enctype="multipart/form-data">
+{% if user.business_card_status == 'accepted' %}
+<!-- Animated Business Card (ACCEPTED) -->
+<div class="accepted-card-container">
+  <h3 class="success-message"><i class="fas fa-check-circle"></i> Your business card has been verified and accepted!</h3>
+  
+  <div class="flip-card-container">
+    <div class="flip-card" id="flip-card">
+      <div class="flip-card-inner">
+        <!-- Front Side -->
+        <div class="flip-card-front">
+          <div id="front-preview" class="card-preview-panel">
+            {% if user.business_card_front %}
+              <img src="{{ user.business_card_front.url }}" alt="Business card front" class="preview-image">
+            {% else %}
+              <div class="preview-placeholder">
+                <i class="fas fa-image"></i>
+                <span class="preview-text">Front side preview will appear here</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Back Side -->
+        <div class="flip-card-back">
+          <div id="back-preview" class="card-preview-panel">
+            {% if user.business_card_back %}
+              <img src="{{ user.business_card_back.url }}" alt="Business card back" class="preview-image">
+            {% elif user.has_blank_card_back %}
+              <div class="blank-back-indicator">
+                <i class="fas fa-square"></i>
+                <span>Blank back side</span>
+              </div>
+            {% else %}
+              <div class="preview-placeholder">
+                <i class="fas fa-image"></i>
+                <span class="preview-text">Back side preview will appear here</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Flip Controls -->
+    <div class="flip-controls">
+      <button type="button" class="flip-button active" id="show-front">
+        <i class="fas fa-id-card"></i> Front Side
+      </button>
+      <button type="button" class="flip-button" id="show-back">
+        <i class="fas fa-id-card-alt"></i> Back Side
+      </button>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<form class="business-card-form {% if user.business_card_status == 'pending_review' %}disabled-form{% endif %}" action="{% url 'handyman_update_business_card' %}" method="post" enctype="multipart/form-data">
   {% csrf_token %}
   
   <!-- Upload Containers in a single row -->
@@ -36,7 +92,7 @@
               <div class="progress-bar"></div>
             </div>
           </label>
-          <input type="file" id="card-front" name="card_front" accept="image/*" class="file-input" required>
+          <input type="file" id="card-front" name="card_front" accept="image/*" class="file-input" required {% if user.business_card_status == 'pending_review' %}disabled{% endif %}>
         </div>
       </div>
     </div>
@@ -65,14 +121,14 @@
               <div class="progress-bar"></div>
             </div>
           </label>
-          <input type="file" id="card-back" name="card_back" accept="image/*" class="file-input">
+          <input type="file" id="card-back" name="card_back" accept="image/*" class="file-input" {% if user.business_card_status == 'pending_review' %}disabled{% endif %}>
         </div>
       </div>
 
       <!-- Blank Back Checkbox -->
       <div class="blank-back-container">
         <label class="checkbox-container">
-          <input type="checkbox" id="blank-back" name="blank_back" {% if user.has_blank_card_back %}checked{% endif %}>
+          <input type="checkbox" id="blank-back" name="blank_back" {% if user.has_blank_card_back %}checked{% endif %} {% if user.business_card_status == 'pending_review' %}disabled{% endif %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">
             <strong>My business card backside is blank</strong>
@@ -199,33 +255,111 @@
   {% if user.business_card_front %}
   <div class="verification-status">
     <div class="status-item">
-      <div class="status-icon verified">
-        <i class="fas fa-check-circle"></i>
+      <div class="status-icon {% if user.business_card_status == 'accepted' %}verified{% else %}pending{% endif %}">
+        <i class="fas {% if user.business_card_status == 'accepted' %}fa-check-circle{% else %}fa-clock{% endif %}"></i>
       </div>
       <div class="status-content">
-        <h4>Business Card Uploaded Successfully</h4>
-        <p>Your business card has been uploaded and is pending verification. Our team will review it within 24-48 hours.</p>
-        <div class="status-badges">
-          <span class="status-badge pending">
-            <i class="fas fa-clock"></i> Pending Review
-          </span>
-        </div>
+        {% if user.business_card_status == 'pending_review' %}
+          <h4>Business Card Under Review</h4>
+          <p>Your business card has been uploaded and is pending verification. Our team will review it within 24-48 hours.</p>
+          <div class="status-badges">
+            <span class="status-badge pending">
+              <i class="fas fa-clock"></i> Pending Review
+            </span>
+          </div>
+        {% elif user.business_card_status == 'accepted' %}
+          <h4>Business Card Approved</h4>
+          <p>Your business card has been reviewed and approved. It is now visible to potential customers.</p>
+          <div class="status-badges">
+            <span class="status-badge accepted">
+              <i class="fas fa-check-circle"></i> Approved
+            </span>
+          </div>
+        {% elif user.business_card_status == 'rejected' %}
+          <h4>Business Card Rejected</h4>
+          <p>Your business card has been reviewed and could not be approved. Please upload a new card that meets our requirements.</p>
+          <div class="status-badges">
+            <span class="status-badge rejected">
+              <i class="fas fa-times-circle"></i> Rejected
+            </span>
+          </div>
+        {% else %}
+          <h4>Business Card Uploaded Successfully</h4>
+          <p>Your business card has been uploaded and is pending verification. Our team will review it within 24-48 hours.</p>
+          <div class="status-badges">
+            <span class="status-badge pending">
+              <i class="fas fa-clock"></i> Pending Review
+            </span>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>
   {% endif %}
 
   <div class="form-actions">
-    <button type="submit" class="primary-button">
+    <button type="submit" class="primary-button" {% if user.business_card_status == 'pending_review' %}disabled{% endif %}>
       <i class="fas fa-upload"></i> 
       <span>Update Business Card</span>
       <div class="button-ripple"></div>
     </button>
   </div>
 </form>
+{% endif %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/business_card.css' %}">
+<style>
+  .disabled-form .upload-label {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  
+  .disabled-form .upload-container {
+    border-color: #ddd;
+    background-color: #f9f9f9;
+  }
+  
+  .disabled-form .checkbox-container {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  
+  .disabled-form .primary-button,
+  .primary-button[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #6c757d;
+    border-color: #6c757d;
+    pointer-events: none;
+  }
+  
+  .accepted-card-container {
+    padding: 20px;
+    background-color: #f8fff8;
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+  
+  .success-message {
+    color: #28a745;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .status-badge.accepted {
+    background-color: #28a745;
+  }
+  
+  .status-badge.rejected {
+    background-color: #dc3545;
+  }
+  
+  .status-icon.pending {
+    background-color: #ffc107;
+  }
+</style>
 {% endblock %}
 
 {% block extra_js %}

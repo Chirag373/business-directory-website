@@ -46,7 +46,7 @@
     <button class="tab-button" data-tab="jobs" role="tab" aria-selected="false" aria-controls="jobs-section">
       <i class="fas fa-briefcase"></i> 
       <span>Job Requests</span>
-      <span class="jobs-badge" id="pending-jobs-count">3</span>
+      <span class="jobs-badge" id="pending-jobs-count">{{ pending_requests|default:"0" }}</span>
     </button>
   </nav>
 
@@ -98,7 +98,7 @@
       <div class="stat-label">Profile Complete</div>
     </div>
     <div class="stat-card">
-      <div class="stat-number" id="active-promotions">{{ active_promotions|default:"2" }}</div>
+      <div class="stat-number" id="active-promotions">{{ active_promotions|default:"0" }}</div>
       <div class="stat-label">Active Promotions</div>
     </div>
     <div class="stat-card">
@@ -106,7 +106,7 @@
       <div class="stat-label">Services Offered</div>
     </div>
     <div class="stat-card">
-      <div class="stat-number" id="pending-requests">3</div>
+      <div class="stat-number" id="pending-requests">{{ pending_requests|default:"0" }}</div>
       <div class="stat-label">Pending Requests</div>
     </div>
   </section>
@@ -162,6 +162,9 @@ const jobRequestsUrl = '{% url "handyman_job_requests" %}';
 // Configuration for jobs - set to false to use the real API
 // Set to true to use static dummy data in jobs.js
 window.USE_DUMMY_DATA = false;
+
+// Configuration to use AJAX for loading jobs tab
+window.USE_AJAX_FOR_JOBS = true;
 
 // Handyman Dashboard Manager Class
 class HandymanDashboardManager {
@@ -650,10 +653,61 @@ class HandymanDashboardManager {
     if (!this.jobsManager) {
       this.jobsManager = new JobsManager();
     }
-    this.jobsManager.loadJobRequests();
+    
+    // Check if we need to load the jobs dynamically
+    if (window.USE_AJAX_FOR_JOBS) {
+      this.loadJobsTab();
+    } else {
+      // Use the existing implementation
+      this.jobsManager.loadJobRequests();
+    }
     
     // Update the pending count in the stats section
     this.updatePendingJobsCount();
+  }
+  
+  // Load the jobs tab via AJAX
+  async loadJobsTab() {
+    const jobsSection = document.getElementById('jobs-section');
+    if (!jobsSection) return;
+    
+    try {
+      // Add loading indicator
+      jobsSection.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading job requests...</div>';
+      
+      // Fetch the jobs HTML from the server
+      const response = await fetch('{% url "handyman_jobs_tab" %}', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to load jobs tab');
+      }
+      
+      // Update the content
+      const html = await response.text();
+      jobsSection.innerHTML = html;
+      
+      // Get pending count from data attribute
+      const pendingCount = jobsSection.getAttribute('data-pending-count') || 0;
+      
+      // Update the UI with the pending count
+      const pendingJobsBadges = document.querySelectorAll('.jobs-badge');
+      pendingJobsBadges.forEach(badge => {
+        badge.textContent = pendingCount;
+        badge.style.display = parseInt(pendingCount) > 0 ? 'inline-flex' : 'none';
+      });
+      
+      // Update the stat card
+      const pendingRequestsElement = document.getElementById('pending-requests');
+      if (pendingRequestsElement) {
+        pendingRequestsElement.textContent = pendingCount;
+      }
+      
+    } catch (error) {
+      console.error('Error loading jobs tab:', error);
+      jobsSection.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> Failed to load job requests. <button onclick="window.handymanDashboard.loadJobsTab()">Try Again</button></div>';
+    }
   }
   
   // Update the pending jobs count in the stats section

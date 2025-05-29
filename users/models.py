@@ -60,6 +60,20 @@ class User(AbstractUser, TimeStampedModel):
     has_blank_card_back = models.BooleanField(default=False)
     service_description = models.TextField(blank=True, null=True)
     
+    # Business card verification status
+    BUSINESS_CARD_STATUS_CHOICES = (
+        ('pending_review', 'Pending Review'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    )
+    business_card_status = models.CharField(
+        max_length=20, 
+        choices=BUSINESS_CARD_STATUS_CHOICES,
+        default='pending_review',
+        blank=True,
+        null=True
+    )
+    
     # Login token fields for magic link authentication
     login_token = models.CharField(max_length=100, blank=True, null=True)
     token_expiry = models.DateTimeField(blank=True, null=True)

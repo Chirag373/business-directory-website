@@ -352,6 +352,10 @@ class HandymanDashboardView(LoginRequiredMixin, TemplateView):
         from .models import HandymanPromotion
         promotions = HandymanPromotion.objects.filter(handyman=handyman)
         active_promotions = promotions.filter(is_active=True).count()
+        active_promotions_list = promotions.filter(is_active=True).order_by('-start_date')
+        
+        # Get all promotions (both active and inactive) for display
+        all_promotions_list = promotions.order_by('-is_active', '-start_date')
         
         # Calculate profile completion percentage
         completion_items = [
@@ -371,6 +375,8 @@ class HandymanDashboardView(LoginRequiredMixin, TemplateView):
             'handyman': handyman,
             'total_services': total_services,
             'active_promotions': active_promotions,
+            'active_promotions_list': active_promotions_list,
+            'all_promotions_list': all_promotions_list,
             'profile_completion': profile_completion,
             'selected_categories': selected_categories,
             'service_description': service_description,
@@ -471,6 +477,9 @@ class HandymanBusinessCardUpdateView(LoginRequiredMixin, View):
             # Clear existing back image if blank back is checked
             if user.business_card_back:
                 user.business_card_back = None
+        
+        # Set status to pending_review when card is updated
+        user.business_card_status = 'pending_review'
         
         user.save()
         
@@ -1210,3 +1219,97 @@ class ClientJobRequestCreateView(LoginRequiredMixin, View):
             else:
                 messages.error(request, error_message)
                 return redirect(request.META.get('HTTP_REFERER', '/'))
+
+class HandymanTogglePromotionView(LoginRequiredMixin, View):
+    """
+    View for toggling the active status of a promotion
+    """
+    success_url = reverse_lazy('handyman_dashboard')
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST request to toggle promotion status"""
+        user = request.user
+        data = request.POST
+        
+        promotion_id = data.get('promotion_id')
+        action = data.get('action')
+        
+        if not promotion_id or not action:
+            messages.error(request, "Missing required information.")
+            return redirect(self.success_url + '#promotions')
+        
+        try:
+            # Get handyman profile
+            handyman = Handyman.objects.get(user=user)
+            
+            # Get the promotion and verify ownership
+            from .models import HandymanPromotion
+            promotion = HandymanPromotion.objects.get(id=promotion_id, handyman=handyman)
+            
+            # Toggle active status
+            if action == 'activate':
+                promotion.is_active = True
+                status_message = "Promotion activated successfully!"
+            else:
+                promotion.is_active = False
+                status_message = "Promotion deactivated successfully!"
+                
+            promotion.save()
+            
+            messages.success(request, status_message)
+            
+        except Handyman.DoesNotExist:
+            messages.error(request, "Handyman profile not found.")
+        except HandymanPromotion.DoesNotExist:
+            messages.error(request, "Promotion not found or you don't have permission to modify it.")
+        except Exception as e:
+            messages.error(request, f"Error updating promotion: {str(e)}")
+        
+        # Redirect back to the promotions tab
+        return redirect(self.success_url + '#promotions')
+
+class HandymanJobsTabView(LoginRequiredMixin, TemplateView):
+    """
+    View for displaying and handling job requests in the dashboard
+    """
+    template_name = 'handyman/handyman_dashboard_jobs.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        # Get handyman profile
+        try:
+            handyman = Handyman.objects.get(user=user)
+        except Handyman.DoesNotExist:
+            # If no handyman profile exists, return empty context
+            context['jobs'] = []
+            context['pending_count'] = 0
+            return context
+        
+        # Get job requests for this handyman
+        from .models import JobRequest
+        job_requests = JobRequest.objects.filter(handyman=handyman).order_by('-created_at')
+        
+        # Prepare jobs data for the template
+        jobs = []
+        for job in job_requests:
+            job_data = {
+                'id': job.id,
+                'service_name': job.service_name,
+                'client_name': f"{job.client.first_name} {job.client.last_name}" if job.client else "Anonymous",
+                'scheduled_date': job.scheduled_date.strftime('%Y-%m-%d') if job.scheduled_date else None,
+                'scheduled_time': job.scheduled_time.strftime('%H:%M') if job.scheduled_time else None,
+                'address': str(job.address) if job.address else "No address provided",
+                'description': job.description,
+                'status': job.status,
+                'created_at': job.created_at.strftime('%Y-%m-%d %H:%M')
+            }
+            jobs.append(job_data)
+        
+        # Count pending jobs
+        pending_count = sum(1 for job in jobs if job['status'] == 'pending')
+        
+        context['jobs'] = jobs
+        context['pending_count'] = pending_count
+        return context

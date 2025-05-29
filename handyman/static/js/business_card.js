@@ -14,6 +14,16 @@ document.addEventListener('DOMContentLoaded', function() {
     uploadContainers: document.querySelectorAll('.upload-container')
   };
   
+  // Check if business card is in pending review or accepted state
+  const isCardPendingReview = elements.businessCardForm && elements.businessCardForm.classList.contains('disabled-form');
+  const isCardAccepted = document.querySelector('.accepted-card-container') !== null;
+  
+  // Apply disabled attribute to primary button if in pending review
+  if (isCardPendingReview && elements.primaryButton) {
+    elements.primaryButton.setAttribute('disabled', 'disabled');
+    elements.primaryButton.classList.add('disabled');
+  }
+  
   // Helper functions
   const helpers = {
     createModal: () => {
@@ -141,11 +151,13 @@ document.addEventListener('DOMContentLoaded', function() {
   };
   
   // Initialize image preview functionality
-  helpers.setupImagePreview(elements.frontInput, elements.frontPreview, 'Front');
-  helpers.setupImagePreview(elements.backInput, elements.backPreview, 'Back');
+  if (!isCardPendingReview && !isCardAccepted) {
+    helpers.setupImagePreview(elements.frontInput, elements.frontPreview, 'Front');
+    helpers.setupImagePreview(elements.backInput, elements.backPreview, 'Back');
+  }
   
   // Setup blank back checkbox functionality
-  if (elements.blankBackCheckbox && elements.backInput && elements.backPreview) {
+  if (elements.blankBackCheckbox && elements.backInput && elements.backPreview && !isCardPendingReview && !isCardAccepted) {
     elements.blankBackCheckbox.addEventListener('change', function() {
       elements.backInput.disabled = this.checked;
       const container = this.closest('.blank-back-container');
@@ -182,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Enhanced button ripple effect
-  if (elements.primaryButton) {
+  if (elements.primaryButton && !isCardPendingReview && !isCardAccepted) {
     elements.primaryButton.addEventListener('click', function(e) {
       const ripple = this.querySelector('.button-ripple');
       const rect = this.getBoundingClientRect();
@@ -200,44 +212,46 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Drag and drop functionality
-  elements.uploadContainers.forEach(container => {
-    const input = container.querySelector('.file-input');
-    const events = ['dragenter', 'dragover', 'dragleave', 'drop'];
-    
-    events.forEach(event => {
-      container.addEventListener(event, e => {
-        e.preventDefault();
-        e.stopPropagation();
+  if (!isCardPendingReview && !isCardAccepted) {
+    elements.uploadContainers.forEach(container => {
+      const input = container.querySelector('.file-input');
+      const events = ['dragenter', 'dragover', 'dragleave', 'drop'];
+      
+      events.forEach(event => {
+        container.addEventListener(event, e => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+      });
+      
+      ['dragenter', 'dragover'].forEach(event => {
+        container.addEventListener(event, () => {
+          container.style.borderColor = 'var(--primary-color)';
+          container.style.background = 'rgba(40, 167, 69, 0.1)';
+          container.style.transform = 'scale(1.02)';
+        });
+      });
+      
+      ['dragleave', 'drop'].forEach(event => {
+        container.addEventListener(event, () => {
+          container.style.borderColor = 'var(--border-color)';
+          container.style.background = 'white';
+          container.style.transform = 'scale(1)';
+        });
+      });
+      
+      container.addEventListener('drop', e => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          input.files = files;
+          input.dispatchEvent(new Event('change'));
+        }
       });
     });
-    
-    ['dragenter', 'dragover'].forEach(event => {
-      container.addEventListener(event, () => {
-        container.style.borderColor = 'var(--primary-color)';
-        container.style.background = 'rgba(40, 167, 69, 0.1)';
-        container.style.transform = 'scale(1.02)';
-      });
-    });
-    
-    ['dragleave', 'drop'].forEach(event => {
-      container.addEventListener(event, () => {
-        container.style.borderColor = 'var(--border-color)';
-        container.style.background = 'white';
-        container.style.transform = 'scale(1)';
-      });
-    });
-    
-    container.addEventListener('drop', e => {
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        input.files = files;
-        input.dispatchEvent(new Event('change'));
-      }
-    });
-  });
+  }
   
   // Handle form submission
-  if (elements.businessCardForm && window.handymanDashboard) {
+  if (elements.businessCardForm && window.handymanDashboard && !isCardPendingReview && !isCardAccepted) {
     elements.businessCardForm.addEventListener('submit', function(e) {
       e.preventDefault();
       
