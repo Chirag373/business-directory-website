@@ -3,21 +3,16 @@ from . import views
 
 
 urlpatterns = [
-        path('', views.handyman_main, name='handyman'),
-        path('signup/', views.signup_handyman, name='signup_handyman'),
-        path('dashboard/', views.dashboard, name='handyman_dashboard'),
-        path('dashboard/profile/', views.profile_tab, name='handyman_dashboard_profile'),
-        path('dashboard/promotions/', views.promotions_tab, name='handyman_dashboard_promotions'),
-        path('dashboard/services/', views.services_tab, name='handyman_dashboard_services'),
-        path('dashboard/jobs/', views.jobs_tab, name='handyman_dashboard_jobs'),
-        path('update-profile/', views.update_profile, name='handyman_update_profile'),
-        path('update-service-description/', views.update_service_description, name='handyman_update_service_description'),
-        path('add-service/', views.add_service, name='handyman_add_service'),
-        path('create-promotion/', views.create_promotion, name='handyman_create_promotion'),
-        path('deactivate-promotion/<int:promotion_id>/', views.deactivate_promotion, name='handyman_deactivate_promotion'),
-        path('update-job-status/<int:job_id>/', views.update_job_status, name='handyman_update_job_status'),
-        path('setup/', views.handyman_setup, name='handyman_setup'),
-        path('update-business-card/', views.update_business_card, name='handyman_update_business_card'),
-        path('update-services/', views.update_services, name='handyman_update_services'),
-        path('job-requests/', views.job_requests, name='handyman_job_requests'),
+    path('signup/', views.HandymanSignupView.as_view(), name='signup_handyman'),
+    path('dashboard/', views.HandymanDashboardView.as_view(), name='handyman_dashboard'),
+    path('update-profile/', views.HandymanProfileUpdateFormView.as_view(), name='handyman_update_profile'),
+    path('update-business-card/', views.HandymanBusinessCardUpdateView.as_view(), name='handyman_update_business_card'),
+    path('update-profile/', views.HandymanProfileUpdateFormView.as_view(), name='handyman_update_profile'),
+    path('update-services/', views.HandymanServicesUpdateView.as_view(), name='handyman_update_services'),
+    path('services-tab/', views.HandymanServicesTabView.as_view(), name='handyman_services_tab'),
+    path('create-promotion/', views.HandymanPromotionCreateView.as_view(), name='handyman_create_promotion'),
+    path('job-requests/', views.HandymanJobRequestsView.as_view(), name='handyman_job_requests'),
+    path('', views.HandymanMainView.as_view(), name='handyman_main'),
+    path('', views.HandymanMainView.as_view(), name='handyman'),
+    
 ]

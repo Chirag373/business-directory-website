@@ -94,6 +94,7 @@ class HandymanJob(TimeStampedModel):
         ('accepted', 'Accepted'),
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
+        ('declined', 'Declined'),
         ('cancelled', 'Cancelled'),
     )
     
@@ -111,6 +112,15 @@ class HandymanJob(TimeStampedModel):
     
     def __str__(self):
         return f"Job #{self.id}: {self.service.name} for {self.client.get_full_name() or self.client.email}"
+    
+    @property
+    def service_name(self):
+        """Return the service name for JSON serialization"""
+        return self.service.name if self.service else ""
+
+
+# Alias JobRequest to HandymanJob for backward compatibility with existing code
+JobRequest = HandymanJob
 
 
 class PromotionNotification(TimeStampedModel):

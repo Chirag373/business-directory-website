@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/handyman_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'handyman/css/dashboard_jobs.css' %}">
 <!-- Ensure SweetAlert2 is included in base -->
 {% endblock %}
 
@@ -128,37 +129,12 @@
   </section>
   
   <section class="dashboard-content" id="jobs-section" role="tabpanel" aria-labelledby="jobs-tab">
-    <!-- Job section content will be loaded dynamically via AJAX -->
-    <div class="jobs-container">
-      <div class="loading">
-        <i class="fas fa-spinner fa-spin"></i> Loading job requests...
-      </div>
-    </div>
+    {% include "handyman/handyman_dashboard_jobs.html" %}
   </section>
 </main>
 
 <style>
-/* Jobs Badge Styles */
-.jobs-badge {
-  background: linear-gradient(135deg, var(--danger-color) 0%, #e83e8c 100%);
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 0.5rem;
-  animation: pulse 2s infinite;
-  min-width: 20px;
-}
-
-.sidebar-tab-button .jobs-badge {
-  margin-left: auto;
-  margin-right: 0;
-}
+/* Removed Jobs Badge Styles - now in dashboard_jobs.css */
 
 /* Additional stat card */
 .dashboard-stats {
@@ -180,6 +156,13 @@
 
 {% block extra_js %}
 <script>
+// URL for job requests endpoint (used by the jobs.js script)
+const jobRequestsUrl = '{% url "handyman_job_requests" %}';
+
+// Configuration for jobs - set to false to use the real API
+// Set to true to use static dummy data in jobs.js
+window.USE_DUMMY_DATA = false;
+
 // Handyman Dashboard Manager Class
 class HandymanDashboardManager {
   constructor() {
@@ -275,10 +258,13 @@ class HandymanDashboardManager {
     // Load tab-specific data
     switch(tabName) {
       case 'jobs':
-        this.loadJobRequests();
+        this.initializeJobs();
         break;
       case 'promotions':
         this.loadActivePromotions();
+        break;
+      case 'services':
+        this.loadServiceCategories();
         break;
     }
   }
@@ -660,94 +646,26 @@ class HandymanDashboardManager {
 
   // Jobs Management
   initializeJobs() {
-    this.loadJobRequests();
-  }
-
-  async loadJobRequests() {
-    const jobsContainer = document.querySelector('.jobs-container');
-    if (!jobsContainer) return;
-
-    // Show loading state
-    jobsContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading job requests...</div>';
-
-    try {
-      const response = await fetch('{% url "handyman_job_requests" %}', {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      });
-
-      const data = await response.json();
-      
-      // Render jobs
-      this.renderJobs(data.jobs);
-    } catch (error) {
-      console.error('Error loading jobs:', error);
-      jobsContainer.innerHTML = '<div class="error"><i class="fas fa-exclamation-circle"></i> Failed to load job requests. Please try again.</div>';
+    // Initialize jobs using the JobsManager class
+    if (!this.jobsManager) {
+      this.jobsManager = new JobsManager();
     }
-  }
-
-  renderJobs(jobs) {
-    const jobsContainer = document.querySelector('.jobs-container');
-    if (!jobsContainer) return;
-
-    if (!jobs || jobs.length === 0) {
-      jobsContainer.innerHTML = `
-        <div class="empty-jobs">
-          <div class="empty-state-illustration">
-            <i class="fas fa-briefcase"></i>
-          </div>
-          <h3>No job requests found</h3>
-          <p>New job requests will appear here when customers contact you!</p>
-        </div>
-      `;
-      return;
-    }
-
-    jobsContainer.innerHTML = jobs.map(job => this.createJobCard(job)).join('');
-  }
-
-  createJobCard(job) {
-    const statusClass = job.status.toLowerCase();
-    const statusText = job.status.charAt(0).toUpperCase() + job.status.slice(1);
+    this.jobsManager.loadJobRequests();
     
-    return `
-      <div class="job-card ${statusClass}">
-        <div class="job-header">
-          <div class="job-info">
-            <h4>${job.service_name}</h4>
-            <p class="client-name"><i class="fas fa-user"></i> ${job.client_name}</p>
-          </div>
-          <div class="job-status">
-            <span class="status-badge ${statusClass}">${statusText}</span>
-          </div>
-        </div>
-        <div class="job-details">
-          <div class="job-detail-item">
-            <i class="fas fa-calendar"></i>
-            <span>${job.scheduled_date} at ${job.scheduled_time}</span>
-          </div>
-          <div class="job-detail-item">
-            <i class="fas fa-map-marker-alt"></i>
-            <span>${job.address}</span>
-          </div>
-          <div class="job-description">
-            <p>${job.description}</p>
-          </div>
-        </div>
-        <div class="job-actions">
-          ${job.status === 'pending' ? `
-            <button class="job-action-btn accept" data-job-id="${job.id}" data-action="accept">
-              <i class="fas fa-check"></i> Accept
-            </button>
-            <button class="job-action-btn decline" data-job-id="${job.id}" data-action="decline">
-              <i class="fas fa-times"></i> Decline
-            </button>
-          ` : ''}
-          <button class="job-action-btn details" data-job-id="${job.id}">
-            <i class="fas fa-info-circle"></i> Details
-          </button>
-        </div>
-      </div>
-    `;
+    // Update the pending count in the stats section
+    this.updatePendingJobsCount();
+  }
+  
+  // Update the pending jobs count in the stats section
+  updatePendingJobsCount() {
+    // Get all pending job cards
+    const pendingJobs = document.querySelectorAll('.job-card.pending').length;
+    
+    // Update the stat card
+    const pendingRequestsElement = document.getElementById('pending-requests');
+    if (pendingRequestsElement) {
+      pendingRequestsElement.textContent = pendingJobs;
+    }
   }
 
   // Utility Methods
@@ -813,6 +731,43 @@ class HandymanDashboardManager {
     // Load active promotions for the promotions tab
     // This would typically fetch from the server
   }
+
+  // Add loadServiceCategories method
+  async loadServiceCategories() {
+    try {
+      const response = await fetch('{% url "handyman_services_tab" %}', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        // Update selected checkboxes
+        const checkboxes = document.querySelectorAll('input[name="service_categories"]');
+        checkboxes.forEach(checkbox => {
+          const categoryValue = checkbox.value.toLowerCase();
+          checkbox.checked = data.selected_categories.includes(categoryValue);
+        });
+        
+        // Update service description
+        const descriptionTextarea = document.getElementById('service-description');
+        if (descriptionTextarea && data.service_description) {
+          descriptionTextarea.value = data.service_description;
+          
+          // Update character count
+          const charCount = document.getElementById('description-chars');
+          if (charCount) {
+            charCount.textContent = data.service_description.length;
+          }
+        }
+        
+        // Update summary
+        this.updateServicesSummary();
+      }
+    } catch (error) {
+      console.error('Error loading service categories:', error);
+    }
+  }
 }
 
 // Initialize dashboard when DOM is ready
@@ -828,4 +783,5 @@ window.addEventListener('hashchange', () => {
   }
 });
 </script>
+<script src="{% static 'handyman/js/dashboard_jobs.js' %}"></script>
 {% endblock %}

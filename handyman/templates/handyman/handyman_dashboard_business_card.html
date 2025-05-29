@@ -1,3 +1,5 @@
+{% load static %}
+
 <!-- Business Card Upload Section -->
 <h2><i class="fas fa-id-card"></i> Business Card Upload</h2>
 
@@ -8,12 +10,17 @@
 <form class="business-card-form" action="{% url 'handyman_update_business_card' %}" method="post" enctype="multipart/form-data">
   {% csrf_token %}
   
-  <!-- Front Side Upload -->
-  <div class="upload-section">
-    <h3 class="section-title"><i class="fas fa-upload"></i> Front Side (Required)</h3>
-    
-    <div class="upload-container">
-      <div class="upload-area">
+  <!-- Upload Containers in a single row -->
+  <div class="upload-container-row">
+    <!-- Front Side Upload -->
+    <div class="upload-section">
+      <h3 class="section-title">
+        <i class="fas fa-upload"></i> 
+        <span>Front Side</span>
+        <span class="required-badge">Required</span>
+      </h3>
+      
+      <div class="upload-container" data-upload-type="front">
         <div class="form-group">
           <label for="card-front" class="upload-label">
             <div class="upload-icon">
@@ -25,30 +32,24 @@
             <div class="upload-info">
               PNG, JPG, JPEG up to 5MB
             </div>
+            <div class="upload-progress" style="display: none;">
+              <div class="progress-bar"></div>
+            </div>
           </label>
           <input type="file" id="card-front" name="card_front" accept="image/*" class="file-input" required>
         </div>
-        
-        <div class="upload-preview" id="front-preview">
-          {% if user.business_card_front %}
-            <img src="{{ user.business_card_front.url }}" alt="Business card front" class="preview-image">
-          {% else %}
-            <div class="preview-placeholder">
-              <i class="fas fa-image"></i>
-              <span class="preview-text">Front side preview will appear here</span>
-            </div>
-          {% endif %}
-        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Back Side Upload -->
-  <div class="upload-section">
-    <h3 class="section-title"><i class="fas fa-upload"></i> Back Side (Optional)</h3>
-    
-    <div class="upload-container">
-      <div class="upload-area">
+    <!-- Back Side Upload -->
+    <div class="upload-section">
+      <h3 class="section-title">
+        <i class="fas fa-upload"></i> 
+        <span>Back Side</span>
+        <span class="optional-badge">Optional</span>
+      </h3>
+      
+      <div class="upload-container" data-upload-type="back">
         <div class="form-group">
           <label for="card-back" class="upload-label">
             <div class="upload-icon">
@@ -60,50 +61,138 @@
             <div class="upload-info">
               PNG, JPG, JPEG up to 5MB
             </div>
+            <div class="upload-progress" style="display: none;">
+              <div class="progress-bar"></div>
+            </div>
           </label>
           <input type="file" id="card-back" name="card_back" accept="image/*" class="file-input">
         </div>
-        
-        <div class="upload-preview" id="back-preview">
-          {% if user.business_card_back %}
-            <img src="{{ user.business_card_back.url }}" alt="Business card back" class="preview-image">
-          {% elif user.has_blank_card_back %}
-            <div class="blank-back-indicator">
-              <i class="fas fa-square"></i>
-              <span>Blank back side</span>
-            </div>
-          {% else %}
-            <div class="preview-placeholder">
-              <i class="fas fa-image"></i>
-              <span class="preview-text">Back side preview will appear here</span>
-            </div>
-          {% endif %}
-        </div>
+      </div>
+
+      <!-- Blank Back Checkbox -->
+      <div class="blank-back-container">
+        <label class="checkbox-container">
+          <input type="checkbox" id="blank-back" name="blank_back" {% if user.has_blank_card_back %}checked{% endif %}>
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">
+            <strong>My business card backside is blank</strong>
+            <small>Check this if your card has no content on the back</small>
+          </span>
+        </label>
       </div>
     </div>
+  </div>
 
-    <!-- Blank Back Checkbox -->
-    <div class="blank-back-container">
-      <label class="checkbox-container">
-        <input type="checkbox" id="blank-back" name="blank_back" {% if user.has_blank_card_back %}checked{% endif %}>
-        <span class="checkbox-custom"></span>
-        <span class="checkbox-label">
-          <strong>Please check this checkbox, if your business card backside is blank</strong>
-        </span>
-      </label>
+  <!-- Flip Card Preview -->
+  <div class="card-preview-container">
+    <h3 class="section-title">
+      <i class="fas fa-eye"></i> 
+      <span>Business Card Preview</span>
+    </h3>
+    
+    <div class="flip-card-container">
+      <div class="flip-card" id="flip-card">
+        <div class="flip-card-inner">
+          <!-- Front Side -->
+          <div class="flip-card-front">
+            <div id="front-preview" class="card-preview-panel">
+              {% if user.business_card_front %}
+                <img src="{{ user.business_card_front.url }}" alt="Business card front" class="preview-image">
+                <div class="preview-overlay">
+                  <i class="fas fa-expand-alt"></i>
+                </div>
+              {% else %}
+                <div class="preview-placeholder">
+                  <i class="fas fa-image"></i>
+                  <span class="preview-text">Front side preview will appear here</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+          
+          <!-- Back Side -->
+          <div class="flip-card-back">
+            <div id="back-preview" class="card-preview-panel">
+              {% if user.business_card_back %}
+                <img src="{{ user.business_card_back.url }}" alt="Business card back" class="preview-image">
+                <div class="preview-overlay">
+                  <i class="fas fa-expand-alt"></i>
+                </div>
+              {% elif user.has_blank_card_back %}
+                <div class="blank-back-indicator">
+                  <i class="fas fa-square"></i>
+                  <span>Blank back side</span>
+                </div>
+              {% else %}
+                <div class="preview-placeholder">
+                  <i class="fas fa-image"></i>
+                  <span class="preview-text">Back side preview will appear here</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Flip Controls -->
+      <div class="flip-controls">
+        <button type="button" class="flip-button active" id="show-front">
+          <i class="fas fa-id-card"></i> Front Side
+        </button>
+        <button type="button" class="flip-button" id="show-back">
+          <i class="fas fa-id-card-alt"></i> Back Side
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Upload Requirements -->
   <div class="upload-requirements">
     <h4><i class="fas fa-info-circle"></i> Upload Requirements</h4>
-    <ul class="requirements-list">
-      <li><i class="fas fa-check-circle"></i> Images must be clear and legible</li>
-      <li><i class="fas fa-check-circle"></i> Business information should be visible</li>
-      <li><i class="fas fa-check-circle"></i> Maximum file size: 5MB per image</li>
-      <li><i class="fas fa-check-circle"></i> Supported formats: PNG, JPG, JPEG</li>
-      <li><i class="fas fa-check-circle"></i> Minimum resolution: 800x600 pixels</li>
-    </ul>
+    <div class="requirements-grid">
+      <div class="requirement-item">
+        <i class="fas fa-check-circle"></i>
+        <div>
+          <strong>Clear & Legible</strong>
+          <span>Images must be sharp and readable</span>
+        </div>
+      </div>
+      <div class="requirement-item">
+        <i class="fas fa-check-circle"></i>
+        <div>
+          <strong>Business Info Visible</strong>
+          <span>All text should be clearly visible</span>
+        </div>
+      </div>
+      <div class="requirement-item">
+        <i class="fas fa-check-circle"></i>
+        <div>
+          <strong>File Size Limit</strong>
+          <span>Maximum 5MB per image</span>
+        </div>
+      </div>
+      <div class="requirement-item">
+        <i class="fas fa-check-circle"></i>
+        <div>
+          <strong>Supported Formats</strong>
+          <span>PNG, JPG, JPEG only</span>
+        </div>
+      </div>
+      <div class="requirement-item">
+        <i class="fas fa-check-circle"></i>
+        <div>
+          <strong>Minimum Resolution</strong>
+          <span>800x600 pixels or higher</span>
+        </div>
+      </div>
+      <div class="requirement-item">
+        <i class="fas fa-check-circle"></i>
+        <div>
+          <strong>Good Lighting</strong>
+          <span>Avoid shadows and glare</span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Verification Status -->
@@ -114,8 +203,13 @@
         <i class="fas fa-check-circle"></i>
       </div>
       <div class="status-content">
-        <h4>Business Card Uploaded</h4>
-        <p>Your business card has been uploaded successfully. Our team will review it for verification.</p>
+        <h4>Business Card Uploaded Successfully</h4>
+        <p>Your business card has been uploaded and is pending verification. Our team will review it within 24-48 hours.</p>
+        <div class="status-badges">
+          <span class="status-badge pending">
+            <i class="fas fa-clock"></i> Pending Review
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -123,343 +217,17 @@
 
   <div class="form-actions">
     <button type="submit" class="primary-button">
-      <i class="fas fa-upload"></i> Update Business Card
+      <i class="fas fa-upload"></i> 
+      <span>Update Business Card</span>
+      <div class="button-ripple"></div>
     </button>
   </div>
 </form>
 
-<style>
-.upload-intro {
-  background-color: var(--light-color);
-  padding: 1.25rem;
-  border-radius: var(--border-radius);
-  margin-bottom: 2rem;
-}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/business_card.css' %}">
+{% endblock %}
 
-.lead-text {
-  font-size: 1.05rem;
-  color: var(--text-muted);
-  margin: 0;
-  line-height: 1.6;
-}
-
-.upload-section {
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.upload-section:last-of-type {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.section-title {
-  font-size: 1.15rem;
-  color: var(--dark-color);
-  margin-bottom: 1.25rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.section-title i {
-  color: var(--primary-color);
-  font-size: 1.1rem;
-}
-
-.upload-container {
-  background-color: var(--light-color);
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  border: 2px dashed var(--border-color);
-  transition: var(--transition);
-}
-
-.upload-container:hover {
-  border-color: var(--primary-color);
-  background-color: rgba(40, 167, 69, 0.05);
-}
-
-.upload-area {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  align-items: center;
-}
-
-.upload-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 2rem 1rem;
-  border: 2px dashed var(--primary-color);
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: var(--transition);
-  background-color: white;
-}
-
-.upload-label:hover {
-  background-color: rgba(40, 167, 69, 0.05);
-  border-color: var(--success-color);
-}
-
-.upload-icon {
-  font-size: 3rem;
-  color: var(--primary-color);
-  margin-bottom: 1rem;
-}
-
-.upload-text {
-  font-size: 1.1rem;
-  color: var(--dark-color);
-  margin-bottom: 0.5rem;
-}
-
-.upload-info {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-}
-
-.file-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.upload-preview {
-  width: 100%;
-  height: 200px;
-  border-radius: var(--border-radius);
-  border: 2px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: white;
-  overflow: hidden;
-  position: relative;
-}
-
-.upload-preview.has-image {
-  border-color: var(--success-color);
-}
-
-.preview-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.preview-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  text-align: center;
-}
-
-.preview-placeholder i {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  opacity: 0.5;
-}
-
-.preview-text {
-  font-size: 0.9rem;
-}
-
-.blank-back-indicator {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  text-align: center;
-}
-
-.blank-back-indicator i {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  opacity: 0.5;
-}
-
-.blank-back-container {
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: white;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
-}
-
-.checkbox-container {
-  display: flex;
-  align-items: flex-start;
-  cursor: pointer;
-  gap: 0.75rem;
-  position: relative;
-  padding: 0;
-  border: none;
-  background: none;
-}
-
-.checkbox-container input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.checkbox-custom {
-  position: relative;
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  background-color: white;
-  border: 2px solid var(--border-color);
-  border-radius: 4px;
-  transition: var(--transition);
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.checkbox-container input:checked ~ .checkbox-custom {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-.checkbox-container input:checked ~ .checkbox-custom::after {
-  content: '✓';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.checkbox-label {
-  font-size: 0.95rem;
-  color: var(--dark-color);
-  user-select: none;
-  line-height: 1.4;
-}
-
-.upload-requirements {
-  background-color: rgba(40, 167, 69, 0.05);
-  border: 1px solid rgba(40, 167, 69, 0.2);
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  margin: 2rem 0;
-}
-
-.upload-requirements h4 {
-  font-size: 1.1rem;
-  color: var(--dark-color);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.upload-requirements h4 i {
-  color: var(--primary-color);
-}
-
-.requirements-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.requirements-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.95rem;
-  color: var(--dark-color);
-}
-
-.requirements-list li:last-child {
-  margin-bottom: 0;
-}
-
-.requirements-list i {
-  color: var(--success-color);
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-
-.verification-status {
-  background-color: rgba(40, 167, 69, 0.1);
-  border: 1px solid var(--success-color);
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  margin: 2rem 0;
-}
-
-.status-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.status-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.status-icon.verified {
-  background-color: var(--success-color);
-  color: white;
-}
-
-.status-content h4 {
-  font-size: 1.1rem;
-  color: var(--dark-color);
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-}
-
-.status-content p {
-  font-size: 0.95rem;
-  color: var(--text-muted);
-  margin: 0;
-  line-height: 1.4;
-}
-
-@media (max-width: 768px) {
-  .upload-area {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .upload-label {
-    padding: 1.5rem 1rem;
-  }
-  
-  .upload-icon {
-    font-size: 2rem;
-  }
-  
-  .upload-preview {
-    height: 150px;
-  }
-  
-  .status-item {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-</style>
+{% block extra_js %}
+<script src="{% static 'js/business_card.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,217 @@
+/* Jobs Badge Styles */
+.jobs-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  min-width: 20px;
+  height: 20px;
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+  padding: 0 0.25rem;
+}
+
+/* Jobs Container Styles */
+.jobs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  color: var(--text-muted);
+}
+
+.empty-jobs {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+
+.empty-state-illustration {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: var(--muted-color);
+}
+
+/* Job Card Styles */
+.job-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-left: 4px solid var(--muted-color);
+}
+
+.job-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.job-card.pending {
+  border-left-color: var(--warning-color);
+}
+
+.job-card.accepted {
+  border-left-color: var(--success-color);
+}
+
+.job-card.completed {
+  border-left-color: var(--info-color);
+}
+
+.job-card.declined {
+  border-left-color: var(--danger-color);
+}
+
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.job-info h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.client-name {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-badge.pending {
+  background-color: var(--warning-light);
+  color: var(--warning-dark);
+}
+
+.status-badge.accepted {
+  background-color: var(--success-light);
+  color: var(--success-dark);
+}
+
+.status-badge.completed {
+  background-color: var(--info-light);
+  color: var(--info-dark);
+}
+
+.status-badge.declined {
+  background-color: var(--danger-light);
+  color: var(--danger-dark);
+}
+
+.job-details {
+  padding: 1rem;
+}
+
+.job-detail-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.job-detail-item i {
+  width: 1.5rem;
+  color: var(--text-muted);
+}
+
+.job-description {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.job-description p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.job-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+  background-color: var(--light-bg);
+  border-top: 1px solid var(--border-color);
+}
+
+.job-action-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.job-action-btn.accept {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.job-action-btn.accept:hover {
+  background-color: var(--success-dark);
+}
+
+.job-action-btn.decline {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.job-action-btn.decline:hover {
+  background-color: var(--danger-dark);
+}
+
+.job-action-btn.details {
+  background-color: var(--light-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.job-action-btn.details:hover {
+  background-color: var(--border-color);
+}
+
+@media (max-width: 768px) {
+  .job-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .job-status {
+    margin-top: 0.5rem;
+  }
+  
+  .job-actions {
+    flex-wrap: wrap;
+  }
+  
+  .job-action-btn {
+    flex: 1;
+    justify-content: center;
+  }
+} 

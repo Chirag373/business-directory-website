@@ -213,7 +213,12 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 {% endblock %}
 
-<h2><i class="fas fa-user-circle"></i> Personal Details</h2>
+<div class="section-header-container">
+  <h2><i class="fas fa-user-circle"></i> Personal Details</h2>
+  <a href="{% url 'handyman_update_profile' %}" class="btn-edit-profile">
+    <i class="fas fa-edit"></i> Edit Profile
+  </a>
+</div>
 
 <form class="personal-form" action="{% url 'handyman_update_profile' %}" method="post" enctype="multipart/form-data" id="personal-form">
   {% csrf_token %}
@@ -274,7 +279,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="form-row">
       <div class="form-group" style="flex: 0.3;">
         <label for="address-number">Address Number <span class="required">*</span></label>
-        <input type="text" id="address-number" name="address_number" value="{{ address_number|default:'' }}" placeholder="123" required>
+        <input type="text" id="address-number" name="address_number" value="{{ address_number }}" placeholder="123" required>
       </div>
       <div class="form-group" style="flex: 0.7;">
         <label for="address-street">Address <span class="required">*</span></label>
@@ -1026,5 +1031,33 @@ document.addEventListener('DOMContentLoaded', function() {
   height: 100%;
   background: rgba(255, 255, 255, 0.5);
   z-index: 1;
+}
+
+.section-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.btn-edit-profile {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-edit-profile:hover {
+  background-color: var(--primary-color-dark);
+  transform: translateY(-2px);
+}
+
+.btn-edit-profile i {
+  margin-right: 0.5rem;
 }
 </style>
