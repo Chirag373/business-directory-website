@@ -136,3 +136,7 @@ LOGOUT_REDIRECT_URL = '/'
 
 # Email settings (will be configured for real email later)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Country State City API settings
+# The API key will be provided by the user
+COUNTRY_STATE_CITY_API_KEY = 'WnVWTGlEejlKbzMyOXd4c2VmdVQzZzFWTVJTb0xXWk1pNExvWVFzZQ=='  # Replace this with the actual API key when available

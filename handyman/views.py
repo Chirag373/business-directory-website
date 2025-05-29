@@ -50,8 +50,8 @@ def handyman_main(request):
 
 def _handyman_search(request):
     """Private helper function to handle handyman search submissions"""
+    country = request.POST.get('country', '')
     state = request.POST.get('state', '')
-    county = request.POST.get('county', '')
     city = request.POST.get('city', '')
     service_description = request.POST.get('service_description', '')
     
@@ -67,11 +67,11 @@ def _handyman_search(request):
     location_filtered = False
     
     # Filter handymen based on location if provided
+    if country:
+        filters &= Q(service_areas__country__iexact=country)
+        location_filtered = True
     if state:
         filters &= Q(service_areas__state__iexact=state)
-        location_filtered = True
-    if county:
-        filters &= Q(service_areas__county__icontains=county)
         location_filtered = True
     if city:
         filters &= Q(service_areas__city__iexact=city)
@@ -122,7 +122,7 @@ def signup_handyman(request):
         street = f"{street_number} {street_address}".strip()
         city = request.POST.get('city')
         state = request.POST.get('state')
-        county = request.POST.get('county')
+        country = request.POST.get('country')
         postal_code = request.POST.get('zip')
         
         # Service Information
@@ -138,7 +138,7 @@ def signup_handyman(request):
         
         # Validate required fields
         if not all([first_name, last_name, email, phone, business_name, 
-                  street, city, state, postal_code, service_description]):
+                  street, city, state, country, postal_code, service_description]):
             messages.error(request, 'Please fill in all required fields.')
             return render(request, 'handyman/handyman_signup.html')
         
@@ -155,6 +155,7 @@ def signup_handyman(request):
                 city=city,
                 state=state,
                 postal_code=postal_code,
+                country=country
             )
             print(f"Address created: {address.id}")
             
@@ -538,7 +539,7 @@ def profile_tab(request):
         'address': user.address,
     }
     
-    response = render(request, 'handyman/handyman_dashboard_profile.html', context)
+    response = render(request, 'handyman/handyman_dashboard_personal.html', context)
     
     # Cache the response for 10 minutes
     cache.set(cache_key, response, 60 * 10)
@@ -695,9 +696,10 @@ def update_profile(request):
                 address_street = request.POST.get('address_street', '')
                 city = request.POST.get('city', '')
                 state = request.POST.get('state', '')
+                country = request.POST.get('country', '')
                 postal_code = request.POST.get('zip', '')
                 
-                if address_number or address_street or city or state or postal_code:
+                if address_number or address_street or city or state or country or postal_code:
                     # Combine street number and name
                     full_street = f"{address_number} {address_street}".strip()
                     
@@ -711,6 +713,8 @@ def update_profile(request):
                             address.city = city
                         if state:
                             address.state = state
+                        if country:
+                            address.country = country
                         if postal_code:
                             address.postal_code = postal_code
                         address.save()
@@ -720,6 +724,7 @@ def update_profile(request):
                             street=full_street,
                             city=city,
                             state=state,
+                            country=country,
                             postal_code=postal_code
                         )
                         user.address = address

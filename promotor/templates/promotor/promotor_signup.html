@@ -124,22 +124,20 @@
       <div class="form-row">
         <div class="form-col">
           <div class="form-group">
-            <label for="state" class="form-label">State</label>
-            <select id="state" name="state" class="form-control" required>
-              <option value="">Select State</option>
-              <option value="AL">Alabama</option>
-              <option value="AK">Alaska</option>
-              <option value="AZ">Arizona</option>
-              <!-- More states would be listed here -->
+            <label for="country" class="form-label">Country</label>
+            <select id="country" name="country" class="form-control" required>
+              <option value="">Select Country</option>
+              <!-- Countries will be loaded via JavaScript -->
             </select>
           </div>
         </div>
-
+        
         <div class="form-col">
           <div class="form-group">
-            <label for="county" class="form-label">County</label>
-            <select id="county" name="county" class="form-control" disabled required>
-              <option value="">Select County</option>
+            <label for="state" class="form-label">State/Province</label>
+            <select id="state" name="state" class="form-control" disabled required>
+              <option value="">Select State</option>
+              <!-- States will be loaded via JavaScript -->
             </select>
           </div>
         </div>
@@ -151,13 +149,14 @@
             <label for="city" class="form-label">City</label>
             <select id="city" name="city" class="form-control" disabled required>
               <option value="">Select City</option>
+              <!-- Cities will be loaded via JavaScript -->
             </select>
           </div>
         </div>
 
         <div class="form-col">
           <div class="form-group">
-            <label for="zip" class="form-label">ZIP Code</label>
+            <label for="zip" class="form-label">ZIP/Postal Code</label>
             <input type="text" id="zip" name="zip" class="form-control" required>
           </div>
         </div>
@@ -367,4 +366,35 @@
     });
   });
 </script>
+
+<!-- Add script for address dropdowns at the end of the file -->
+{% block extra_scripts %}
+<script src="{% static 'js/address_dropdowns.js' %}"></script>
+<script>
+  // Load countries when the page loads
+  document.addEventListener('DOMContentLoaded', async function() {
+    const countryDropdown = document.getElementById('country');
+    
+    // Fetch countries from API
+    try {
+      const response = await fetch('/api/countries/');
+      if (!response.ok) {
+        throw new Error('Failed to fetch countries');
+      }
+      
+      const countries = await response.json();
+      
+      // Add countries to dropdown
+      countries.forEach(country => {
+        const option = document.createElement('option');
+        option.value = country.iso2;
+        option.textContent = country.name;
+        countryDropdown.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error loading countries:', error);
+    }
+  });
+</script>
+{% endblock %}
 {% endblock %}

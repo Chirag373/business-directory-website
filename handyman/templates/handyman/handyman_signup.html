@@ -118,25 +118,20 @@
       <div class="form-row">
         <div class="form-col">
           <div class="form-group">
-            <label for="state" class="form-label">State</label>
-            <select id="state" name="state" class="form-control" required>
-              <option value="">Select State</option>
-              <option value="AL">Alabama</option>
-              <option value="AK">Alaska</option>
-              <option value="AZ">Arizona</option>
-              <!-- More states would be listed here -->
-              <option value="CA">California</option>
-              <option value="CO">Colorado</option>
-              <option value="WY">Wyoming</option>
+            <label for="country" class="form-label">Country</label>
+            <select id="country" name="country" class="form-control" required>
+              <option value="">Select Country</option>
+              <!-- Countries will be loaded via JavaScript -->
             </select>
           </div>
         </div>
 
         <div class="form-col">
           <div class="form-group">
-            <label for="county" class="form-label">County</label>
-            <select id="county" name="county" class="form-control" disabled required>
-              <option value="">Select County</option>
+            <label for="state" class="form-label">State/Province</label>
+            <select id="state" name="state" class="form-control" disabled required>
+              <option value="">Select State</option>
+              <!-- States will be loaded via JavaScript -->
             </select>
           </div>
         </div>
@@ -148,13 +143,14 @@
             <label for="city" class="form-label">City</label>
             <select id="city" name="city" class="form-control" disabled required>
               <option value="">Select City</option>
+              <!-- Cities will be loaded via JavaScript -->
             </select>
           </div>
         </div>
 
         <div class="form-col">
           <div class="form-group">
-            <label for="zip" class="form-label">ZIP Code</label>
+            <label for="zip" class="form-label">ZIP/Postal Code</label>
             <input type="text" id="zip" name="zip" class="form-control" required>
           </div>
         </div>
@@ -277,8 +273,32 @@
 </section>
 
 <!-- Script for image preview and validation -->
+<script src="{% static 'js/address_dropdowns.js' %}"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+  // Load countries when the page loads
+  document.addEventListener('DOMContentLoaded', async function() {
+    const countryDropdown = document.getElementById('country');
+    
+    // Fetch countries from API
+    try {
+      const response = await fetch('/api/countries/');
+      if (!response.ok) {
+        throw new Error('Failed to fetch countries');
+      }
+      
+      const countries = await response.json();
+      
+      // Add countries to dropdown
+      countries.forEach(country => {
+        const option = document.createElement('option');
+        option.value = country.iso2;
+        option.textContent = country.name;
+        countryDropdown.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error loading countries:', error);
+    }
+    
     // File preview functionality
     function setupFilePreview(fileInput, previewElement) {
       fileInput.addEventListener('change', function() {
@@ -312,37 +332,6 @@
         promotionOptions.style.display = this.checked ? 'block' : 'none';
       });
     }
-    
-    // State-county-city dynamic selection 
-    const stateSelect = document.getElementById('state');
-    const countySelect = document.getElementById('county');
-    const citySelect = document.getElementById('city');
-    
-    stateSelect.addEventListener('change', function() {
-      if (this.value) {
-        countySelect.disabled = false;
-        // Here you would typically load counties via AJAX
-        // For demo purposes, we'll add placeholder counties
-        countySelect.innerHTML = '<option value="">Select County</option><option value="county1">Sample County 1</option><option value="county2">Sample County 2</option>';
-      } else {
-        countySelect.disabled = true;
-        countySelect.innerHTML = '<option value="">Select County</option>';
-        citySelect.disabled = true;
-        citySelect.innerHTML = '<option value="">Select City</option>';
-      }
-    });
-    
-    countySelect.addEventListener('change', function() {
-      if (this.value) {
-        citySelect.disabled = false;
-        // Here you would typically load cities via AJAX
-        // For demo purposes, we'll add placeholder cities
-        citySelect.innerHTML = '<option value="">Select City</option><option value="city1">Sample City 1</option><option value="city2">Sample City 2</option>';
-      } else {
-        citySelect.disabled = true;
-        citySelect.innerHTML = '<option value="">Select City</option>';
-      }
-    });
     
     // Form validation
     document.querySelector('.profile-form').addEventListener('submit', function(e) {

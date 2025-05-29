@@ -5,8 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/handyman_dashboard.css' %}">
-<!-- Include Toastify CSS if not already in base -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<!-- Ensure SweetAlert2 is included in base -->
 {% endblock %}
 
 {% block content %}
@@ -180,9 +179,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Include Toastify JS -->
-<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-
 <script>
 // Handyman Dashboard Manager Class
 class HandymanDashboardManager {
@@ -756,21 +752,51 @@ class HandymanDashboardManager {
 
   // Utility Methods
   showToast(message, type = 'info') {
-    if (typeof Toastify !== 'undefined') {
-      Toastify({
-        text: message,
-        duration: 3000,
-        gravity: "top",
-        position: "right",
-        backgroundColor: {
-          success: "#28a745",
-          error: "#dc3545",
-          warning: "#ffc107",
-          info: "#17a2b8"
-        }[type] || "#17a2b8",
-        className: "toast-" + type,
-        stopOnFocus: true
-      }).showToast();
+    // Use SweetAlert2 for toast notifications
+    if (typeof Swal !== 'undefined') {
+      let icon, color;
+      
+      // Set icon and color based on message type
+      switch(type) {
+        case 'success':
+          icon = '<i class="fas fa-check-circle toast-icon"></i>';
+          color = '#4CAF50';
+          break;
+        case 'error':
+          icon = '<i class="fas fa-exclamation-circle toast-icon"></i>';
+          color = '#F44336';
+          break;
+        case 'warning':
+          icon = '<i class="fas fa-exclamation-triangle toast-icon"></i>';
+          color = '#FFC107';
+          break;
+        case 'info':
+        default:
+          icon = '<i class="fas fa-info-circle toast-icon"></i>';
+          color = '#2196F3';
+          type = 'info';
+      }
+      
+      // Use the Toast configuration
+      const Toast = Swal.mixin({
+        toast: true,
+        position: 'top',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener('mouseenter', Swal.stopTimer)
+          toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+      });
+      
+      // Show toast notification
+      Toast.fire({
+        icon: type,
+        title: `<div class="toast-content">${icon}${message}</div>`,
+        background: color,
+        color: type === 'warning' ? '#333' : '#fff'
+      });
     } else {
       console.log(`[${type.toUpperCase()}] ${message}`);
     }

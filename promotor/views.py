@@ -35,7 +35,7 @@ def promotor_signup(request):
         street = f"{street_number} {street_address}".strip()
         city = request.POST.get('city')
         state = request.POST.get('state')
-        county = request.POST.get('county')
+        country = request.POST.get('country')
         postal_code = request.POST.get('zip')
         
         # Product Information
@@ -52,7 +52,7 @@ def promotor_signup(request):
         
         # Validate required fields
         if not all([first_name, last_name, email, phone, business_name,
-                  street, city, state, postal_code, product_description]):
+                  street, city, state, country, postal_code, product_description]):
             messages.error(request, 'Please fill in all required fields.')
             return render(request, 'promotor/promotor_signup.html')
         
@@ -73,6 +73,7 @@ def promotor_signup(request):
                 city=city,
                 state=state,
                 postal_code=postal_code,
+                country=country
             )
             
             # Generate a random temporary password

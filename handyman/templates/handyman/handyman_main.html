@@ -27,24 +27,33 @@
       <form method="post" action="{% url 'handyman' %}" class="search-container">
         {% csrf_token %}
         <div class="search-box">
-          <label for="state">
-            <i class="fas fa-map"></i> State
+          <label for="country">
+            <i class="fas fa-globe"></i> Country
           </label>
-          <input type="text" id="state" name="state" placeholder="Enter state (e.g., CA, NY, TX)">
+          <select id="country" name="country">
+            <option value="">Select Country</option>
+            <!-- Will be populated by JavaScript -->
+          </select>
         </div>
         
         <div class="search-box">
-          <label for="county">
-            <i class="fas fa-map-marked-alt"></i> County
+          <label for="state">
+            <i class="fas fa-map"></i> State/Province
           </label>
-          <input type="text" id="county" name="county" placeholder="Enter county">
+          <select id="state" name="state" disabled>
+            <option value="">Select State</option>
+            <!-- Will be populated by JavaScript -->
+          </select>
         </div>
         
         <div class="search-box">
           <label for="city">
             <i class="fas fa-city"></i> City
           </label>
-          <input type="text" id="city" name="city" placeholder="Enter city">
+          <select id="city" name="city" disabled>
+            <option value="">Select City</option>
+            <!-- Will be populated by JavaScript -->
+          </select>
         </div>
         
         <div class="search-box service-search-field">
@@ -370,5 +379,47 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/handyman_main.js' %}"></script>
+<script src="{% static 'js/address_dropdowns.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async function() {
+    // Load countries from API
+    const countryDropdown = document.getElementById('country');
+    
+    try {
+      const response = await fetch('/api/countries/');
+      if (!response.ok) {
+        throw new Error('Failed to fetch countries');
+      }
+      
+      const countries = await response.json();
+      
+      // Add countries to dropdown
+      countries.forEach(country => {
+        const option = document.createElement('option');
+        option.value = country.iso2;
+        option.textContent = country.name;
+        countryDropdown.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error loading countries:', error);
+    }
+    
+    // Setup card flipping
+    document.querySelectorAll('.business-card .flip-label').forEach(button => {
+      button.addEventListener('click', function() {
+        const card = this.closest('.business-card');
+        card.classList.toggle('flipped');
+      });
+    });
+    
+    // Setup service filtering
+    document.querySelectorAll('.service-tag').forEach(tag => {
+      tag.addEventListener('click', function() {
+        const service = this.textContent.trim();
+        document.getElementById('service_description').value = service;
+        document.querySelector('.search-btn').click();
+      });
+    });
+  });
+</script>
 {% endblock %}
