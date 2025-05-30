@@ -7,29 +7,57 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0001_initial'),
-        ('users', '0001_initial'),
+        ("core", "0001_initial"),
+        ("users", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='user_type',
-            field=models.CharField(choices=[('requestor', 'Requestor'), ('handyman', 'Handyman'), ('promoter', 'Promoter')], default='requestor', max_length=10),
+            model_name="user",
+            name="user_type",
+            field=models.CharField(
+                choices=[
+                    ("requestor", "Requestor"),
+                    ("handyman", "Handyman"),
+                    ("promoter", "Promoter"),
+                ],
+                default="requestor",
+                max_length=10,
+            ),
         ),
         migrations.CreateModel(
-            name='ConsumerInterest',
+            name="ConsumerInterest",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('receive_notifications', models.BooleanField(default=True)),
-                ('categories', models.ManyToManyField(related_name='interested_users', to='core.category')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='interests', to='users.user')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("is_active", models.BooleanField(default=True)),
+                ("receive_notifications", models.BooleanField(default=True)),
+                (
+                    "categories",
+                    models.ManyToManyField(
+                        related_name="interested_users", to="core.category"
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="interests",
+                        to="users.user",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

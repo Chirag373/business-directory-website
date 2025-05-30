@@ -7,155 +7,323 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0002_user_user_type_consumerinterest'),
+        ("users", "0002_user_user_type_consumerinterest"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ServiceCategory',
+            name="ServiceCategory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('name', models.CharField(max_length=100)),
-                ('description', models.TextField(blank=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("is_active", models.BooleanField(default=True)),
+                ("name", models.CharField(max_length=100)),
+                ("description", models.TextField(blank=True)),
             ],
             options={
-                'verbose_name_plural': 'Service Categories',
+                "verbose_name_plural": "Service Categories",
             },
         ),
         migrations.CreateModel(
-            name='SubscriptionPlan',
+            name="SubscriptionPlan",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('name', models.CharField(max_length=100)),
-                ('user_type', models.CharField(choices=[('requestor', 'Requestor'), ('handyman', 'Handyman'), ('promoter', 'Promoter')], max_length=10)),
-                ('setup_fee', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('monthly_fee', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('description', models.TextField(blank=True)),
-                ('is_active', models.BooleanField(default=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("name", models.CharField(max_length=100)),
+                (
+                    "user_type",
+                    models.CharField(
+                        choices=[
+                            ("requestor", "Requestor"),
+                            ("handyman", "Handyman"),
+                            ("promoter", "Promoter"),
+                        ],
+                        max_length=10,
+                    ),
+                ),
+                ("setup_fee", models.DecimalField(decimal_places=2, max_digits=10)),
+                ("monthly_fee", models.DecimalField(decimal_places=2, max_digits=10)),
+                ("description", models.TextField(blank=True)),
+                ("is_active", models.BooleanField(default=True)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.AddField(
-            model_name='user',
-            name='business_card_back',
-            field=models.ImageField(blank=True, null=True, upload_to='business_cards/'),
+            model_name="user",
+            name="business_card_back",
+            field=models.ImageField(blank=True, null=True, upload_to="business_cards/"),
         ),
         migrations.AddField(
-            model_name='user',
-            name='business_card_front',
-            field=models.ImageField(blank=True, null=True, upload_to='business_cards/'),
+            model_name="user",
+            name="business_card_front",
+            field=models.ImageField(blank=True, null=True, upload_to="business_cards/"),
         ),
         migrations.AddField(
-            model_name='user',
-            name='business_name',
+            model_name="user",
+            name="business_name",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='user',
-            name='has_blank_card_back',
+            model_name="user",
+            name="has_blank_card_back",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='user',
-            name='service_description',
+            model_name="user",
+            name="service_description",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='user',
-            name='website',
+            model_name="user",
+            name="website",
             field=models.URLField(blank=True, null=True),
         ),
         migrations.CreateModel(
-            name='PromotionalOffer',
+            name="PromotionalOffer",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('description', models.TextField()),
-                ('code', models.CharField(max_length=20, unique=True)),
-                ('discount_percentage', models.IntegerField(choices=[(3, '3%'), (5, '5%'), (10, '10%'), (15, '15%'), (20, '20%'), (25, '25%'), (30, '30%'), (35, '35%'), (40, '40%'), (45, '45%'), (50, '50%'), (55, '55%'), (60, '60%'), (65, '65%'), (70, '70%'), (75, '75%'), (80, '80%'), (85, '85%'), (90, '90%'), (100, '100%')])),
-                ('start_date', models.DateField()),
-                ('end_date', models.DateField()),
-                ('is_active', models.BooleanField(default=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='promotions', to='users.user')),
-                ('categories', models.ManyToManyField(related_name='promotions', to='users.servicecategory')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("description", models.TextField()),
+                ("code", models.CharField(max_length=20, unique=True)),
+                (
+                    "discount_percentage",
+                    models.IntegerField(
+                        choices=[
+                            (3, "3%"),
+                            (5, "5%"),
+                            (10, "10%"),
+                            (15, "15%"),
+                            (20, "20%"),
+                            (25, "25%"),
+                            (30, "30%"),
+                            (35, "35%"),
+                            (40, "40%"),
+                            (45, "45%"),
+                            (50, "50%"),
+                            (55, "55%"),
+                            (60, "60%"),
+                            (65, "65%"),
+                            (70, "70%"),
+                            (75, "75%"),
+                            (80, "80%"),
+                            (85, "85%"),
+                            (90, "90%"),
+                            (100, "100%"),
+                        ]
+                    ),
+                ),
+                ("start_date", models.DateField()),
+                ("end_date", models.DateField()),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="promotions",
+                        to="users.user",
+                    ),
+                ),
+                (
+                    "categories",
+                    models.ManyToManyField(
+                        related_name="promotions", to="users.servicecategory"
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='PromotionalEmailSent',
+            name="PromotionalEmailSent",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('sent_date', models.DateTimeField(auto_now_add=True)),
-                ('recipient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='promo_emails_received', to='users.user')),
-                ('promotion', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='emails_sent', to='users.promotionaloffer')),
-                ('matched_categories', models.ManyToManyField(to='users.servicecategory')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("is_active", models.BooleanField(default=True)),
+                ("sent_date", models.DateTimeField(auto_now_add=True)),
+                (
+                    "recipient",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="promo_emails_received",
+                        to="users.user",
+                    ),
+                ),
+                (
+                    "promotion",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="emails_sent",
+                        to="users.promotionaloffer",
+                    ),
+                ),
+                (
+                    "matched_categories",
+                    models.ManyToManyField(to="users.servicecategory"),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='HandymanService',
+            name="HandymanService",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('description', models.TextField(help_text='Detailed description of services offered')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='services', to='users.user')),
-                ('categories', models.ManyToManyField(related_name='providers', to='users.servicecategory')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "description",
+                    models.TextField(
+                        help_text="Detailed description of services offered"
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="services",
+                        to="users.user",
+                    ),
+                ),
+                (
+                    "categories",
+                    models.ManyToManyField(
+                        related_name="providers", to="users.servicecategory"
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Subscription',
+            name="Subscription",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('start_date', models.DateField(auto_now_add=True)),
-                ('end_date', models.DateField(blank=True, null=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('auto_renew', models.BooleanField(default=False)),
-                ('is_free', models.BooleanField(default=False, help_text='Admin can grant free subscriptions')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='subscriptions', to='users.user')),
-                ('plan', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='subscribers', to='users.subscriptionplan')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("start_date", models.DateField(auto_now_add=True)),
+                ("end_date", models.DateField(blank=True, null=True)),
+                ("is_active", models.BooleanField(default=True)),
+                ("auto_renew", models.BooleanField(default=False)),
+                (
+                    "is_free",
+                    models.BooleanField(
+                        default=False, help_text="Admin can grant free subscriptions"
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="subscriptions",
+                        to="users.user",
+                    ),
+                ),
+                (
+                    "plan",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="subscribers",
+                        to="users.subscriptionplan",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Payment',
+            name="Payment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('payment_date', models.DateTimeField(auto_now_add=True)),
-                ('payment_method', models.CharField(max_length=50)),
-                ('transaction_id', models.CharField(blank=True, max_length=100, null=True)),
-                ('is_setup_fee', models.BooleanField(default=False)),
-                ('subscription', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='users.subscription')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("is_active", models.BooleanField(default=True)),
+                ("amount", models.DecimalField(decimal_places=2, max_digits=10)),
+                ("payment_date", models.DateTimeField(auto_now_add=True)),
+                ("payment_method", models.CharField(max_length=50)),
+                (
+                    "transaction_id",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                ("is_setup_fee", models.BooleanField(default=False)),
+                (
+                    "subscription",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payments",
+                        to="users.subscription",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

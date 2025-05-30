@@ -1,7 +1,22 @@
 <!-- Services Section -->
 <h2><i class="fas fa-tools"></i> Services</h2>
 
-<form class="services-form" action="{% url 'handyman_update_services' %}" method="post">
+{% comment %}Custom filter to check if a value is in an array case-insensitively{% endcomment %}
+{% if selected_categories %}
+<script>
+  // Define a helper function to check if a category is selected
+  function isCategorySelected(category, selectedCategories) {
+    return selectedCategories.some(selected => 
+      selected.toLowerCase() === category.toLowerCase()
+    );
+  }
+  
+  // Get the selected categories
+  const selectedCategories = JSON.parse('{{ selected_categories|safe|escapejs }}');
+</script>
+{% endif %}
+
+<form class="services-form" action="{% url 'handyman_update_services' %}" method="post" onsubmit="return validateServiceForm(this);">
   {% csrf_token %}
   
   <div class="services-intro">
@@ -19,9 +34,11 @@
         <label class="checkbox-container">
           <input type="checkbox" 
                  name="service_categories" 
-                 value="plumbing" 
+                 value="Plumbing" 
                  id="cat-plumbing"
-                 {% if selected_categories and 'plumbing' in selected_categories %}checked{% endif %}>
+                 {% for category in selected_categories %}
+                   {% if category.lower == "plumbing"|lower %}checked{% endif %}
+                 {% endfor %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">Plumbing</span>
         </label>
@@ -31,9 +48,11 @@
         <label class="checkbox-container">
           <input type="checkbox" 
                  name="service_categories" 
-                 value="electrical" 
+                 value="Electrical" 
                  id="cat-electrical"
-                 {% if selected_categories and 'electrical' in selected_categories %}checked{% endif %}>
+                 {% for category in selected_categories %}
+                   {% if category.lower == "electrical"|lower %}checked{% endif %}
+                 {% endfor %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">Electrical</span>
         </label>
@@ -43,9 +62,11 @@
         <label class="checkbox-container">
           <input type="checkbox" 
                  name="service_categories" 
-                 value="concrete" 
+                 value="Concrete" 
                  id="cat-concrete"
-                 {% if selected_categories and 'concrete' in selected_categories %}checked{% endif %}>
+                 {% for category in selected_categories %}
+                   {% if category.lower == "concrete"|lower %}checked{% endif %}
+                 {% endfor %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">Concrete</span>
         </label>
@@ -55,9 +76,11 @@
         <label class="checkbox-container">
           <input type="checkbox" 
                  name="service_categories" 
-                 value="general" 
+                 value="General Services" 
                  id="cat-general"
-                 {% if selected_categories and 'general' in selected_categories %}checked{% endif %}>
+                 {% for category in selected_categories %}
+                   {% if category.lower == "general services"|lower %}checked{% endif %}
+                 {% endfor %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">General Services</span>
         </label>
@@ -67,9 +90,11 @@
         <label class="checkbox-container">
           <input type="checkbox" 
                  name="service_categories" 
-                 value="carpentry" 
+                 value="Carpentry" 
                  id="cat-carpentry"
-                 {% if selected_categories and 'carpentry' in selected_categories %}checked{% endif %}>
+                 {% for category in selected_categories %}
+                   {% if category.lower == "carpentry"|lower %}checked{% endif %}
+                 {% endfor %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">Carpentry</span>
         </label>
@@ -79,9 +104,11 @@
         <label class="checkbox-container">
           <input type="checkbox" 
                  name="service_categories" 
-                 value="painting" 
+                 value="Painting" 
                  id="cat-painting"
-                 {% if selected_categories and 'painting' in selected_categories %}checked{% endif %}>
+                 {% for category in selected_categories %}
+                   {% if category.lower == "painting"|lower %}checked{% endif %}
+                 {% endfor %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">Painting</span>
         </label>
@@ -91,9 +118,11 @@
         <label class="checkbox-container">
           <input type="checkbox" 
                  name="service_categories" 
-                 value="flooring" 
+                 value="Flooring" 
                  id="cat-flooring"
-                 {% if selected_categories and 'flooring' in selected_categories %}checked{% endif %}>
+                 {% for category in selected_categories %}
+                   {% if category.lower == "flooring"|lower %}checked{% endif %}
+                 {% endfor %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">Flooring</span>
         </label>
@@ -103,9 +132,11 @@
         <label class="checkbox-container">
           <input type="checkbox" 
                  name="service_categories" 
-                 value="roofing" 
+                 value="Roofing" 
                  id="cat-roofing"
-                 {% if selected_categories and 'roofing' in selected_categories %}checked{% endif %}>
+                 {% for category in selected_categories %}
+                   {% if category.lower == "roofing"|lower %}checked{% endif %}
+                 {% endfor %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">Roofing</span>
         </label>
@@ -115,9 +146,11 @@
         <label class="checkbox-container">
           <input type="checkbox" 
                  name="service_categories" 
-                 value="landscaping" 
+                 value="Landscaping" 
                  id="cat-landscaping"
-                 {% if selected_categories and 'landscaping' in selected_categories %}checked{% endif %}>
+                 {% for category in selected_categories %}
+                   {% if category.lower == "landscaping"|lower %}checked{% endif %}
+                 {% endfor %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">Landscaping</span>
         </label>
@@ -127,9 +160,11 @@
         <label class="checkbox-container">
           <input type="checkbox" 
                  name="service_categories" 
-                 value="hvac" 
+                 value="HVAC" 
                  id="cat-hvac"
-                 {% if selected_categories and 'hvac' in selected_categories %}checked{% endif %}>
+                 {% for category in selected_categories %}
+                   {% if category.lower == "hvac"|lower %}checked{% endif %}
+                 {% endfor %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">HVAC</span>
         </label>
@@ -139,9 +174,11 @@
         <label class="checkbox-container">
           <input type="checkbox" 
                  name="service_categories" 
-                 value="appliance" 
+                 value="Appliance Repair" 
                  id="cat-appliance"
-                 {% if selected_categories and 'appliance' in selected_categories %}checked{% endif %}>
+                 {% for category in selected_categories %}
+                   {% if category.lower == "appliance repair"|lower %}checked{% endif %}
+                 {% endfor %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">Appliance Repair</span>
         </label>
@@ -151,9 +188,11 @@
         <label class="checkbox-container">
           <input type="checkbox" 
                  name="service_categories" 
-                 value="drywall" 
+                 value="Drywall" 
                  id="cat-drywall"
-                 {% if selected_categories and 'drywall' in selected_categories %}checked{% endif %}>
+                 {% for category in selected_categories %}
+                   {% if category.lower == "drywall"|lower %}checked{% endif %}
+                 {% endfor %}>
           <span class="checkbox-custom"></span>
           <span class="checkbox-label">Drywall</span>
         </label>
@@ -558,6 +597,37 @@
 </style>
 
 <script>
+// Form validation
+function validateServiceForm(form) {
+  // Check if at least one service category is selected
+  const checkedCategories = form.querySelectorAll('input[name="service_categories"]:checked');
+  if (checkedCategories.length === 0) {
+    if (typeof showToast === 'function') {
+      showToast('Please select at least one service category', 'error');
+    } else if (window.handymanDashboard && typeof window.handymanDashboard.showToast === 'function') {
+      window.handymanDashboard.showToast('Please select at least one service category', 'error');
+    } else {
+      alert('Please select at least one service category');
+    }
+    return false;
+  }
+  
+  // Check if service description is provided
+  const description = form.querySelector('#service-description').value.trim();
+  if (!description) {
+    if (typeof showToast === 'function') {
+      showToast('Please provide a service description', 'error');
+    } else if (window.handymanDashboard && typeof window.handymanDashboard.showToast === 'function') {
+      window.handymanDashboard.showToast('Please provide a service description', 'error');
+    } else {
+      alert('Please provide a service description');
+    }
+    return false;
+  }
+  
+  return true;
+}
+
 // Service description character counter
 document.addEventListener('DOMContentLoaded', function() {
   const descriptionTextarea = document.getElementById('service-description');
@@ -603,11 +673,45 @@ document.addEventListener('DOMContentLoaded', function() {
         descriptionTextarea.focus();
         
         // Show toast
-        if (window.handymanDashboard) {
+        if (typeof Toastify !== 'undefined') {
+          Toastify({
+            text: `<div class="toastify-content"><i class="fas fa-check-circle toast-icon"></i>Keywords for ${category} added to description</div>`,
+            duration: 3000,
+            close: true,
+            className: 'toastify-success',
+            gravity: "top",
+            position: "center",
+            escapeMarkup: false,
+            stopOnFocus: true
+          }).showToast();
+        } else if (window.handymanDashboard && typeof window.handymanDashboard.showToast === 'function') {
           window.handymanDashboard.showToast(`Keywords for ${category} added to description`, 'success');
         }
       }
     });
   });
+  
+  // Initialize select all and deselect all buttons
+  const selectAllBtn = document.getElementById('select-all-services');
+  const deselectAllBtn = document.getElementById('deselect-all-services');
+  const checkboxes = document.querySelectorAll('input[name="service_categories"]');
+  
+  if (selectAllBtn) {
+    selectAllBtn.addEventListener('click', function() {
+      checkboxes.forEach(cb => cb.checked = true);
+      if (window.handymanDashboard) {
+        window.handymanDashboard.updateServicesSummary();
+      }
+    });
+  }
+  
+  if (deselectAllBtn) {
+    deselectAllBtn.addEventListener('click', function() {
+      checkboxes.forEach(cb => cb.checked = false);
+      if (window.handymanDashboard) {
+        window.handymanDashboard.updateServicesSummary();
+      }
+    });
+  }
 });
 </script>

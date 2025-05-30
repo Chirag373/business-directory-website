@@ -6,6 +6,8 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/handyman_dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'handyman/css/dashboard_jobs.css' %}">
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <!-- Ensure SweetAlert2 is included in base -->
 {% endblock %}
 
@@ -500,6 +502,20 @@ class HandymanDashboardManager {
     const formData = new FormData(this.servicesForm);
     const submitBtn = this.servicesForm.querySelector('[type="submit"]');
     
+    // Validate form before submission
+    const serviceDescription = formData.get('service_description');
+    const serviceCategories = formData.getAll('service_categories');
+    
+    if (!serviceDescription || !serviceDescription.trim()) {
+      this.showToast('Please provide a service description', 'error');
+      return;
+    }
+    
+    if (!serviceCategories.length) {
+      this.showToast('Please select at least one service category', 'error');
+      return;
+    }
+    
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
 
@@ -519,11 +535,30 @@ class HandymanDashboardManager {
         this.showToast(data.message, 'success');
         this.updateServicesSummary();
       } else {
-        this.showToast(data.message || 'An error occurred', 'error');
+        // Handle validation errors from the server
+        if (data.errors) {
+          const errorMessages = [];
+          for (const field in data.errors) {
+            if (Array.isArray(data.errors[field])) {
+              errorMessages.push(`${field}: ${data.errors[field].join(', ')}`);
+            } else {
+              errorMessages.push(`${field}: ${data.errors[field]}`);
+            }
+          }
+          if (errorMessages.length) {
+            this.showToast(errorMessages.join('<br>'), 'error');
+          } else {
+            this.showToast(data.message || 'An error occurred while updating services', 'error');
+          }
+        } else {
+          this.showToast(data.message || 'An error occurred while updating services', 'error');
+        }
+        
+        console.error('Service update error:', data);
       }
     } catch (error) {
       console.error('Error:', error);
-      this.showToast('An error occurred while updating services', 'error');
+      this.showToast('Network error while updating services. Please try again.', 'error');
     } finally {
       submitBtn.disabled = false;
       submitBtn.innerHTML = '<i class="fas fa-check"></i> Update Services';
@@ -724,51 +759,55 @@ class HandymanDashboardManager {
 
   // Utility Methods
   showToast(message, type = 'info') {
-    // Use SweetAlert2 for toast notifications
-    if (typeof Swal !== 'undefined') {
-      let icon, color;
+    // Use Toastify for notifications
+    if (typeof Toastify !== 'undefined') {
+      let icon, className;
       
-      // Set icon and color based on message type
+      // Set icon and className based on message type
       switch(type) {
         case 'success':
           icon = '<i class="fas fa-check-circle toast-icon"></i>';
-          color = '#4CAF50';
+          className = 'toastify-success';
           break;
         case 'error':
           icon = '<i class="fas fa-exclamation-circle toast-icon"></i>';
-          color = '#F44336';
+          className = 'toastify-error';
           break;
         case 'warning':
           icon = '<i class="fas fa-exclamation-triangle toast-icon"></i>';
-          color = '#FFC107';
+          className = 'toastify-warning';
           break;
         case 'info':
         default:
           icon = '<i class="fas fa-info-circle toast-icon"></i>';
-          color = '#2196F3';
-          type = 'info';
+          className = 'toastify-info';
       }
       
-      // Use the Toast configuration
-      const Toast = Swal.mixin({
-        toast: true,
-        position: 'top',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-          toast.addEventListener('mouseenter', Swal.stopTimer)
-          toast.addEventListener('mouseleave', Swal.resumeTimer)
+      // Show toast notification using Toastify
+      Toastify({
+        text: `<div class="toastify-content">${icon}${message}</div>`,
+        duration: 3000,
+        close: true,
+        className: className,
+        gravity: "top",
+        position: "center",
+        escapeMarkup: false,
+        stopOnFocus: true,
+        onClick: function(){}, // Callback after click
+        callback: function() {
+          // Add custom animation when toast is about to be removed
+          this.toastElement.classList.add('hideToast');
+          
+          // Delay actual removal to allow animation to complete
+          setTimeout(() => {
+            if (this.toastElement.parentNode) {
+              this.toastElement.parentNode.removeChild(this.toastElement);
+            }
+          }, 500);
+          
+          return false; // Prevent default removal
         }
-      });
-      
-      // Show toast notification
-      Toast.fire({
-        icon: type,
-        title: `<div class="toast-content">${icon}${message}</div>`,
-        background: color,
-        color: type === 'warning' ? '#333' : '#fff'
-      });
+      }).showToast();
     } else {
       console.log(`[${type.toUpperCase()}] ${message}`);
     }
@@ -789,18 +828,60 @@ class HandymanDashboardManager {
   // Add loadServiceCategories method
   async loadServiceCategories() {
     try {
+      // Show loading indicator in the services section
+      const servicesSection = document.getElementById('services-section');
+      if (servicesSection) {
+        const loadingHtml = '<div class="loading-indicator" style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Loading service categories...</div>';
+        const formElement = servicesSection.querySelector('.services-form');
+        if (formElement) {
+          formElement.insertAdjacentHTML('beforebegin', loadingHtml);
+        }
+      }
+
       const response = await fetch('{% url "handyman_services_tab" %}', {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: { 
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/json'
+        }
       });
+
+      // Remove loading indicator
+      const loadingIndicator = document.querySelector('.loading-indicator');
+      if (loadingIndicator) {
+        loadingIndicator.remove();
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
       
       if (data.status === 'success') {
-        // Update selected checkboxes
+        console.log('Received categories:', data.selected_categories);
+        
+        // Update selected checkboxes using a case-insensitive comparison
         const checkboxes = document.querySelectorAll('input[name="service_categories"]');
+        
+        // Handle both array formats - array of objects with name/lower or simple array of strings
+        let selectedCategoriesLower = [];
+        if (data.selected_categories && data.selected_categories.length > 0) {
+          if (typeof data.selected_categories[0] === 'object' && data.selected_categories[0].lower) {
+            // Format is [{name: 'Name', lower: 'name'}, ...]
+            selectedCategoriesLower = data.selected_categories.map(cat => cat.lower);
+          } else {
+            // Format is ['Name', 'Other Name', ...]
+            selectedCategoriesLower = data.selected_categories.map(cat => 
+              typeof cat === 'string' ? cat.toLowerCase() : String(cat).toLowerCase()
+            );
+          }
+        }
+        
         checkboxes.forEach(checkbox => {
-          const categoryValue = checkbox.value.toLowerCase();
-          checkbox.checked = data.selected_categories.includes(categoryValue);
+          // Case insensitive matching
+          const categoryValue = checkbox.value;
+          const categoryValueLower = categoryValue.toLowerCase();
+          checkbox.checked = selectedCategoriesLower.includes(categoryValueLower);
         });
         
         // Update service description
@@ -817,9 +898,15 @@ class HandymanDashboardManager {
         
         // Update summary
         this.updateServicesSummary();
+        
+        // Show success toast
+        this.showToast('Service categories loaded successfully', 'success');
+      } else {
+        throw new Error(data.message || 'Failed to load service categories');
       }
     } catch (error) {
       console.error('Error loading service categories:', error);
+      this.showToast('Error loading service categories: ' + error.message, 'error');
     }
   }
 }
@@ -837,5 +924,7 @@ window.addEventListener('hashchange', () => {
   }
 });
 </script>
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{% static 'handyman/js/dashboard_jobs.js' %}"></script>
 {% endblock %}

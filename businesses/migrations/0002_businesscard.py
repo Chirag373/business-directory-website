@@ -7,24 +7,44 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('businesses', '0001_initial'),
+        ("businesses", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='BusinessCard',
+            name="BusinessCard",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('front_image', models.ImageField(upload_to='business_cards/front/')),
-                ('back_image', models.ImageField(blank=True, null=True, upload_to='business_cards/back/')),
-                ('back_is_blank', models.BooleanField(default=False)),
-                ('business', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='business_cards', to='businesses.business')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("is_active", models.BooleanField(default=True)),
+                ("front_image", models.ImageField(upload_to="business_cards/front/")),
+                (
+                    "back_image",
+                    models.ImageField(
+                        blank=True, null=True, upload_to="business_cards/back/"
+                    ),
+                ),
+                ("back_is_blank", models.BooleanField(default=False)),
+                (
+                    "business",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="business_cards",
+                        to="businesses.business",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

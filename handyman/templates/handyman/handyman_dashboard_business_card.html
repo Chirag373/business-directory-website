@@ -255,8 +255,8 @@
   {% if user.business_card_front %}
   <div class="verification-status">
     <div class="status-item">
-      <div class="status-icon {% if user.business_card_status == 'accepted' %}verified{% else %}pending{% endif %}">
-        <i class="fas {% if user.business_card_status == 'accepted' %}fa-check-circle{% else %}fa-clock{% endif %}"></i>
+      <div class="status-icon {% if user.business_card_status == 'accepted' %}verified{% elif user.business_card_status == 'pending_review' %}pending{% else %}default{% endif %}">
+        <i class="fas {% if user.business_card_status == 'accepted' %}fa-check-circle{% elif user.business_card_status == 'pending_review' %}fa-clock{% else %}fa-info-circle{% endif %}"></i>
       </div>
       <div class="status-content">
         {% if user.business_card_status == 'pending_review' %}
@@ -284,11 +284,11 @@
             </span>
           </div>
         {% else %}
-          <h4>Business Card Uploaded Successfully</h4>
-          <p>Your business card has been uploaded and is pending verification. Our team will review it within 24-48 hours.</p>
+          <h4>Business Card Uploaded</h4>
+          <p>Your business card has been uploaded. No verification is needed at this time.</p>
           <div class="status-badges">
-            <span class="status-badge pending">
-              <i class="fas fa-clock"></i> Pending Review
+            <span class="status-badge default">
+              <i class="fas fa-info-circle"></i> Uploaded
             </span>
           </div>
         {% endif %}
@@ -356,12 +356,114 @@
     background-color: #dc3545;
   }
   
+  .status-badge.pending {
+    background-color: #ffc107;
+  }
+  
+  .status-badge.default {
+    background-color: #17a2b8;
+  }
+  
   .status-icon.pending {
     background-color: #ffc107;
+  }
+  
+  .status-icon.default {
+    background-color: #17a2b8;
+  }
+  
+  /* Fix for business card image display */
+  .card-preview-panel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .preview-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  
+  .preview-overlay {
+    background-color: rgba(0, 0, 0, 0.1);
+    opacity: 0.2;
+  }
+  
+  .flip-card {
+    width: 300px;
+    height: 180px; /* Standard business card ratio */
+    margin: 0 auto;
+    perspective: 1000px;
+  }
+  
+  /* Additional CSS for flip animation */
+  .flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  .flip-card.flipped .flip-card-inner {
+    transform: rotateY(180deg);
+  }
+  
+  .flip-card-front, 
+  .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  .flip-card-back {
+    transform: rotateY(180deg);
   }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/business_card.js' %}"></script>
+<script>
+  // Simple fix for business card flip functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const showFrontBtn = document.querySelectorAll('#show-front');
+    const showBackBtn = document.querySelectorAll('#show-back');
+    const flipCards = document.querySelectorAll('.flip-card');
+    
+    if (showFrontBtn.length && showBackBtn.length && flipCards.length) {
+      showFrontBtn.forEach((btn, index) => {
+        btn.addEventListener('click', function() {
+          if (flipCards[index]) {
+            flipCards[index].classList.remove('flipped');
+            this.classList.add('active');
+            showBackBtn[index].classList.remove('active');
+          }
+        });
+      });
+      
+      showBackBtn.forEach((btn, index) => {
+        btn.addEventListener('click', function() {
+          if (flipCards[index]) {
+            flipCards[index].classList.add('flipped');
+            this.classList.add('active');
+            showFrontBtn[index].classList.remove('active');
+          }
+        });
+      });
+    }
+  });
+</script>
 {% endblock %}

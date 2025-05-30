@@ -6,33 +6,53 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0004_user_login_token_user_token_expiry'),
+        ("users", "0004_user_login_token_user_token_expiry"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='consumerinterest',
-            name='email_format',
-            field=models.CharField(choices=[('individual', 'Individual emails'), ('daily', 'Daily digest'), ('weekly', 'Weekly summary')], default='individual', max_length=15),
+            model_name="consumerinterest",
+            name="email_format",
+            field=models.CharField(
+                choices=[
+                    ("individual", "Individual emails"),
+                    ("daily", "Daily digest"),
+                    ("weekly", "Weekly summary"),
+                ],
+                default="individual",
+                max_length=15,
+            ),
         ),
         migrations.AddField(
-            model_name='consumerinterest',
-            name='min_discount_threshold',
+            model_name="consumerinterest",
+            name="min_discount_threshold",
             field=models.IntegerField(default=10),
         ),
         migrations.AddField(
-            model_name='consumerinterest',
-            name='notification_limit',
+            model_name="consumerinterest",
+            name="notification_limit",
             field=models.IntegerField(default=3),
         ),
         migrations.AddField(
-            model_name='consumerinterest',
-            name='notification_preference',
-            field=models.CharField(choices=[('all', 'All promotional offers'), ('discount', 'Only offers above discount threshold'), ('categories', 'Only offers for selected categories')], default='all', max_length=15),
+            model_name="consumerinterest",
+            name="notification_preference",
+            field=models.CharField(
+                choices=[
+                    ("all", "All promotional offers"),
+                    ("discount", "Only offers above discount threshold"),
+                    ("categories", "Only offers for selected categories"),
+                ],
+                default="all",
+                max_length=15,
+            ),
         ),
         migrations.AddField(
-            model_name='consumerinterest',
-            name='notification_time_period',
-            field=models.CharField(choices=[('day', 'Daily'), ('week', 'Weekly'), ('month', 'Monthly')], default='week', max_length=10),
+            model_name="consumerinterest",
+            name="notification_time_period",
+            field=models.CharField(
+                choices=[("day", "Daily"), ("week", "Weekly"), ("month", "Monthly")],
+                default="week",
+                max_length=10,
+            ),
         ),
     ]

@@ -9,6 +9,12 @@
   nav {
     width: 100% !important;
     max-width: 100% !important;
+    position: sticky !important; /* Make nav sticky */
+    top: 0 !important; /* Stick to the top */
+    left: 0 !important;
+    z-index: 9999 !important; /* Ensure very high z-index */
+    background-color: #fff !important; /* Ensure solid background */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important; /* Enhanced shadow */
   }
   
   nav .nav-container {
@@ -22,6 +28,11 @@
       max-width: 95% !important;
       width: 95% !important;
     }
+  }
+
+  /* Add body margin bottom */
+  body {
+    margin-bottom: 2rem !important; /* Fixed margin bottom for all pages */
   }
 
   /* Premium page specific styling - Enhanced Responsive Version */

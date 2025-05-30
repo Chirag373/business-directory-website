@@ -6,29 +6,36 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0001_initial'),
-        ('handyman', '0002_handyman_detailed_services_description_and_more'),
+        ("core", "0001_initial"),
+        ("handyman", "0002_handyman_detailed_services_description_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='handyman',
-            name='bio',
+            model_name="handyman",
+            name="bio",
             field=models.TextField(blank=True),
         ),
         migrations.AlterField(
-            model_name='handyman',
-            name='experience_years',
+            model_name="handyman",
+            name="experience_years",
             field=models.PositiveIntegerField(blank=True, default=0, null=True),
         ),
         migrations.AlterField(
-            model_name='handyman',
-            name='service_areas',
-            field=models.ManyToManyField(blank=True, related_name='handymen', to='core.address'),
+            model_name="handyman",
+            name="service_areas",
+            field=models.ManyToManyField(
+                blank=True, related_name="handymen", to="core.address"
+            ),
         ),
         migrations.AlterField(
-            model_name='handyman',
-            name='services',
-            field=models.ManyToManyField(blank=True, related_name='handymen', through='handyman.HandymanService', to='handyman.service'),
+            model_name="handyman",
+            name="services",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="handymen",
+                through="handyman.HandymanService",
+                to="handyman.service",
+            ),
         ),
     ]
