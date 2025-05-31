@@ -48,6 +48,7 @@ urlpatterns = [
         views.HandymanJobRequestsView.as_view(),
         name="handyman_job_requests",
     ),
+    path("payment/", views.HandymanPaymentView.as_view(), name="handyman_payment"),
     path("", views.HandymanMainView.as_view(), name="handyman_main"),
     path("", views.HandymanMainView.as_view(), name="handyman"),
 ]

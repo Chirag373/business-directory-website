@@ -65,51 +65,36 @@ Business Directory Team
 
 def process_login_token(request, token):
     """
-    Process a login token, authenticate the user, and determine redirect URL.
+    Process a login token from a magic link.
 
     Args:
         request: The HTTP request object
-        token: The login token string
+        token: The token to verify
 
     Returns:
-        tuple: (success, redirect_url, error_message)
-            - success: Boolean indicating if login was successful
-            - redirect_url: URL to redirect to after processing
-            - error_message: Error message if login failed
+        (success, redirect_url, error_message)
     """
     try:
-        # Find user with this token
         user = User.objects.get(login_token=token)
 
-        # Check if token is valid
-        if user.is_token_valid():
-            # Clear the token (one-time use)
-            user.clear_token()
+        if not user.is_token_valid():
+            return False, "/", "This login link has expired. Please request a new one."
 
-            # Log the user in
-            login(request, user)
+        # Log the user in
+        login(request, user)
 
-            # Determine redirect URL based on user type
-            if user.user_type == UserType.REQUESTOR:
-                redirect_url = "consumer_dashboard"
-            elif user.user_type == UserType.HANDYMAN:
-                redirect_url = "handyman_dashboard"
-            elif user.user_type == UserType.PROMOTER:
-                redirect_url = "promotor_dashboard"
-            else:
-                # Default redirect
-                redirect_url = "consumer_dashboard"
+        # Clear the token after use
+        user.clear_token()
 
-            return True, redirect_url, None
-        else:
-            return (
-                False,
-                "login",
-                "This login link has expired. Please request a new one.",
-            )
+        # Determine the appropriate dashboard URL based on user type and payment status
+        redirect_url = get_redirect_url_after_login(user)
+        
+        return True, redirect_url, None
 
     except User.DoesNotExist:
-        return False, "login", "Invalid login link. Please request a new one."
+        return False, "/", "Invalid login link. Please request a new one."
+    except Exception as e:
+        return False, "/", f"An error occurred: {str(e)}"
 
 
 def process_logout(request):
@@ -127,3 +112,159 @@ def process_logout(request):
 
     # Return home URL
     return "/"
+
+
+def process_helcium_payment(user, amount, payment_method, card_info=None):
+    """
+    Process a payment through Helcium API.
+    
+    Args:
+        user: The user making the payment
+        amount: Payment amount as decimal
+        payment_method: The payment method (credit_card, bank_account, etc.)
+        card_info: Dictionary with card information if using credit_card method
+        
+    Returns:
+        (success, transaction_id, error_message)
+    """
+    # This is a placeholder implementation. You should implement the actual
+    # Helcium API integration here using their documentation.
+    
+    # For development/testing purposes, we'll simulate a successful payment
+    try:
+        # In production, replace this with actual Helcium API call
+        # Example structure of what you might need to implement:
+        '''
+        import requests
+        
+        helcium_url = "https://api.helcim.com/v2/payment"
+        headers = {
+            "Authorization": f"Bearer {settings.HELCIUM_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        
+        payload = {
+            "amount": str(amount),
+            "currency": "USD",
+            "payment_method": payment_method,
+            "card_info": card_info,
+            "customer": {
+                "email": user.email,
+                "name": f"{user.first_name} {user.last_name}",
+            }
+        }
+        
+        response = requests.post(helcium_url, json=payload, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            return True, data.get("transaction_id"), None
+        else:
+            return False, None, f"Payment failed: {response.text}"
+        '''
+        
+        # Simulated successful payment
+        import uuid
+        transaction_id = f"sim-{uuid.uuid4().hex[:12]}"
+        
+        # Create a subscription for the user if they don't have one
+        from .models import SubscriptionPlan, Subscription, Payment
+        
+        # Find appropriate subscription plan for user type
+        plan = SubscriptionPlan.objects.filter(
+            user_type=user.user_type,
+            is_active=True
+        ).first()
+        
+        if not plan:
+            # Create a default plan if none exists
+            plan = SubscriptionPlan.objects.create(
+                name=f"Default {user.get_user_type_display()} Plan",
+                user_type=user.user_type,
+                setup_fee=0.00,
+                monthly_fee=float(amount),
+                description="Default subscription plan",
+                is_active=True
+            )
+        
+        # Create or update subscription
+        subscription, created = Subscription.objects.get_or_create(
+            user=user,
+            defaults={
+                'plan': plan,
+                'is_active': True,
+                'auto_renew': True,
+                'is_free': False
+            }
+        )
+        
+        if not created:
+            subscription.is_active = True
+            subscription.plan = plan
+            subscription.save()
+        
+        # Record the payment
+        payment = Payment.objects.create(
+            subscription=subscription,
+            amount=amount,
+            payment_method=payment_method,
+            transaction_id=transaction_id,
+            is_setup_fee=True
+        )
+        
+        print(f"[PAYMENT SIMULATION] Processed payment of ${amount} for {user.email} with transaction ID: {transaction_id}")
+        
+        return True, transaction_id, None
+    
+    except Exception as e:
+        print(f"[PAYMENT ERROR] {str(e)}")
+        return False, None, str(e)
+
+
+def check_handyman_payment_status(user):
+    """
+    Check if a handyman user has an active subscription from a payment.
+    
+    Args:
+        user: The user to check
+        
+    Returns:
+        Boolean indicating if user has an active paid subscription
+    """
+    if user.user_type != 'handyman':
+        return True  # Non-handyman users don't need to pay
+        
+    from .models import Subscription
+    
+    # Check if user has any active subscription
+    return Subscription.objects.filter(
+        user=user,
+        is_active=True,
+        is_free=False  # Must be a paid subscription
+    ).exists()
+
+
+def get_redirect_url_after_login(user):
+    """
+    Determine where to redirect the user after login based on user type
+    and payment status.
+    
+    Args:
+        user: The authenticated user
+        
+    Returns:
+        URL to redirect user to
+    """
+    from django.urls import reverse
+    
+    if user.user_type == 'handyman':
+        # Check if handyman has paid
+        if check_handyman_payment_status(user):
+            return reverse('handyman_dashboard')
+        else:
+            # Redirect to payment page
+            return reverse('handyman_payment')
+    
+    elif user.user_type == 'promoter':
+        return reverse('promoter_dashboard')
+    else:  # Default to consumer/requestor
+        return reverse('consumer_dashboard')

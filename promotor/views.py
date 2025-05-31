@@ -192,7 +192,7 @@ def promotor_signup(request):
             )
 
             # Redirect to a "check your email" page
-            return render(request, "users/check_email.html", {"email": email})
+            return render(request, "users/check_email.html", {"email": email, "user_type": "promoter"})
 
         except Exception as e:
             messages.error(request, f"An error occurred during registration: {str(e)}")

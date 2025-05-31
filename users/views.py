@@ -109,7 +109,7 @@ def process_requestor_registration(request):
         messages.success(
             request, "Account created successfully! Check your email for login link."
         )
-        return render(request, "users/check_email.html", {"email": form_data["email"]})
+        return render(request, "users/check_email.html", {"email": form_data["email"], "user_type": "requestor"})
 
     except Exception as e:
         messages.error(request, f"Registration error: {str(e)}")

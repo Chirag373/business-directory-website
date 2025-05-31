@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.utils.text import slugify
 from users.models import User, UserType
-from users.utils import send_login_email
+from users.utils import send_login_email, check_handyman_payment_status
 from users.views import get_user_profile_data
 from .models import Handyman, Service, HandymanService, HandymanPromotion, JobRequest
 from core.models import Address
@@ -21,6 +21,23 @@ from .forms import (
     JobRequestForm,
     JobRequestUpdateForm,
 )
+
+
+class PaymentRequiredMixin:
+    """
+    Mixin to verify that a handyman user has completed payment
+    before accessing protected views.
+    """
+    
+    def dispatch(self, request, *args, **kwargs):
+        """Check if user has paid before allowing access"""
+        # Skip payment check for non-handyman users
+        if request.user.is_authenticated and request.user.user_type == 'handyman':
+            if not check_handyman_payment_status(request.user):
+                messages.error(request, "Please complete your payment to access this feature.")
+                return redirect('handyman_payment')
+                
+        return super().dispatch(request, *args, **kwargs)
 
 
 class HandymanSignupView(FormView):
@@ -108,7 +125,7 @@ class HandymanSignupView(FormView):
         login_url = send_login_email(self.request, user, "Handyman")
 
         messages.success(self.request, f"Login link generated: {login_url}")
-        return render(self.request, "users/login_link.html", {"email": user.email})
+        return render(self.request, "users/check_email.html", {"email": user.email, "user_type": "handyman"})
 
     def form_invalid(self, form):
         for field, errors in form.errors.items():
@@ -117,7 +134,7 @@ class HandymanSignupView(FormView):
         return super().form_invalid(form)
 
 
-class HandymanProfileUpdateView(LoginRequiredMixin, FormView):
+class HandymanProfileUpdateView(LoginRequiredMixin, PaymentRequiredMixin, FormView):
     """
     View for updating handyman profile details
     """
@@ -226,7 +243,7 @@ class HandymanProfileUpdateView(LoginRequiredMixin, FormView):
         return super().form_invalid(form)
 
 
-class HandymanDashboardView(LoginRequiredMixin, TemplateView):
+class HandymanDashboardView(LoginRequiredMixin, PaymentRequiredMixin, TemplateView):
     """
     Display the handyman dashboard page
     """
@@ -370,7 +387,7 @@ class HandymanMainView(TemplateView):
         return render(request, self.template_name, context)
 
 
-class HandymanBusinessCardUpdateView(LoginRequiredMixin, FormView):
+class HandymanBusinessCardUpdateView(LoginRequiredMixin, PaymentRequiredMixin, FormView):
     """
     View for updating handyman business card images
     """
@@ -443,7 +460,7 @@ class HandymanBusinessCardUpdateView(LoginRequiredMixin, FormView):
             return redirect(self.success_url)
 
 
-class HandymanProfileUpdateFormView(LoginRequiredMixin, View):
+class HandymanProfileUpdateFormView(LoginRequiredMixin, PaymentRequiredMixin, View):
     """
     View for handling the personal details form submission in the dashboard
     """
@@ -547,7 +564,7 @@ class HandymanProfileUpdateFormView(LoginRequiredMixin, View):
             return redirect(self.success_url)
 
 
-class HandymanServicesUpdateView(LoginRequiredMixin, FormView):
+class HandymanServicesUpdateView(LoginRequiredMixin, PaymentRequiredMixin, FormView):
     """
     View for updating handyman services categories and description
     """
@@ -680,7 +697,7 @@ class HandymanServicesUpdateView(LoginRequiredMixin, FormView):
             return redirect(self.success_url)
 
 
-class HandymanPromotionCreateView(LoginRequiredMixin, FormView):
+class HandymanPromotionCreateView(LoginRequiredMixin, PaymentRequiredMixin, FormView):
     """
     View for creating handyman promotional offers
     """
@@ -760,7 +777,7 @@ class HandymanPromotionCreateView(LoginRequiredMixin, FormView):
             return redirect(self.success_url)
 
 
-class HandymanJobRequestsView(LoginRequiredMixin, View):
+class HandymanJobRequestsView(LoginRequiredMixin, PaymentRequiredMixin, View):
     """
     View for handling handyman job requests
     Returns job requests for the authenticated handyman via AJAX
@@ -883,7 +900,7 @@ class HandymanJobRequestsView(LoginRequiredMixin, View):
             )
 
 
-class HandymanServicesTabView(LoginRequiredMixin, View):
+class HandymanServicesTabView(LoginRequiredMixin, PaymentRequiredMixin, View):
     """
     View for handling AJAX loading of the services tab in dashboard
     """
@@ -1038,7 +1055,7 @@ class ClientJobRequestCreateView(LoginRequiredMixin, FormView):
             return redirect(self.request.META.get("HTTP_REFERER", "/"))
 
 
-class HandymanTogglePromotionView(LoginRequiredMixin, View):
+class HandymanTogglePromotionView(LoginRequiredMixin, PaymentRequiredMixin, View):
     """
     View for toggling the active status of a promotion
     """
@@ -1090,7 +1107,7 @@ class HandymanTogglePromotionView(LoginRequiredMixin, View):
         return redirect(self.success_url + "#promotions")
 
 
-class HandymanJobsTabView(LoginRequiredMixin, TemplateView):
+class HandymanJobsTabView(LoginRequiredMixin, PaymentRequiredMixin, TemplateView):
     """
     View for displaying and handling job requests in the dashboard
     """
@@ -1144,3 +1161,115 @@ class HandymanJobsTabView(LoginRequiredMixin, TemplateView):
         context["jobs"] = jobs
         context["pending_count"] = pending_count
         return context
+
+
+class HandymanPaymentView(View):
+    """
+    View for handling Helcium payments for handyman account activation
+    """
+    template_name = "handyman/handyman_payment.html"
+    
+    def get(self, request, *args, **kwargs):
+        """Display the payment form"""
+        if request.user.is_anonymous:
+            messages.error(request, "You must be logged in to access this page.")
+            return redirect('login')
+            
+        if request.user.user_type != 'handyman':
+            messages.error(request, "This page is only for handyman accounts.")
+            return redirect('login')
+        
+        # Check if user already has a subscription
+        if check_handyman_payment_status(request.user):
+            messages.info(request, "You already have an active subscription.")
+            return redirect('handyman_dashboard')
+        
+        # Get subscription plans for handymen
+        from users.models import SubscriptionPlan, UserType
+        
+        plans = SubscriptionPlan.objects.filter(
+            user_type=UserType.HANDYMAN,
+            is_active=True
+        ).order_by('monthly_fee')
+        
+        # If no plans exist, create a default one
+        if not plans.exists():
+            default_plan = SubscriptionPlan.objects.create(
+                name="Handyman Basic Plan",
+                user_type=UserType.HANDYMAN,
+                setup_fee=25.00,
+                monthly_fee=19.99,
+                description="Access to all handyman features and dashboard",
+                is_active=True
+            )
+            plans = [default_plan]
+        
+        context = {
+            'plans': plans,
+            'user': request.user,
+        }
+        
+        return render(request, self.template_name, context)
+    
+    def post(self, request, *args, **kwargs):
+        """Process the payment submission"""
+        if request.user.is_anonymous:
+            messages.error(request, "You must be logged in to make a payment.")
+            return redirect('login')
+            
+        if request.user.user_type != 'handyman':
+            messages.error(request, "This payment option is only for handyman accounts.")
+            return redirect('login')
+        
+        # Extract payment information
+        plan_id = request.POST.get('plan_id')
+        card_number = request.POST.get('card_number')
+        card_expiry = request.POST.get('card_expiry')
+        card_cvv = request.POST.get('card_cvv')
+        
+        # Basic validation
+        if not all([plan_id, card_number, card_expiry, card_cvv]):
+            messages.error(request, "Please provide all required payment information.")
+            return redirect('handyman_payment')
+        
+        # Get the plan
+        from users.models import SubscriptionPlan
+        
+        try:
+            plan = SubscriptionPlan.objects.get(id=plan_id, is_active=True)
+        except SubscriptionPlan.DoesNotExist:
+            messages.error(request, "Selected plan is not available.")
+            return redirect('handyman_payment')
+        
+        # Calculate amount (setup fee + first month)
+        amount = plan.setup_fee + plan.monthly_fee
+        
+        # Create card info object
+        card_info = {
+            'number': card_number,
+            'expiry': card_expiry,
+            'cvv': card_cvv
+        }
+        
+        # Process the payment
+        from users.utils import process_helcium_payment
+        
+        success, transaction_id, error_message = process_helcium_payment(
+            user=request.user,
+            amount=amount,
+            payment_method='credit_card',
+            card_info=card_info
+        )
+        
+        if success:
+            messages.success(
+                request, 
+                f"Payment successful! Your handyman account is now active. Transaction ID: {transaction_id}"
+            )
+            return redirect('handyman_dashboard')
+        else:
+            messages.error(
+                request, 
+                f"Payment failed: {error_message or 'Unknown error occurred.'}"
+            )
+            return redirect('handyman_payment')

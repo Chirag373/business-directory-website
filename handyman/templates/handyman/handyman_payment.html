@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Activate Handyman Account - Payment{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background-color: #f8f9fa;
+  }
+  
+  .main-container {
+    padding: 60px 0;
+    min-height: calc(100vh - 120px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .payment-container {
+    max-width: 900px;
+    width: 90%;
+    margin: 0 auto;
+    padding: 40px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+  
+  .payment-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .payment-header h1 {
+    color: #2c3e50;
+    font-size: 32px;
+    margin-bottom: 15px;
+  }
+  
+  .payment-header p {
+    color: #7f8c8d;
+    font-size: 16px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .plan-selection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    margin-bottom: 40px;
+    justify-content: center;
+  }
+  
+  .plan-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 25px;
+    width: 250px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .plan-card:hover {
+    border-color: #3498db;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .plan-card.selected {
+    border-color: #3498db;
+    background-color: #f0f8ff;
+  }
+  
+  .plan-card.selected::before {
+    content: "✓";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 25px;
+    height: 25px;
+    background-color: #3498db;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+  
+  .plan-name {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #2c3e50;
+  }
+  
+  .plan-price {
+    font-size: 28px;
+    color: #3498db;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  
+  .setup-fee {
+    font-size: 15px;
+    color: #7f8c8d;
+    margin-bottom: 15px;
+  }
+  
+  .plan-description {
+    font-size: 14px;
+    color: #7f8c8d;
+    line-height: 1.5;
+  }
+  
+  .payment-form {
+    margin-top: 40px;
+    background-color: #f8f9fa;
+    padding: 30px;
+    border-radius: 12px;
+  }
+  
+  .payment-form-header {
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+  }
+  
+  .payment-form-header h3 {
+    color: #2c3e50;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .card-icon {
+    margin-right: 10px;
+    font-size: 24px;
+    color: #3498db;
+  }
+  
+  .card-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 30px;
+  }
+  
+  .card-number {
+    grid-column: 1 / span 2;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-weight: 500;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+  }
+  
+  .form-control:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+  }
+  
+  .submit-button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 25px;
+    transition: all 0.3s ease;
+  }
+  
+  .submit-button:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .security-note {
+    font-size: 14px;
+    color: #7f8c8d;
+    margin-top: 25px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .security-note i {
+    margin-right: 8px;
+    color: #27ae60;
+  }
+  
+  .messages-container {
+    margin-bottom: 30px;
+  }
+  
+  .alert {
+    border-radius: 8px;
+    padding: 15px 20px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+  <div class="payment-container">
+    <div class="payment-header">
+      <h1>Activate Your Handyman Account</h1>
+      <p>Complete your registration by selecting a subscription plan and setting up payment to access all handyman features.</p>
+    </div>
+    
+    {% include 'messages.html' %}
+    
+    <div class="plan-selection">
+      {% for plan in plans %}
+      <div class="plan-card {% if forloop.first %}selected{% endif %}" data-plan-id="{{ plan.id }}">
+        <div class="plan-name">{{ plan.name }}</div>
+        <div class="plan-price">${{ plan.monthly_fee|floatformat:2 }}<span style="font-size: 16px; color: #7f8c8d;">/month</span></div>
+        <div class="setup-fee">One-time setup fee: ${{ plan.setup_fee|floatformat:2 }}</div>
+        <div class="plan-description">{{ plan.description }}</div>
+      </div>
+      {% empty %}
+      <p>No subscription plans are currently available. Please contact support.</p>
+      {% endfor %}
+    </div>
+    
+    <form class="payment-form" method="post" action="{% url 'handyman_payment' %}">
+      {% csrf_token %}
+      <input type="hidden" id="plan_id" name="plan_id" value="{{ plans.0.id }}">
+      
+      <div class="payment-form-header">
+        <h3><i class="fas fa-credit-card card-icon"></i>Payment Information</h3>
+      </div>
+      
+      <div class="card-inputs">
+        <div class="form-group card-number">
+          <label for="card_number">Card Number</label>
+          <input type="text" id="card_number" name="card_number" class="form-control" placeholder="1234 5678 9012 3456" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="card_expiry">Expiration Date</label>
+          <input type="text" id="card_expiry" name="card_expiry" class="form-control" placeholder="MM/YY" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="card_cvv">CVV</label>
+          <input type="text" id="card_cvv" name="card_cvv" class="form-control" placeholder="123" required>
+        </div>
+      </div>
+      
+      <button type="submit" class="submit-button">
+        <i class="fas fa-lock"></i> Complete Payment
+      </button>
+      
+      <div class="security-note">
+        <i class="fas fa-shield-alt"></i> Your payment information is securely processed. We do not store your card details.
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Plan selection logic
+    const planCards = document.querySelectorAll('.plan-card');
+    const planIdInput = document.getElementById('plan_id');
+    
+    planCards.forEach(card => {
+      card.addEventListener('click', function() {
+        // Remove selected class from all cards
+        planCards.forEach(c => c.classList.remove('selected'));
+        
+        // Add selected class to clicked card
+        this.classList.add('selected');
+        
+        // Update hidden input
+        planIdInput.value = this.dataset.planId;
+      });
+    });
+    
+    // Basic card input formatting
+    const cardNumber = document.getElementById('card_number');
+    const cardExpiry = document.getElementById('card_expiry');
+    const cardCvv = document.getElementById('card_cvv');
+    
+    cardNumber.addEventListener('input', function(e) {
+      // Remove non-digits
+      let value = this.value.replace(/\D/g, '');
+      
+      // Add space after every 4 digits
+      let formattedValue = '';
+      for (let i = 0; i < value.length; i++) {
+        if (i > 0 && i % 4 === 0) {
+          formattedValue += ' ';
+        }
+        formattedValue += value[i];
+      }
+      
+      // Limit to 16 digits (19 chars with spaces)
+      this.value = formattedValue.substring(0, 19);
+    });
+    
+    cardExpiry.addEventListener('input', function(e) {
+      // Remove non-digits
+      let value = this.value.replace(/\D/g, '');
+      
+      // Format as MM/YY
+      if (value.length > 2) {
+        this.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+      } else {
+        this.value = value;
+      }
+    });
+    
+    cardCvv.addEventListener('input', function(e) {
+      // Remove non-digits and limit to 3-4 chars
+      this.value = this.value.replace(/\D/g, '').substring(0, 4);
+    });
+  });
+</script>
+{% endblock %} 

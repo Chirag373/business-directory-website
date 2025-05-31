@@ -1,61 +1,68 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Check Your Email - Business Directory 2.0{% endblock %}
+{% block title %}Check Your Email{% endblock %}
 
 {% block extra_css %}
 <style>
   .email-check-container {
     max-width: 600px;
-    margin: 100px auto;
-    padding: 40px;
+    margin: 0 auto;
+    padding: 40px 30px;
     background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     text-align: center;
   }
   
   .email-icon {
-    font-size: 70px;
-    color: #4A90E2;
-    margin-bottom: 25px;
-  }
-  
-  .email-check-title {
-    font-size: 28px;
-    color: #333;
+    font-size: 64px;
+    color: #4a90e2;
     margin-bottom: 20px;
   }
   
   .email-address {
     font-weight: bold;
-    color: #4A90E2;
+    color: #4a90e2;
   }
   
-  .email-instructions {
-    margin: 20px 0;
-    font-size: 16px;
-    line-height: 1.6;
-    color: #666;
+  .steps-container {
+    margin: 30px 0;
+    text-align: left;
   }
   
-  .email-tip {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 5px;
+  .step {
+    margin-bottom: 15px;
+    display: flex;
+  }
+  
+  .step-number {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #4a90e2;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+  }
+  
+  .step-text {
+    margin-top: 5px;
+  }
+  
+  .back-to-home {
     margin-top: 30px;
-    font-size: 14px;
-    color: #777;
   }
   
-  .back-link {
-    display: inline-block;
-    margin-top: 30px;
-    color: #4A90E2;
+  .back-to-home a {
+    color: #4a90e2;
     text-decoration: none;
   }
   
-  .back-link:hover {
+  .back-to-home a:hover {
     text-decoration: underline;
   }
 </style>
@@ -67,24 +74,37 @@
     <i class="fas fa-envelope"></i>
   </div>
   
-  <h1 class="email-check-title">Check Your Email</h1>
+  <h1>Check Your Email</h1>
   
-  <p class="email-instructions">
-    We've sent a login link to <span class="email-address">{{ email }}</span>. 
-    Click the link in the email to access your dashboard.
-  </p>
+  <p>We've sent a magic login link to <span class="email-address">{{ email }}</span></p>
   
-  <p class="email-instructions">
-    If you don't see the email in your inbox, please check your spam folder.
-  </p>
-  
-  <div class="email-tip">
-    <strong>Note:</strong> For development purposes, the login link is currently printed to the console.
-    Check your server logs to see the login URL.
+  <div class="steps-container">
+    <div class="step">
+      <div class="step-number">1</div>
+      <div class="step-text">Check your inbox (and spam folder) for an email from Business Directory</div>
+    </div>
+    
+    <div class="step">
+      <div class="step-number">2</div>
+      <div class="step-text">Click the magic link in the email to log in automatically</div>
+    </div>
+    
+    <div class="step">
+      <div class="step-number">3</div>
+      <div class="step-text">
+        {% if user_type == 'handyman' %}
+        Complete the payment process to activate your handyman account
+        {% else %}
+        Access your dashboard and start using the platform
+        {% endif %}
+      </div>
+    </div>
   </div>
   
-  <a href="{% url 'register' %}" class="back-link">
-    <i class="fas fa-arrow-left"></i> Back to Sign Up
-  </a>
+  <p><small>Note: The magic link expires after 24 hours for security reasons.</small></p>
+  
+  <div class="back-to-home">
+    <a href="{% url 'login' %}"><i class="fas fa-arrow-left"></i> Back to Login</a>
+  </div>
 </div>
 {% endblock %} 
