@@ -1,5 +1,5 @@
 from django.views.generic import FormView, TemplateView, View
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -10,7 +10,7 @@ from django.utils.text import slugify
 from users.models import User, UserType
 from users.utils import send_login_email, check_handyman_payment_status
 from users.views import get_user_profile_data
-from .models import Handyman, Service, HandymanService, HandymanPromotion, JobRequest
+from .models import Handyman, Service, HandymanService, HandymanPromotion, JobRequest, PromotionNotification
 from core.models import Address
 from .forms import (
     HandymanSignupForm,
@@ -21,6 +21,8 @@ from .forms import (
     JobRequestForm,
     JobRequestUpdateForm,
 )
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
 
 
 class PaymentRequiredMixin:
@@ -1273,3 +1275,49 @@ class HandymanPaymentView(View):
                 f"Payment failed: {error_message or 'Unknown error occurred.'}"
             )
             return redirect('handyman_payment')
+
+
+@login_required
+def get_user_notifications(request):
+    """Get promotion notifications for the logged-in user"""
+    notifications = PromotionNotification.objects.filter(
+        recipient=request.user,
+    ).select_related(
+        'promotion', 
+        'promotion__handyman'
+    ).order_by('-sent_at')[:10]
+    
+    notification_data = []
+    for notification in notifications:
+        handyman = notification.promotion.handyman
+        notification_data.append({
+            'id': notification.id,
+            'promotion_id': notification.promotion.id,
+            'handyman_name': handyman.business_name or handyman.user.get_full_name(),
+            'discount': notification.promotion.discount_percentage,
+            'message': f"{notification.promotion.description}",
+            'date': notification.sent_at.strftime('%b %d, %Y'),
+            'is_read': notification.opened,
+        })
+    
+    return JsonResponse({
+        'notifications': notification_data,
+        'count': PromotionNotification.objects.filter(
+            recipient=request.user, 
+            opened=False
+        ).count()
+    })
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """Mark a notification as read"""
+    try:
+        notification = PromotionNotification.objects.get(
+            id=notification_id,
+            recipient=request.user
+        )
+        notification.opened = True
+        notification.save()
+        return JsonResponse({'success': True})
+    except PromotionNotification.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Notification not found'}, status=404)

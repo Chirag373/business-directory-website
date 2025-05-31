@@ -51,4 +51,6 @@ urlpatterns = [
     path("payment/", views.HandymanPaymentView.as_view(), name="handyman_payment"),
     path("", views.HandymanMainView.as_view(), name="handyman_main"),
     path("", views.HandymanMainView.as_view(), name="handyman"),
+    path('notifications/', views.get_user_notifications, name='user_notifications'),
+    path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
 ]

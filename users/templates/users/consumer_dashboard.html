@@ -15,10 +15,6 @@
   <header class="dashboard-header">
     <h1>Welcome, <span id="user-first-name">{{ user.first_name|default:"there" }}</span>!</h1>
     <div class="logout-container">
-      <a href="{% url 'logout' %}" class="logout-button">
-        <i class="fas fa-sign-out-alt"></i> 
-        <span class="logout-text">Logout</span>
-      </a>
       <button class="dashboard-hamburger" aria-label="Toggle dashboard menu">
         <i class="fas fa-bars"></i>
       </button>

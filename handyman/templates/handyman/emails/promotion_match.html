@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Discount Offer for Handyman Services</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #4a90e2;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .discount-banner {
+            background-color: #ff9900;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        .promo-code {
+            background-color: #f0f0f0;
+            border: 2px dashed #ccc;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 15px 0;
+            letter-spacing: 2px;
+        }
+        .business-card {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .business-card img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            margin-bottom: 10px;
+        }
+        .business-details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 3px;
+            margin: 15px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 12px;
+            color: #777;
+            border-top: 1px solid #eee;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4a90e2;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            margin-top: 15px;
+        }
+        .valid-dates {
+            font-size: 14px;
+            color: #777;
+            text-align: center;
+            margin: 5px 0 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Special Handyman Service Offer</h1>
+        </div>
+        
+        <div class="content">
+            <p>Hi {{ consumer_name }},</p>
+            
+            <p>This is the Admin from the Handyman Platform. <strong>Good news!</strong> We found a business that is currently offering a discount that matches what you have indicated you're looking for.</p>
+            
+            <div class="discount-banner">
+                {{ discount_percentage }}% OFF - {{ handyman_name }}
+            </div>
+            
+            <p><strong>Offer Details:</strong> {{ promo_description }}</p>
+            
+            <div class="promo-code">
+                Promo Code: {{ promo_code }}
+            </div>
+            
+            <p class="valid-dates">Valid from {{ start_date }} to {{ end_date }}</p>
+            
+            <div class="business-card">
+                <h3>Business Card</h3>
+                {% if business_card_front %}
+                <img src="{{ business_card_front }}" alt="{{ handyman_name }} Business Card Front">
+                {% endif %}
+                
+                {% if business_card_back %}
+                <img src="{{ business_card_back }}" alt="{{ handyman_name }} Business Card Back">
+                {% endif %}
+            </div>
+            
+            <div class="business-details">
+                <h3>About the Service Provider</h3>
+                <p><strong>Name:</strong> {{ handyman_name }}</p>
+                <p><strong>Services:</strong> {{ service_description }}</p>
+                <p><strong>Contact:</strong> {{ handyman_email }} | {{ handyman_phone }}</p>
+            </div>
+            
+            <p>Please contact the business at your convenience for your project. Mention the promo code when you reach out to receive your discount.</p>
+            
+            <p>Thank you for using our platform!</p>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; {{ current_year }} Handyman Platform. All rights reserved.</p>
+            <p>This email was sent to you because you indicated interest in these services.</p>
+        </div>
+    </div>
+</body>
+</html> 

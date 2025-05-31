@@ -93,6 +93,7 @@
   color: var(--dark-color);
   font-weight: 700;
   letter-spacing: -0.5px;
+  text-align: center;
 }
 
 .signup-header p, .profile-subtitle {
@@ -101,6 +102,7 @@
   max-width: 80%;
   margin: 0 auto;
   line-height: 1.6;
+  text-align: center;
 }
 
 @media (max-width: 768px) {
